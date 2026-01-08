@@ -1,0 +1,32 @@
+# Root gitignore for T-Store
+
+# Backend
+backend/vendor/
+backend/.env
+backend/storage/*.key
+backend/storage/logs/*.log
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/*.sqlite
+backend/*.sqlite-journal
+backend/.phpunit.result.cache
+
+# Frontend  
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
