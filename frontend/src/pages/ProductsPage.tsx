@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -46,6 +46,27 @@ const ProductsPage = () => {
     filters.maxPrice?.toString() || ""
   );
 
+  // Sync URL to local state (for back/forward navigation)
+  useEffect(() => {
+    setLocalSearch(filters.search || "");
+  }, [filters.search]);
+
+  // Auto-search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== (filters.search || "")) {
+        updateFilters({ search: localSearch || undefined });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [localSearch, filters.search]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateFilters({ search: localSearch || undefined });
+  };
+
   const updateFilters = (newFilters: Partial<ProductFilters>) => {
     const params = new URLSearchParams(searchParams);
 
@@ -63,11 +84,6 @@ const ProductsPage = () => {
     }
 
     setSearchParams(params);
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateFilters({ search: localSearch || undefined });
   };
 
   const handlePriceFilter = () => {
@@ -93,7 +109,7 @@ const ProductsPage = () => {
   ];
 
   return (
-    <div className="container py-8">
+    <div className="container pb-32" style={{ paddingTop: "128px" }}>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
@@ -184,15 +200,21 @@ const ProductsPage = () => {
               )}
 
               {/* Search */}
-              <div className="p-4 bg-[var(--color-bg-elevated)] rounded-xl border border-[var(--color-border)]">
-                <h3 className="font-semibold mb-3">Search</h3>
+              <div className="pb-6 border-b border-[var(--color-border)]">
+                <h3 className="font-semibold mb-3 text-lg">Search</h3>
                 <form onSubmit={handleSearch}>
                   <Input
                     placeholder="Search products..."
                     value={localSearch}
                     onChange={(e) => setLocalSearch(e.target.value)}
+                    className="bg-[var(--color-bg-secondary)] border-transparent text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] placeholder:text-[var(--color-text-muted)]"
                   />
-                  <Button type="submit" fullWidth className="mt-3" size="sm">
+                  <Button
+                    type="submit"
+                    fullWidth
+                    className="mt-3 bg-black text-white hover:bg-gray-800"
+                    size="sm"
+                  >
                     Search
                   </Button>
                 </form>
@@ -200,15 +222,15 @@ const ProductsPage = () => {
 
               {/* Categories */}
               {categories && categories.length > 0 && (
-                <div className="p-4 bg-[var(--color-bg-elevated)] rounded-xl border border-[var(--color-border)]">
-                  <h3 className="font-semibold mb-3">Categories</h3>
-                  <div className="space-y-2">
+                <div className="pb-6 border-b border-[var(--color-border)]">
+                  <h3 className="font-semibold mb-3 text-lg">Categories</h3>
+                  <div className="space-y-1">
                     <button
                       onClick={() => updateFilters({ category: undefined })}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                      className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                         !filters.category
-                          ? "bg-[var(--color-primary)] text-white"
-                          : "hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]"
+                          ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20"
+                          : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]"
                       }`}
                     >
                       All Categories
@@ -217,10 +239,10 @@ const ProductsPage = () => {
                       <button
                         key={cat.id}
                         onClick={() => updateFilters({ category: cat.slug })}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                        className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                           filters.category === cat.slug
-                            ? "bg-[var(--color-primary)] text-white"
-                            : "hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]"
+                            ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20"
+                            : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]"
                         }`}
                       >
                         {cat.name}
@@ -231,30 +253,31 @@ const ProductsPage = () => {
               )}
 
               {/* Price Range */}
-              <div className="p-4 bg-[var(--color-bg-elevated)] rounded-xl border border-[var(--color-border)]">
-                <h3 className="font-semibold mb-3">Price Range</h3>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="pb-6">
+                <h3 className="font-semibold mb-3 text-lg">Price Range</h3>
+                <div className="grid grid-cols-2 gap-3">
                   <Input
                     type="number"
                     placeholder="Min"
                     value={localMinPrice}
                     onChange={(e) => setLocalMinPrice(e.target.value)}
+                    className="bg-[var(--color-bg-secondary)] border-transparent focus:bg-white transition-all"
                   />
                   <Input
                     type="number"
                     placeholder="Max"
                     value={localMaxPrice}
                     onChange={(e) => setLocalMaxPrice(e.target.value)}
+                    className="bg-[var(--color-bg-secondary)] border-transparent focus:bg-white transition-all"
                   />
                 </div>
                 <Button
                   onClick={handlePriceFilter}
                   fullWidth
-                  variant="secondary"
-                  className="mt-3"
+                  className="mt-3 bg-black text-white hover:bg-gray-800"
                   size="sm"
                 >
-                  Apply
+                  Apply Filter
                 </Button>
               </div>
 
@@ -307,6 +330,7 @@ const ProductsPage = () => {
                     image={product.images[0] || "/placeholder.jpg"}
                     category={product.category?.name}
                     stock={product.stock}
+                    description={product.description}
                   />
                 ))}
               </div>

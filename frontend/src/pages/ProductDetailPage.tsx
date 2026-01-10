@@ -33,7 +33,7 @@ const ProductDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="container py-8">
+      <div className="container pb-16" style={{ paddingTop: "128px" }}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="space-y-4">
             <div className="aspect-square skeleton rounded-2xl" />
@@ -56,7 +56,10 @@ const ProductDetailPage = () => {
 
   if (error || !product) {
     return (
-      <div className="container py-16 text-center">
+      <div
+        className="container pb-16 text-center"
+        style={{ paddingTop: "128px" }}
+      >
         <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
         <p className="text-[var(--color-text-muted)] mb-6">
           The product you're looking for doesn't exist or has been removed.
@@ -69,7 +72,7 @@ const ProductDetailPage = () => {
   const isOutOfStock = product.stock <= 0;
 
   return (
-    <div className="container py-8">
+    <div className="container pb-16" style={{ paddingTop: "128px" }}>
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-8">
         <button
@@ -99,11 +102,11 @@ const ProductDetailPage = () => {
           className="space-y-4"
         >
           {/* Main Image */}
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-[var(--color-bg-elevated)] border border-[var(--color-border)]">
+          <div className="relative h-[500px] w-full overflow-hidden rounded-2xl bg-[var(--color-bg-elevated)] border border-[var(--color-border)] flex items-center justify-center">
             <img
               src={product.images[selectedImage] || "/placeholder.jpg"}
               alt={product.title}
-              className="w-full h-full object-cover"
+              className="max-h-full max-w-full object-contain"
             />
             {isOutOfStock && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">

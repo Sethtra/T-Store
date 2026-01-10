@@ -9,11 +9,16 @@ export interface OrderItem {
   product_title: string;
   quantity: number;
   price: number;
+  product?: {
+    image_url?: string;
+    images?: string[];
+  };
 }
 
 export interface Order {
   id: number;
   user_id: number;
+  tracking_id?: string;
   status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled';
   total: number;
   payment_intent?: string;
@@ -81,7 +86,7 @@ export interface AdminOrderFilters {
 export const useAdminOrders = (filters: AdminOrderFilters = {}) => {
   return useQuery({
     queryKey: ['admin', 'orders', filters],
-    queryFn: async () => {
+    queryFn: async (): Promise<{ data: Order[]; meta: { total: number; current_page: number; last_page: number } }> => {
       const params = new URLSearchParams();
       if (filters.status) params.append('status', filters.status);
       if (filters.startDate) params.append('start_date', filters.startDate);

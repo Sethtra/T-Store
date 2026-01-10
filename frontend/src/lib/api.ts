@@ -4,7 +4,6 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: '/api',
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
     'X-Requested-With': 'XMLHttpRequest', // Required for Laravel to detect AJAX
   },

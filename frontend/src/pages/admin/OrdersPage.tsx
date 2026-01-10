@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAdminOrders, useUpdateOrderStatus } from "../../hooks/useOrders";
 import Card from "../../components/ui/Card";
@@ -56,6 +57,33 @@ const OrdersPage = () => {
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] p-8">
       <div className="max-w-7xl mx-auto">
+        {/* Admin Navigation */}
+        <div className="flex items-center gap-4 mb-6">
+          <Link to="/admin">
+            <Button variant="ghost" size="sm">
+              ← Back to Dashboard
+            </Button>
+          </Link>
+          <div className="flex-1" />
+          <div className="flex gap-2">
+            <Link to="/admin">
+              <Button variant="ghost" size="sm">
+                Dashboard
+              </Button>
+            </Link>
+            <Link to="/admin/products">
+              <Button variant="ghost" size="sm">
+                Products
+              </Button>
+            </Link>
+            <Link to="/admin/orders">
+              <Button variant="primary" size="sm">
+                Orders
+              </Button>
+            </Link>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold">Orders Management</h1>
@@ -138,6 +166,7 @@ const OrdersPage = () => {
                   price: number;
                 }>;
                 created_at: string;
+                tracking_id?: string | null;
               }) => (
                 <motion.div
                   key={order.id}
@@ -159,6 +188,11 @@ const OrdersPage = () => {
                                 order.status.slice(1)}
                             </Badge>
                           </div>
+                          {order.tracking_id && (
+                            <p className="text-sm font-mono text-[var(--color-primary)] mt-1">
+                              Tracking: {order.tracking_id}
+                            </p>
+                          )}
                           <p className="text-sm text-[var(--color-text-muted)] mt-1">
                             {new Date(order.created_at).toLocaleString()} •
                             Customer #{order.user_id}

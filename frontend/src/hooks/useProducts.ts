@@ -9,7 +9,8 @@ export interface Product {
   description: string;
   price: number;
   stock: number;
-  category_id: number;
+  sold: number;
+  category_id: number | null;
   category?: Category;
   images: string[];
   attributes: Record<string, string>;
@@ -20,6 +21,8 @@ export interface Category {
   id: number;
   name: string;
   slug: string;
+  banner_image?: string;
+  products_count?: number;
 }
 
 export interface ProductFilters {

@@ -22,11 +22,15 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrdersPage from "./pages/OrdersPage";
+import AboutPage from "./pages/AboutPage";
 
 // Admin Pages - Lazy load for code splitting
 const AdminDashboard = lazy(() => import("./pages/admin/DashboardPage"));
 const AdminProducts = lazy(() => import("./pages/admin/ProductsPage"));
+const AdminCategories = lazy(() => import("./pages/admin/CategoriesPage"));
+const AdminBanners = lazy(() => import("./pages/admin/BannersPage"));
 const AdminOrders = lazy(() => import("./pages/admin/OrdersPage"));
+const AdminLanding = lazy(() => import("./pages/admin/LandingSectionPage"));
 
 // Create QueryClient
 const queryClient = new QueryClient({
@@ -89,6 +93,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:slug" element={<ProductDetailPage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
 
@@ -118,10 +123,34 @@ function App() {
               }
             />
             <Route
+              path="/admin/categories"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <AdminCategories />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/banners"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <AdminBanners />
+                </Suspense>
+              }
+            />
+            <Route
               path="/admin/orders"
               element={
                 <Suspense fallback={<PageLoader />}>
                   <AdminOrders />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/landing"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <AdminLanding />
                 </Suspense>
               }
             />

@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   useProducts,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
+  useCategories,
   type Product,
 } from "../../hooks/useProducts";
 import Card from "../../components/ui/Card";
@@ -18,9 +20,13 @@ const ProductsPage = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const { data: productsData, isLoading } = useProducts({ page, limit: 10 });
+  const { data: categories } = useCategories();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
+
+  const [imageInputType, setImageInputType] = useState<"url" | "file">("url");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -28,6 +34,7 @@ const ProductsPage = () => {
     price: "",
     stock: "",
     category_id: "",
+    image_url: "",
   });
 
   const openCreateModal = () => {
@@ -38,7 +45,10 @@ const ProductsPage = () => {
       price: "",
       stock: "",
       category_id: "",
+      image_url: "",
     });
+    setImageInputType("url");
+    setSelectedImage(null);
     setIsModalOpen(true);
   };
 
@@ -47,45 +57,118 @@ const ProductsPage = () => {
     setFormData({
       title: product.title,
       description: product.description,
-      price: product.price.toString(),
-      stock: product.stock.toString(),
-      category_id: product.category_id.toString(),
+      price: product.price?.toString() || "0",
+      stock: product.stock?.toString() || "0",
+      category_id: product.category_id?.toString() || "",
+      image_url: product.images?.[0] || "",
     });
+    setImageInputType("url"); // Default to URL, user can switch if they want to upload new
+    setSelectedImage(null);
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const productData = {
-      title: formData.title,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock),
-      category_id: parseInt(formData.category_id),
-    };
+    try {
+      if (imageInputType === "file" && selectedImage) {
+        // Use FormData for file upload
+        const data = new FormData();
+        data.append("title", formData.title);
+        data.append("description", formData.description);
+        data.append("price", formData.price);
+        data.append("stock", formData.stock);
+        if (formData.category_id) {
+          data.append("category_id", formData.category_id);
+        }
+        data.append("image", selectedImage); // Single image upload for now
 
-    if (editingProduct) {
-      await updateProduct.mutateAsync({
-        id: editingProduct.id,
-        data: productData,
-      });
-    } else {
-      await createProduct.mutateAsync(productData);
+        if (editingProduct) {
+          // For PUT with file, Laravel prefers POST with _method
+          data.append("_method", "PUT");
+          await updateProduct.mutateAsync({
+            id: editingProduct.id,
+            data: data as any, // Cast to any because our hook expects Partial<Product> but we are sending FormData
+          });
+        } else {
+          await createProduct.mutateAsync(data as any);
+        }
+      } else {
+        // JSON payload
+        const productData = {
+          title: formData.title,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          stock: parseInt(formData.stock),
+          category_id: formData.category_id
+            ? parseInt(formData.category_id)
+            : null,
+          images: formData.image_url ? [formData.image_url] : [],
+        };
+
+        if (editingProduct) {
+          await updateProduct.mutateAsync({
+            id: editingProduct.id,
+            data: productData,
+          });
+        } else {
+          await createProduct.mutateAsync(productData);
+        }
+      }
+
+      setIsModalOpen(false);
+    } catch (error: any) {
+      console.error("Failed to save product:", error);
+      const message =
+        error.response?.data?.message ||
+        "Failed to save product. Please try again.";
+      alert(message);
     }
-
-    setIsModalOpen(false);
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
-      await deleteProduct.mutateAsync(id);
+      try {
+        await deleteProduct.mutateAsync(id);
+      } catch (error) {
+        console.error("Failed to delete product:", error);
+        alert(
+          "Failed to delete product. It might be linked to existing orders."
+        );
+      }
     }
   };
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] p-8">
       <div className="max-w-7xl mx-auto">
+        {/* Admin Navigation */}
+        <div className="flex items-center gap-4 mb-6">
+          <Link to="/admin">
+            <Button variant="ghost" size="sm">
+              ← Back to Dashboard
+            </Button>
+          </Link>
+          <div className="flex-1" />
+          <div className="flex gap-2">
+            <Link to="/admin">
+              <Button variant="ghost" size="sm">
+                Dashboard
+              </Button>
+            </Link>
+            <Link to="/admin/products">
+              <Button variant="primary" size="sm">
+                Products
+              </Button>
+            </Link>
+            <Link to="/admin/orders">
+              <Button variant="ghost" size="sm">
+                Orders
+              </Button>
+            </Link>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold">Products Management</h1>
@@ -290,6 +373,28 @@ const ProductsPage = () => {
                     setFormData({ ...formData, description: e.target.value })
                   }
                 />
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                    Category
+                  </label>
+                  <select
+                    className="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-primary)] border border-[var(--color-border)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent outline-none transition-all"
+                    value={formData.category_id}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category_id: e.target.value })
+                    }
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categories?.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <Input
                     label="Price"
@@ -310,6 +415,57 @@ const ProductsPage = () => {
                     }
                     required
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                    Product Image
+                  </label>
+                  <div className="flex gap-4 mb-3">
+                    <button
+                      type="button"
+                      className={`text-sm pb-1 border-b-2 transition-colors ${
+                        imageInputType === "url"
+                          ? "border-[var(--color-primary)] text-[var(--color-primary)] font-medium"
+                          : "border-transparent text-[var(--color-text-muted)]"
+                      }`}
+                      onClick={() => setImageInputType("url")}
+                    >
+                      Image URL
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-sm pb-1 border-b-2 transition-colors ${
+                        imageInputType === "file"
+                          ? "border-[var(--color-primary)] text-[var(--color-primary)] font-medium"
+                          : "border-transparent text-[var(--color-text-muted)]"
+                      }`}
+                      onClick={() => setImageInputType("file")}
+                    >
+                      Upload File
+                    </button>
+                  </div>
+
+                  {imageInputType === "url" ? (
+                    <Input
+                      label=""
+                      placeholder="https://example.com/image.jpg"
+                      value={formData.image_url}
+                      onChange={(e) =>
+                        setFormData({ ...formData, image_url: e.target.value })
+                      }
+                      helperText="Enter a URL to the product image"
+                    />
+                  ) : (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) setSelectedImage(file);
+                      }}
+                      className="w-full text-sm text-[var(--color-text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-primary)] file:text-white hover:file:bg-[var(--color-primary-dark)]"
+                    />
+                  )}
                 </div>
                 <div className="flex gap-3 pt-4">
                   <Button

@@ -21,6 +21,7 @@ frontend/.env.local
 # IDE
 .idea/
 .vscode/
+!.vscode/mcp.json
 *.swp
 *.swo
 
