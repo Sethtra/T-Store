@@ -5,6 +5,8 @@ interface CardProps {
   children: ReactNode;
   className?: string;
   hover?: boolean;
+  variant?: "default" | "glass" | "gradient" | "premium";
+  animate?: boolean;
   onClick?: () => void;
 }
 
@@ -12,21 +14,57 @@ const Card = ({
   children,
   className = "",
   hover = false,
+  variant = "default",
+  animate = false,
   onClick,
 }: CardProps) => {
+  const variants = {
+    default: `
+      bg-[var(--color-bg-elevated)]
+      border border-[var(--color-border)]
+    `,
+    glass: `
+      glass-card
+    `,
+    gradient: `
+      bg-[var(--color-bg-elevated)]
+      gradient-border
+    `,
+    premium: `
+      glass-premium
+    `,
+  };
+
+  const hoverEffects = hover
+    ? {
+        whileHover: {
+          y: -8,
+          boxShadow:
+            "0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(59, 130, 246, 0.15)",
+          borderColor: "rgba(59, 130, 246, 0.3)",
+        },
+        transition: { duration: 0.3 },
+      }
+    : {};
+
+  const animateProps = animate
+    ? {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.5 },
+      }
+    : {};
+
   return (
     <motion.div
-      whileHover={hover ? { y: -4, boxShadow: "var(--shadow-lg)" } : undefined}
-      transition={{ duration: 0.2 }}
+      {...hoverEffects}
+      {...animateProps}
       onClick={onClick}
       className={`
-        bg-[var(--color-bg-elevated)]
-        border border-[var(--color-border)]
+        ${variants[variant]}
         rounded-xl overflow-hidden
-        transition-colors duration-200
-        ${
-          hover ? "cursor-pointer hover:border-[var(--color-border-hover)]" : ""
-        }
+        transition-all duration-300
+        ${hover ? "cursor-pointer" : ""}
         ${className}
       `}
     >
@@ -42,7 +80,7 @@ interface CardHeaderProps {
 
 Card.Header = ({ children, className = "" }: CardHeaderProps) => (
   <div
-    className={`px-5 py-4 border-b border-[var(--color-border)] ${className}`}
+    className={`px-6 py-5 border-b border-[var(--color-border)]/50 ${className}`}
   >
     {children}
   </div>
@@ -54,7 +92,7 @@ interface CardBodyProps {
 }
 
 Card.Body = ({ children, className = "" }: CardBodyProps) => (
-  <div className={`p-5 ${className}`}>{children}</div>
+  <div className={`p-6 ${className}`}>{children}</div>
 );
 
 interface CardFooterProps {
@@ -64,7 +102,7 @@ interface CardFooterProps {
 
 Card.Footer = ({ children, className = "" }: CardFooterProps) => (
   <div
-    className={`px-5 py-4 border-t border-[var(--color-border)] ${className}`}
+    className={`px-6 py-5 border-t border-[var(--color-border)]/50 ${className}`}
   >
     {children}
   </div>

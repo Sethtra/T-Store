@@ -1,275 +1,197 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useFeaturedProducts, type Product } from "../hooks/useProducts";
 import ProductCard from "../components/product/ProductCard";
-import { ProductGridSkeleton } from "../components/product/ProductCardSkeleton";
+import ProductCardSkeleton from "../components/product/ProductCardSkeleton";
 import Button from "../components/ui/Button";
 
 const HomePage = () => {
-  const { data: featuredProducts, isLoading } = useFeaturedProducts();
+  const { data: products, isLoading, error } = useFeaturedProducts();
 
   return (
-    <div>
+    <div className="space-y-16 pb-16">
       {/* Hero Section */}
-      <section className="relative min-h-[70vh] flex items-center overflow-hidden">
+      <section className="relative overflow-hidden py-20 lg:py-32">
         {/* Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-bg-primary)] via-[var(--color-bg-secondary)] to-[var(--color-primary)]/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-purple-500/10" />
 
-        {/* Animated Background Elements */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.1 }}
-          transition={{ duration: 2 }}
-          className="absolute inset-0"
-        >
-          <div className="absolute top-20 left-10 w-72 h-72 bg-[var(--color-primary)] rounded-full blur-[120px]" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-[var(--color-primary)] rounded-full blur-[150px]" />
-        </motion.div>
-
-        <div className="container relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="max-w-2xl"
-          >
-            <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="inline-block px-4 py-1.5 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 rounded-full text-[var(--color-primary)] text-sm font-medium mb-6"
-            >
-              ✨ New Collection Available
-            </motion.span>
-
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-4xl md:text-6xl font-bold leading-tight mb-6"
+              transition={{ duration: 0.6 }}
+              className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight"
             >
-              Discover Premium
-              <span className="text-[var(--color-primary)]"> Products</span>
+              <span className="text-[var(--color-text-primary)]">
+                Premium Tech
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-[var(--color-primary)] to-purple-500 bg-clip-text text-transparent">
+                For Modern Life
+              </span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-lg text-[var(--color-text-secondary)] mb-8 max-w-lg"
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mt-6 text-lg md:text-xl text-[var(--color-text-muted)] max-w-2xl mx-auto"
             >
-              Explore our curated collection of high-quality products. Free
-              shipping on orders over $50.
+              Discover our curated collection of cutting-edge electronics,
+              gadgets, and accessories designed to elevate your digital
+              experience.
             </motion.p>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-wrap gap-4"
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
             >
               <Link to="/products">
-                <Button size="lg">
-                  Shop Now
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 ml-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
-                </Button>
+                <Button size="lg">Shop Now</Button>
               </Link>
-              <Link to="/products?sort=popular">
+              <Link to="/products?category=new">
                 <Button variant="outline" size="lg">
-                  View Best Sellers
+                  New Arrivals
                 </Button>
               </Link>
             </motion.div>
-          </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Products */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-bold">Featured Products</h2>
+            <p className="text-[var(--color-text-muted)] mt-2">
+              Handpicked products just for you
+            </p>
+          </div>
+          <Link to="/products">
+            <Button variant="ghost">View All →</Button>
+          </Link>
+        </div>
+
+        {error && (
+          <div className="text-center py-12">
+            <p className="text-[var(--color-error)]">Failed to load products</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))
+            : products
+                ?.slice(0, 8)
+                .map((product: Product) => (
+                  <ProductCard
+                    key={product.id}
+                    id={product.id}
+                    slug={product.slug}
+                    title={product.title}
+                    price={product.price}
+                    image={product.images?.[0] || "/placeholder.png"}
+                    category={product.category?.name}
+                  />
+                ))}
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-bold mb-8 text-center">
+          Shop by Category
+        </h2>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { name: "Electronics", icon: "🔌", slug: "electronics" },
+            { name: "Accessories", icon: "🎧", slug: "accessories" },
+            { name: "Wearables", icon: "⌚", slug: "wearables" },
+            { name: "Gaming", icon: "🎮", slug: "gaming" },
+          ].map((category) => (
+            <Link
+              key={category.slug}
+              to={`/products?category=${category.slug}`}
+              className="group"
+            >
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-2xl p-6 text-center transition-all duration-300 hover:border-[var(--color-primary)] hover:shadow-lg hover:shadow-[var(--color-primary)]/10"
+              >
+                <div className="text-4xl mb-3">{category.icon}</div>
+                <h3 className="font-medium group-hover:text-[var(--color-primary)] transition-colors">
+                  {category.name}
+                </h3>
+              </motion.div>
+            </Link>
+          ))}
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 border-t border-[var(--color-border)]">
-        <div className="container">
+      <section className="bg-[var(--color-bg-elevated)] py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                    />
-                  </svg>
-                ),
+                icon: "🚚",
                 title: "Free Shipping",
-                description: "On all orders over $50",
+                description: "On orders over $50",
               },
               {
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                    />
-                  </svg>
-                ),
-                title: "Secure Payments",
-                description: "SSL encrypted checkout",
+                icon: "🔒",
+                title: "Secure Payment",
+                description: "100% protected transactions",
               },
               {
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                ),
-                title: "30-Day Returns",
-                description: "Easy hassle-free returns",
+                icon: "💬",
+                title: "24/7 Support",
+                description: "We're here to help",
               },
-            ].map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-start gap-4 p-6 bg-[var(--color-bg-elevated)] rounded-xl border border-[var(--color-border)]"
-              >
-                <div className="p-3 bg-[var(--color-primary)]/10 rounded-lg text-[var(--color-primary)]">
-                  {feature.icon}
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">{feature.title}</h3>
-                  <p className="text-sm text-[var(--color-text-muted)]">
-                    {feature.description}
-                  </p>
-                </div>
-              </motion.div>
+            ].map((feature) => (
+              <div key={feature.title} className="text-center">
+                <div className="text-4xl mb-4">{feature.icon}</div>
+                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                <p className="text-[var(--color-text-muted)]">
+                  {feature.description}
+                </p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Products Section */}
-      <section className="py-16">
-        <div className="container">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold">
-                Featured Products
-              </h2>
-              <p className="text-[var(--color-text-muted)] mt-1">
-                Our most popular items
-              </p>
-            </div>
-            <Link to="/products">
-              <Button variant="ghost">
-                View All
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 ml-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </Button>
-            </Link>
-          </div>
-
-          {isLoading ? (
-            <ProductGridSkeleton count={4} />
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {featuredProducts?.slice(0, 8).map((product: Product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  slug={product.slug}
-                  title={product.title}
-                  price={product.price}
-                  image={product.images[0] || "/placeholder.jpg"}
-                  category={product.category?.name}
-                  stock={product.stock}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
       {/* CTA Section */}
-      <section className="py-20">
-        <div className="container">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="relative rounded-3xl overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] to-blue-600" />
-            <div className="relative px-8 py-16 md:py-20 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Join Our Newsletter
-              </h2>
-              <p className="text-white/80 max-w-lg mx-auto mb-8">
-                Subscribe to get special offers, free giveaways, and
-                once-in-a-lifetime deals.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="flex-1 px-5 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:border-white/40"
-                />
-                <Button className="bg-white text-[var(--color-primary)] hover:bg-white/90">
-                  Subscribe
-                </Button>
-              </div>
-            </div>
-          </motion.div>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-gradient-to-r from-[var(--color-primary)] to-purple-600 rounded-3xl p-8 md:p-16 text-center text-white">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Join Our Newsletter
+          </h2>
+          <p className="text-white/80 mb-8 max-w-xl mx-auto">
+            Subscribe to get special offers, free giveaways, and exclusive
+            deals.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
+            />
+            <Button
+              variant="secondary"
+              className="bg-white text-[var(--color-primary)] hover:bg-white/90"
+            >
+              Subscribe
+            </Button>
+          </div>
         </div>
       </section>
     </div>

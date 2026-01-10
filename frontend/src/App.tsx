@@ -20,6 +20,8 @@ import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import OrdersPage from "./pages/OrdersPage";
 
 // Admin Pages - Lazy load for code splitting
 const AdminDashboard = lazy(() => import("./pages/admin/DashboardPage"));
@@ -92,7 +94,8 @@ function App() {
 
             {/* Protected Customer Routes */}
             <Route element={<ProtectedRoute />}>
-              {/* Add customer-only routes here (orders, profile, etc.) */}
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/orders" element={<OrdersPage />} />
             </Route>
           </Route>
 

@@ -235,7 +235,7 @@ const DashboardPage = () => {
                           </div>
                           <div className="text-right">
                             <p className="font-semibold">
-                              ${order.total.toFixed(2)}
+                              ${Number(order.total).toFixed(2)}
                             </p>
                             <Badge
                               variant={

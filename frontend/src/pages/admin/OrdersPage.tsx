@@ -165,7 +165,7 @@ const OrdersPage = () => {
                           </p>
                         </div>
                         <p className="text-xl font-bold text-[var(--color-primary)]">
-                          ${order.total.toFixed(2)}
+                          ${Number(order.total).toFixed(2)}
                         </p>
                       </div>
 

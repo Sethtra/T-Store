@@ -92,6 +92,11 @@ const Navbar = () => {
                       </Button>
                     </Link>
                   )}
+                  <Link to="/orders">
+                    <Button variant="ghost" size="sm">
+                      My Orders
+                    </Button>
+                  </Link>
                   <Button variant="ghost" size="sm" onClick={handleLogout}>
                     Logout
                   </Button>
