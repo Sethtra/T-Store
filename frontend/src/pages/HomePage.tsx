@@ -1,16 +1,10 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-  useFeaturedProducts,
-  useProducts,
-  type Product,
-} from "../hooks/useProducts";
-import { useSectionBanners } from "../hooks/useBanners";
+import { useFeaturedProducts, type Product } from "../hooks/useProducts";
 import ProductCard from "../components/product/ProductCard";
 import ProductCardSkeleton from "../components/product/ProductCardSkeleton";
 import Button from "../components/ui/Button";
 import HeroSection from "../components/home/HeroSection";
-import CategoryProductRow from "../components/home/CategoryProductRow";
+import BrowseByCategories from "../components/home/BrowseByCategories";
 
 const HomePage = () => {
   const {
@@ -18,38 +12,6 @@ const HomePage = () => {
     isLoading: featuredLoading,
     error,
   } = useFeaturedProducts();
-  const { data: sectionBanners } = useSectionBanners();
-  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
-
-  // Rotate banners every 5 seconds
-  useEffect(() => {
-    if (!sectionBanners || sectionBanners.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setActiveBannerIndex((current) => (current + 1) % sectionBanners.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [sectionBanners]);
-
-  // Get current active section banner
-  const activeBanner = sectionBanners?.[activeBannerIndex];
-
-  // Extract category slug from button_link
-  const categorySlug =
-    activeBanner?.button_link?.match(/category=([^&]+)/)?.[1] || "electronics";
-
-  // Format category title
-  const categoryTitle = categorySlug
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-
-  // Fetch products for the current banner's category
-  const { data: categoryProducts, isLoading: categoryLoading } = useProducts({
-    category: categorySlug,
-    limit: 10,
-  });
 
   return (
     <div className="space-y-8 pb-16">
@@ -102,24 +64,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Rotating Section Banner Row */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[400px]">
-        {activeBanner && categoryProducts?.data ? (
-          <CategoryProductRow
-            title={categoryTitle}
-            bannerTitle={activeBanner.title}
-            bannerTextColor={activeBanner.text_color}
-            products={categoryProducts.data}
-            categorySlug={categorySlug}
-            showHero
-            bannerImage={activeBanner.image}
-          />
-        ) : (
-          <div className="h-[400px] w-full bg-gray-100 rounded-2xl animate-pulse flex items-center justify-center">
-            <div className="text-gray-400">Loading Collection...</div>
-          </div>
-        )}
-      </section>
+      {/* Browse by Categories */}
+      <BrowseByCategories />
 
       {/* Features Section */}
       <section className="bg-[var(--color-bg-elevated)] py-16">

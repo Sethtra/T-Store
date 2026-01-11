@@ -57,9 +57,6 @@ const OrderDetailsModal = ({
               <div className="p-6 border-b border-[var(--color-border)] flex items-center justify-between bg-[var(--color-bg-secondary)]">
                 <div>
                   <h2 className="text-xl font-bold">Order Details</h2>
-                  <p className="text-sm text-[var(--color-text-muted)]">
-                    #{order.id}
-                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge variant={getStatusColor(order.status) as any}>

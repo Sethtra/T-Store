@@ -62,6 +62,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               bg-[var(--color-bg-elevated)]
               border-2 border-[var(--color-border)]
               text-[var(--color-text-primary)]
+              caret-[var(--color-primary)]
               placeholder:text-[var(--color-text-muted)]
               transition-all duration-300 ease-out
               focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10

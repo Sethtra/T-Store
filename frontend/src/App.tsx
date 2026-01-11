@@ -28,7 +28,6 @@ import AboutPage from "./pages/AboutPage";
 const AdminDashboard = lazy(() => import("./pages/admin/DashboardPage"));
 const AdminProducts = lazy(() => import("./pages/admin/ProductsPage"));
 const AdminCategories = lazy(() => import("./pages/admin/CategoriesPage"));
-const AdminBanners = lazy(() => import("./pages/admin/BannersPage"));
 const AdminOrders = lazy(() => import("./pages/admin/OrdersPage"));
 const AdminLanding = lazy(() => import("./pages/admin/LandingSectionPage"));
 
@@ -130,14 +129,7 @@ function App() {
                 </Suspense>
               }
             />
-            <Route
-              path="/admin/banners"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <AdminBanners />
-                </Suspense>
-              }
-            />
+
             <Route
               path="/admin/orders"
               element={

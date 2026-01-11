@@ -26,7 +26,7 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
       printWindow.document.write(`
         <html>
           <head>
-            <title>Invoice #${order.id}</title>
+            <title>Invoice - ${order.tracking_id || order.id}</title>
             <style>
               body { font-family: sans-serif; padding: 20px; color: #333; }
               .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
@@ -109,8 +109,10 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
                     <div className="w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center ml-auto mb-4 text-xl font-bold">
                       T
                     </div>
-                    <p className="text-sm text-gray-500">Invoice #</p>
-                    <p className="text-xl font-bold mb-2">{order.id}</p>
+                    <p className="text-sm text-gray-500">Tracking ID</p>
+                    <p className="text-xl font-bold mb-2 font-mono">
+                      {order.tracking_id || order.id}
+                    </p>
                     <p className="text-sm text-gray-500">Date</p>
                     <p className="font-medium">
                       {new Date(order.created_at).toLocaleDateString()}

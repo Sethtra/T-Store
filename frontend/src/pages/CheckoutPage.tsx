@@ -83,37 +83,6 @@ const StepProgress = ({ currentStep }: { currentStep: number }) => {
   );
 };
 
-// Animated Form Section Component
-const FormSection = ({
-  title,
-  icon,
-  children,
-  delay = 0,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-  delay?: number;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay }}
-    className="glass-card rounded-2xl p-6 md:p-8 hover-lift"
-  >
-    <div className="flex items-center gap-3 mb-6">
-      <motion.div
-        whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-        className="p-3 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[#8b5cf6] text-white"
-      >
-        {icon}
-      </motion.div>
-      <h2 className="text-xl font-semibold">{title}</h2>
-    </div>
-    {children}
-  </motion.div>
-);
-
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCartStore();
@@ -133,7 +102,9 @@ const CheckoutPage = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
-  const [orderId, setOrderId] = useState<number | null>(null);
+  const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">(
+    "delivery"
+  );
 
   // Calculate step based on form completion
   const updateStep = (field: string) => {
@@ -158,6 +129,51 @@ const CheckoutPage = () => {
     setFormData({ ...formData, [field]: value });
     setTimeout(() => updateStep(field), 100);
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const orderData = {
+        items: items.map((item) => ({
+          product_id: item.id,
+          quantity: item.quantity,
+        })),
+        payment_method: "stripe" as const,
+        delivery_method: deliveryMethod,
+        shipping_address:
+          deliveryMethod === "delivery"
+            ? {
+                address: formData.address,
+                city: formData.city,
+                postalCode: formData.postalCode,
+                country: formData.country,
+              }
+            : null,
+      };
+
+      await createOrder.mutateAsync(orderData);
+      clearCart();
+      setOrderSuccess(true);
+    } catch (error: any) {
+      // alert(error.response?.data?.message || "Failed to place order");
+      console.error("Order failed", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const subtotal = totalPrice();
+  const shipping = deliveryMethod === "pickup" ? 0 : subtotal > 50 ? 0 : 9.99;
+  const tax = subtotal * 0.1;
+  const total = subtotal + shipping + tax;
 
   if (items.length === 0 && !orderSuccess) {
     return (
@@ -318,11 +334,11 @@ const CheckoutPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="px-4 py-2 bg-[var(--color-bg-elevated)] rounded-full border border-[var(--color-border)] mb-8"
+          className="px-4 py-2 bg-[var(--color-bg-elevated)] rounded-full border border-[var(--color-border)] mb-8 flex items-center gap-2"
         >
-          <span className="text-[var(--color-text-muted)]">Order ID: </span>
-          <span className="font-mono font-bold text-[var(--color-primary)]">
-            #{orderId}
+          <span className="text-[var(--color-text-muted)]">Order Status:</span>
+          <span className="font-bold text-[var(--color-success)]">
+            Confirmed
           </span>
         </motion.div>
 
@@ -347,465 +363,331 @@ const CheckoutPage = () => {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const orderData = {
-        items: items.map((item) => ({
-          product_id: item.id,
-          quantity: item.quantity,
-        })),
-        payment_method: "stripe" as const,
-      };
-
-      const result = await createOrder.mutateAsync(orderData);
-      setOrderId(result.order.id);
-      clearCart();
-      setOrderSuccess(true);
-    } catch (error: any) {
-      alert(error.response?.data?.message || "Failed to place order");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const subtotal = totalPrice();
-  const shipping = subtotal > 50 ? 0 : 9.99;
-  const tax = subtotal * 0.1;
-  const total = subtotal + shipping + tax;
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="py-8 md:py-12"
+      className="pb-12 md:pb-16"
+      style={{ paddingTop: "140px" }}
     >
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
-      >
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">Checkout</h1>
-        <p className="text-[var(--color-text-muted)]">
-          Complete your order in just a few steps
-        </p>
-      </motion.div>
+      <div className="container lg:px-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-8 md:mb-12"
+        >
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold">Checkout</h1>
+          </div>
+          <StepProgress currentStep={currentStep} />
+        </motion.div>
 
-      {/* Step Progress */}
-      <StepProgress currentStep={currentStep} />
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          {/* Left Column: Form (Span 7) */}
+          <div className="lg:col-span-7 space-y-8">
+            <div>
+              <h2 className="text-xl font-bold mb-6">Shipping Information</h2>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Checkout Form */}
-        <div className="lg:col-span-2 space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Contact Information */}
-            <FormSection
-              title="Contact Information"
-              delay={0.1}
-              icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              }
-            >
-              <div className="grid sm:grid-cols-2 gap-4">
-                <motion.div whileFocus={{ scale: 1.01 }}>
-                  <Input
-                    label="First Name"
-                    value={formData.firstName}
-                    onChange={(e) =>
-                      handleInputChange("firstName", e.target.value)
-                    }
-                    required
-                    className="focus-glow"
-                  />
-                </motion.div>
-                <motion.div whileFocus={{ scale: 1.01 }}>
-                  <Input
-                    label="Last Name"
-                    value={formData.lastName}
-                    onChange={(e) =>
-                      handleInputChange("lastName", e.target.value)
-                    }
-                    required
-                    className="focus-glow"
-                  />
-                </motion.div>
-              </div>
-              <div className="mt-4">
-                <Input
-                  label="Email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  required
-                  className="focus-glow"
-                />
-              </div>
-            </FormSection>
-
-            {/* Shipping Address */}
-            <FormSection
-              title="Shipping Address"
-              delay={0.2}
-              icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-              }
-            >
-              <Input
-                label="Street Address"
-                value={formData.address}
-                onChange={(e) => handleInputChange("address", e.target.value)}
-                required
-                className="focus-glow"
-              />
-              <div className="grid sm:grid-cols-3 gap-4 mt-4">
-                <Input
-                  label="City"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  required
-                  className="focus-glow"
-                />
-                <Input
-                  label="Postal Code"
-                  value={formData.postalCode}
-                  onChange={(e) =>
-                    handleInputChange("postalCode", e.target.value)
-                  }
-                  required
-                  className="focus-glow"
-                />
-                <Input
-                  label="Country"
-                  value={formData.country}
-                  onChange={(e) => handleInputChange("country", e.target.value)}
-                  required
-                  className="focus-glow"
-                />
-              </div>
-            </FormSection>
-
-            {/* Payment Method */}
-            <FormSection
-              title="Payment Method"
-              delay={0.3}
-              icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                  />
-                </svg>
-              }
-            >
-              <motion.label
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                className="flex items-center gap-4 p-5 bg-[var(--color-bg-elevated)] rounded-xl border-2 border-[var(--color-primary)] cursor-pointer transition-all"
+              <form
+                id="checkout-form"
+                onSubmit={handleSubmit}
+                className="space-y-8"
               >
-                <div className="w-5 h-5 rounded-full border-2 border-[var(--color-primary)] bg-[var(--color-primary)] flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Credit/Debit Card</span>
-                    <span className="px-2 py-0.5 text-xs bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full">
-                      Demo
-                    </span>
-                  </div>
-                  <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                    Secure payment powered by Stripe
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  {["💳", "🔒"].map((emoji, i) => (
-                    <motion.span
-                      key={i}
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        delay: i * 0.5,
-                      }}
-                      className="text-xl"
-                    >
-                      {emoji}
-                    </motion.span>
-                  ))}
-                </div>
-              </motion.label>
-              <p className="text-sm text-[var(--color-text-muted)] mt-3 flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 text-[var(--color-success)]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                  />
-                </svg>
-                This is a demo checkout. No actual payment will be processed.
-              </p>
-            </FormSection>
-
-            {/* Auth Warning */}
-            <AnimatePresence>
-              {!isAuthenticated && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="p-5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-xl backdrop-blur-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <motion.div
-                      animate={{ rotate: [0, 10, -10, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="text-2xl"
-                    >
-                      ⚠️
-                    </motion.div>
-                    <p className="text-amber-400">
-                      Please{" "}
-                      <Link
-                        to="/login"
-                        className="underline font-medium hover:text-amber-300"
-                      >
-                        login
-                      </Link>{" "}
-                      or{" "}
-                      <Link
-                        to="/register"
-                        className="underline font-medium hover:text-amber-300"
-                      >
-                        register
-                      </Link>{" "}
-                      to complete your order.
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Submit Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Button
-                type="submit"
-                size="lg"
-                fullWidth
-                isLoading={isSubmitting}
-                disabled={!isAuthenticated}
-                className="py-4 text-lg font-semibold shimmer-effect"
-              >
-                {isSubmitting ? (
-                  "Processing..."
-                ) : (
-                  <>
-                    Place Order
-                    <span className="ml-2 px-3 py-1 bg-white/20 rounded-lg">
-                      ${total.toFixed(2)}
-                    </span>
-                  </>
-                )}
-              </Button>
-            </motion.div>
-          </form>
-        </div>
-
-        {/* Order Summary */}
-        <div className="lg:col-span-1">
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="sticky top-24"
-          >
-            <div className="glass-premium rounded-2xl p-6 md:p-8">
-              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <span className="text-2xl">🛒</span>
-                Order Summary
-              </h2>
-
-              {/* Items */}
-              <div className="space-y-4 mb-6 max-h-64 overflow-y-auto custom-scrollbar">
-                {items.map((item, index) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 + index * 0.05 }}
-                    whileHover={{ x: 4 }}
-                    className="flex gap-4 p-3 rounded-xl bg-[var(--color-bg-elevated)]/50 border border-[var(--color-border)]/50 transition-all"
+                {/* Delivery Method Toggle */}
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod("delivery")}
+                    className={`flex items-center justify-center gap-3 px-6 py-4 rounded-xl border-2 font-medium transition-all ${
+                      deliveryMethod === "delivery"
+                        ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]"
+                        : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border-hover)] bg-[var(--color-bg-elevated)]/50"
+                    }`}
                   >
-                    <div className="w-16 h-16 bg-[var(--color-bg-surface)] rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={item.image || "/placeholder.png"}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
                       />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">
-                        {item.title}
-                      </h4>
-                      <p className="text-[var(--color-text-muted)] text-sm">
-                        Qty: {item.quantity}
-                      </p>
-                      <p className="text-[var(--color-primary)] font-semibold">
-                        ${(Number(item.price) * item.quantity).toFixed(2)}
+                    </svg>
+                    Delivery
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod("pickup")}
+                    className={`flex items-center justify-center gap-3 px-6 py-4 rounded-xl border-2 font-medium transition-all ${
+                      deliveryMethod === "pickup"
+                        ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]"
+                        : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border-hover)] bg-[var(--color-bg-elevated)]/50"
+                    }`}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                    Pick up
+                  </button>
+                </div>
+
+                {/* Form Fields */}
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <Input
+                      label="First name *"
+                      placeholder="Enter first name"
+                      value={formData.firstName}
+                      onChange={(e) =>
+                        handleInputChange("firstName", e.target.value)
+                      }
+                      required
+                      className="bg-transparent border-[var(--color-border)] focus:border-[var(--color-primary)] rounded-lg px-4 py-3"
+                    />
+                    <Input
+                      label="Last name *"
+                      placeholder="Enter last name"
+                      value={formData.lastName}
+                      onChange={(e) =>
+                        handleInputChange("lastName", e.target.value)
+                      }
+                      required
+                      className="bg-transparent border-[var(--color-border)] focus:border-[var(--color-primary)] rounded-lg px-4 py-3"
+                    />
+                  </div>
+
+                  <Input
+                    label="Email address *"
+                    placeholder="Enter email address"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    required
+                    className="bg-transparent border-[var(--color-border)] focus:border-[var(--color-primary)] rounded-lg px-4 py-3"
+                  />
+
+                  <Input
+                    label="Phone number *"
+                    placeholder="Enter phone number"
+                    className="bg-transparent border-[var(--color-border)] focus:border-[var(--color-primary)] rounded-lg px-4 py-3"
+                  />
+
+                  <AnimatePresence>
+                    {deliveryMethod === "delivery" && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-6 overflow-hidden"
+                      >
+                        <Input
+                          label="Country *"
+                          placeholder="Choose state"
+                          value={formData.country}
+                          onChange={(e) =>
+                            handleInputChange("country", e.target.value)
+                          }
+                          className="bg-transparent border-[var(--color-border)] focus:border-[var(--color-primary)] rounded-lg px-4 py-3"
+                          required={deliveryMethod === "delivery"}
+                        />
+
+                        <div className="grid grid-cols-3 gap-6">
+                          <Input
+                            label="City"
+                            placeholder="Enter city"
+                            value={formData.city}
+                            onChange={(e) =>
+                              handleInputChange("city", e.target.value)
+                            }
+                            required={deliveryMethod === "delivery"}
+                            className="bg-transparent border-[var(--color-border)] focus:border-[var(--color-primary)] rounded-lg px-4 py-3"
+                          />
+                          <Input
+                            label="State"
+                            placeholder="Enter state"
+                            className="bg-transparent border-[var(--color-border)] focus:border-[var(--color-primary)] rounded-lg px-4 py-3"
+                          />
+                          <Input
+                            label="ZIP Code"
+                            placeholder="Enter ZIP code"
+                            value={formData.postalCode}
+                            onChange={(e) =>
+                              handleInputChange("postalCode", e.target.value)
+                            }
+                            required={deliveryMethod === "delivery"}
+                            className="bg-transparent border-[var(--color-border)] focus:border-[var(--color-primary)] rounded-lg px-4 py-3"
+                          />
+                        </div>
+
+                        <Input
+                          label="Street Address *"
+                          placeholder="Enter street address"
+                          value={formData.address}
+                          onChange={(e) =>
+                            handleInputChange("address", e.target.value)
+                          }
+                          required={deliveryMethod === "delivery"}
+                          className="bg-transparent border-[var(--color-border)] focus:border-[var(--color-primary)] rounded-lg px-4 py-3"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <label className="flex items-center gap-3 cursor-pointer group mt-4">
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)] bg-[var(--color-bg-elevated)]"
+                      defaultChecked
+                      required
+                    />
+                    <span className="text-sm text-[var(--color-text-secondary)] group-hover:text-[var(--color-text-primary)] transition-colors">
+                      I have read and agree to the Terms and Conditions.
+                    </span>
+                  </label>
+                </div>
+              </form>
+
+              {/* Auth Warning */}
+              <AnimatePresence>
+                {!isAuthenticated && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-6 p-5 bg-amber-500/10 border border-amber-500/20 rounded-xl"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">⚠️</span>
+                      <p className="text-amber-500 dark:text-amber-400">
+                        Please{" "}
+                        <Link
+                          to="/login"
+                          className="underline font-medium hover:text-amber-300"
+                        >
+                          login
+                        </Link>{" "}
+                        or{" "}
+                        <Link
+                          to="/register"
+                          className="underline font-medium hover:text-amber-300"
+                        >
+                          register
+                        </Link>{" "}
+                        to complete your order.
                       </p>
                     </div>
                   </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Right Column: Order Summary (Span 5) */}
+          <div className="lg:col-span-5">
+            <div className="bg-[var(--color-bg-elevated)]/50 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-[var(--color-border)]/50 sticky top-32">
+              <h2 className="text-xl font-bold mb-6">Review your cart</h2>
+
+              {/* Cart Items */}
+              <div className="space-y-6 mb-8 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
+                {items.map((item) => (
+                  <div key={item.id} className="flex gap-4 group">
+                    <div className="w-20 h-20 bg-white rounded-xl overflow-hidden border border-gray-200 p-2 flex-shrink-0">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-contain mix-blend-multiply"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium line-clamp-2 group-hover:text-[var(--color-primary)] transition-colors">
+                        {item.title}
+                      </h4>
+                      <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                        Qty: {item.quantity}
+                      </p>
+                    </div>
+                    <div className="font-semibold">${item.price}</div>
+                  </div>
                 ))}
               </div>
 
+              {/* Discount Code */}
+              <div className="flex gap-3 mb-8">
+                <input
+                  type="text"
+                  placeholder="Discount code"
+                  className="flex-1 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl px-4 py-3 placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:outline-none transition-all"
+                />
+                <button className="px-6 py-3 bg-[var(--color-bg-surface)] text-[var(--color-primary)] font-medium rounded-xl border border-[var(--color-border)] hover:bg-[var(--color-bg-elevated)] hover:border-[var(--color-primary)] transition-all">
+                  Apply
+                </button>
+              </div>
+
               {/* Totals */}
-              <div className="border-t border-[var(--color-border)]/50 pt-6 space-y-3">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex justify-between text-sm"
-                >
+              <div className="space-y-3 pb-6 border-b border-[var(--color-border)] mb-6">
+                <div className="flex justify-between text-sm">
                   <span className="text-[var(--color-text-muted)]">
                     Subtotal
                   </span>
                   <span className="font-medium">${subtotal.toFixed(2)}</span>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.55 }}
-                  className="flex justify-between text-sm"
-                >
+                </div>
+                <div className="flex justify-between text-sm">
                   <span className="text-[var(--color-text-muted)]">
                     Shipping
                   </span>
-                  <span className="font-medium">
-                    {shipping === 0 ? (
-                      <span className="text-[var(--color-success)]">Free</span>
-                    ) : (
-                      `$${shipping.toFixed(2)}`
-                    )}
-                  </span>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="flex justify-between text-sm"
-                >
+                  <span className="font-medium">${shipping.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
                   <span className="text-[var(--color-text-muted)]">
-                    Tax (10%)
+                    Discount
                   </span>
-                  <span className="font-medium">${tax.toFixed(2)}</span>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.65 }}
-                  className="flex justify-between font-bold text-xl pt-4 border-t border-[var(--color-border)]/50"
-                >
+                  <span className="font-medium text-[var(--color-success)]">
+                    -$0.00
+                  </span>
+                </div>
+                <div className="flex justify-between text-lg font-bold pt-2">
                   <span>Total</span>
-                  <motion.span
-                    className="gradient-text"
-                    animate={{ scale: [1, 1.02, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    ${total.toFixed(2)}
-                  </motion.span>
-                </motion.div>
+                  <span>${total.toFixed(2)}</span>
+                </div>
               </div>
 
-              {/* Free Shipping Progress */}
-              {subtotal < 50 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                  className="mt-6 p-4 bg-[var(--color-primary)]/10 rounded-xl border border-[var(--color-primary)]/20"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-[var(--color-text-muted)]">
-                      Free shipping progress
-                    </span>
-                    <span className="text-sm font-medium text-[var(--color-primary)]">
-                      ${(50 - subtotal).toFixed(2)} away
-                    </span>
-                  </div>
-                  <div className="w-full h-2 bg-[var(--color-bg-surface)] rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(subtotal / 50) * 100}%` }}
-                      transition={{ duration: 1, delay: 0.8 }}
-                      className="h-full bg-gradient-to-r from-[var(--color-primary)] to-[#8b5cf6] rounded-full"
-                    />
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Security Badge */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                className="mt-6 flex items-center justify-center gap-2 text-sm text-[var(--color-text-muted)]"
+              {/* Pay Button */}
+              <Button
+                onClick={() =>
+                  document
+                    .getElementById("checkout-form")
+                    ?.dispatchEvent(
+                      new Event("submit", { cancelable: true, bubbles: true })
+                    )
+                }
+                size="lg"
+                fullWidth
+                isLoading={isSubmitting}
+                disabled={!isAuthenticated}
+                className="py-4 text-base rounded-xl mb-6 bg-[#3b82f6] hover:bg-[#2563eb] text-white border-none shadow-lg shadow-blue-500/20"
               >
+                Pay Now
+              </Button>
+
+              {/* Secure Badge */}
+              <div className="flex items-center gap-2 justify-center text-sm text-[var(--color-text-muted)]">
                 <svg
-                  className="w-5 h-5 text-[var(--color-success)]"
+                  className="w-4 h-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -817,10 +699,16 @@ const CheckoutPage = () => {
                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                   />
                 </svg>
-                Secure SSL Checkout
-              </motion.div>
+                <span className="font-medium">
+                  Secure Checkout - SSL Encrypted
+                </span>
+              </div>
+              <p className="text-xs text-[var(--color-text-muted)] text-center mt-2 max-w-[280px] mx-auto opacity-75">
+                Ensuring your financial and personal details are secure during
+                every transaction.
+              </p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </motion.div>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '../stores/authStore';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -48,8 +49,14 @@ api.interceptors.response.use(
       return api.request(error.config);
     }
     if (error.response?.status === 401) {
-      // Handle unauthorized - redirect to login
-      window.location.href = '/login';
+      // Clear auth state from localStorage directly to prevent race condition
+      localStorage.removeItem('t-store-auth');
+      // Also clear Zustand store state immediately
+      useAuthStore.getState().setUser(null);
+      // Only redirect if not already on login/register page
+      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+        window.location.href = '/login';
+      }
     }
     if (error.response?.status === 403) {
       // Handle forbidden
