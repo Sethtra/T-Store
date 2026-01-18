@@ -135,19 +135,17 @@ const ProductCard = ({
               >
                 Add to Cart
               </Button>
-              <Link
-                to={`/products/${slug}`}
-                className="flex-1"
-                onClick={(e) => e.stopPropagation()}
+              <Button
+                onClick={(e) => {
+                  e?.preventDefault();
+                  // Clicking bubbles to the parent Link, so we don't need to do anything else.
+                }}
+                size="sm"
+                fullWidth
+                className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white flex-1"
               >
-                <Button
-                  size="sm"
-                  fullWidth
-                  className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
-                >
-                  Buy Now
-                </Button>
-              </Link>
+                Buy Now
+              </Button>
             </div>
           </div>
         </div>

@@ -13,7 +13,7 @@ export interface Product {
   category_id: number | null;
   category?: Category;
   images: string[];
-  attributes: Record<string, string>;
+  attributes: Record<string, string | string[]>;
   created_at: string;
 }
 
@@ -21,8 +21,10 @@ export interface Category {
   id: number;
   name: string;
   slug: string;
-  banner_image?: string;
+  // banner_image removed
   products_count?: number;
+  parent_id?: number | null;
+  children?: Category[];
 }
 
 export interface ProductFilters {

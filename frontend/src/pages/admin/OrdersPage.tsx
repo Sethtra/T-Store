@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAdminOrders, useUpdateOrderStatus } from "../../hooks/useOrders";
+import AdminLayout from "../../components/admin/AdminLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 
 const OrdersPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [page, setPage] = useState(1);
 
   const { data: ordersData, isLoading } = useAdminOrders({
@@ -54,36 +56,21 @@ const OrdersPage = () => {
     });
   };
 
-  return (
-    <div className="min-h-screen bg-[var(--color-bg-primary)] p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Admin Navigation */}
-        <div className="flex items-center gap-4 mb-6">
-          <Link to="/admin">
-            <Button variant="ghost" size="sm">
-              ← Back to Dashboard
-            </Button>
-          </Link>
-          <div className="flex-1" />
-          <div className="flex gap-2">
-            <Link to="/admin">
-              <Button variant="ghost" size="sm">
-                Dashboard
-              </Button>
-            </Link>
-            <Link to="/admin/products">
-              <Button variant="ghost" size="sm">
-                Products
-              </Button>
-            </Link>
-            <Link to="/admin/orders">
-              <Button variant="primary" size="sm">
-                Orders
-              </Button>
-            </Link>
-          </div>
-        </div>
+  // Filter orders by search query
+  const filteredOrders = ordersData?.data?.filter(
+    (order: { tracking_id?: string; id: number }) => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        order.tracking_id?.toLowerCase().includes(query) ||
+        order.id.toString().includes(query)
+      );
+    },
+  );
 
+  return (
+    <AdminLayout>
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold">Orders Management</h1>
@@ -91,9 +78,12 @@ const OrdersPage = () => {
               Manage and track all customer orders
             </p>
           </div>
+        </div>
 
+        {/* Filter Tabs + Search */}
+        <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
           {/* Status Filter */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {statusOptions.map((option) => (
               <button
                 key={option.value}
@@ -107,6 +97,30 @@ const OrdersPage = () => {
                 {option.label}
               </button>
             ))}
+          </div>
+
+          {/* Search Input */}
+          <div className="relative">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by Tracking ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] text-sm focus:outline-none focus:border-[var(--color-primary)] w-64"
+            />
           </div>
         </div>
 
@@ -124,7 +138,7 @@ const OrdersPage = () => {
                 </div>
               </Card>
             ))
-          ) : ordersData?.data?.length === 0 ? (
+          ) : filteredOrders?.length === 0 ? (
             <Card className="p-12 text-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -142,13 +156,15 @@ const OrdersPage = () => {
               </svg>
               <p className="text-xl font-semibold mb-2">No orders found</p>
               <p className="text-[var(--color-text-muted)]">
-                {statusFilter
-                  ? "Try changing the status filter"
-                  : "Orders will appear here when customers make purchases"}
+                {searchQuery
+                  ? "No orders match your search"
+                  : statusFilter
+                    ? "Try changing the status filter"
+                    : "Orders will appear here when customers make purchases"}
               </p>
             </Card>
           ) : (
-            ordersData?.data?.map(
+            filteredOrders?.map(
               (order: {
                 id: number;
                 user_id: number;
@@ -178,8 +194,8 @@ const OrdersPage = () => {
                       <div className="flex items-start justify-between mb-4">
                         <div>
                           <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-semibold">
-                              Order #{order.id}
+                            <h3 className="text-lg font-semibold font-mono">
+                              {order.tracking_id || `Order #${order.id}`}
                             </h3>
                             <Badge
                               variant={getStatusBadgeVariant(order.status)}
@@ -188,19 +204,36 @@ const OrdersPage = () => {
                                 order.status.slice(1)}
                             </Badge>
                           </div>
-                          {order.tracking_id && (
-                            <p className="text-sm font-mono text-[var(--color-primary)] mt-1">
-                              Tracking: {order.tracking_id}
-                            </p>
-                          )}
                           <p className="text-sm text-[var(--color-text-muted)] mt-1">
                             {new Date(order.created_at).toLocaleString()} •
                             Customer #{order.user_id}
                           </p>
                         </div>
-                        <p className="text-xl font-bold text-[var(--color-primary)]">
-                          ${Number(order.total).toFixed(2)}
-                        </p>
+                        <div className="flex items-center gap-3">
+                          <p className="text-xl font-bold text-[var(--color-primary)]">
+                            ${Number(order.total).toFixed(2)}
+                          </p>
+                          {/* View Detail Button */}
+                          <Link
+                            to={`/admin/orders/${order.tracking_id || order.id}`}
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 rounded-full hover:bg-[var(--color-primary)]/20 transition-colors"
+                          >
+                            View Detail
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5l7 7-7 7"
+                              />
+                            </svg>
+                          </Link>
+                        </div>
                       </div>
 
                       {/* Order Items */}
@@ -282,7 +315,7 @@ const OrdersPage = () => {
                     </div>
                   </Card>
                 </motion.div>
-              )
+              ),
             )
           )}
         </div>
@@ -314,7 +347,7 @@ const OrdersPage = () => {
           </div>
         )}
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

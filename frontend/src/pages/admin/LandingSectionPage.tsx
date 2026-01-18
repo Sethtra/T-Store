@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import AdminLayout from "../../components/admin/AdminLayout";
 import Button from "../../components/ui/Button";
 import {
   useAdminLandingSections,
@@ -21,7 +21,7 @@ const LandingSectionPage = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<LandingSection | null>(
-    null
+    null,
   );
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -52,10 +52,10 @@ const LandingSectionPage = () => {
   };
 
   const openCreateModal = (
-    sectionType: "hero_main" | "hero_featured" | "hero_small"
+    sectionType: "hero_main" | "hero_featured" | "hero_small",
   ) => {
     const existingSection = sections?.find(
-      (s) => s.section_type === sectionType
+      (s) => s.section_type === sectionType,
     );
     if (existingSection) {
       openEditModal(existingSection);
@@ -142,40 +142,8 @@ const LandingSectionPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-primary)] p-8">
+    <AdminLayout>
       <div className="max-w-7xl mx-auto">
-        {/* Admin Navigation */}
-        <div className="flex items-center gap-4 mb-6">
-          <Link to="/admin">
-            <Button variant="ghost" size="sm">
-              ← Back to Dashboard
-            </Button>
-          </Link>
-          <div className="flex-1" />
-          <div className="flex gap-2">
-            <Link to="/admin">
-              <Button variant="ghost" size="sm">
-                Dashboard
-              </Button>
-            </Link>
-            <Link to="/admin/products">
-              <Button variant="ghost" size="sm">
-                Products
-              </Button>
-            </Link>
-            <Link to="/admin/landing">
-              <Button variant="primary" size="sm">
-                Landing
-              </Button>
-            </Link>
-            <Link to="/admin/orders">
-              <Button variant="ghost" size="sm">
-                Orders
-              </Button>
-            </Link>
-          </div>
-        </div>
-
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
@@ -579,7 +547,7 @@ const LandingSectionPage = () => {
           </motion.div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

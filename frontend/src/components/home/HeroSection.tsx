@@ -55,13 +55,13 @@ const HeroSection = () => {
             >
               <Link
                 to="/products"
-                className="bg-black dark:bg-white text-white dark:text-black px-8 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity shadow-lg"
+                className="bg-white dark:bg-black !text-black dark:!text-white px-8 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-all shadow-lg border border-gray-200 dark:border-gray-800"
               >
                 Browse All Products
               </Link>
               <Link
                 to="/products"
-                className="bg-black dark:bg-white text-white dark:text-black w-12 h-12 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-lg"
+                className="bg-white dark:bg-black !text-black dark:!text-white w-12 h-12 rounded-full flex items-center justify-center hover:opacity-90 transition-all shadow-lg border border-gray-200 dark:border-gray-800"
               >
                 <svg
                   width="20"

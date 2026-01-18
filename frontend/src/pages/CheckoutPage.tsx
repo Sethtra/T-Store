@@ -30,8 +30,8 @@ const StepProgress = ({ currentStep }: { currentStep: number }) => {
                 currentStep > step.number
                   ? "completed"
                   : currentStep === step.number
-                  ? "active"
-                  : "pending"
+                    ? "active"
+                    : "pending"
               }`}
               whileHover={{ scale: 1.1 }}
             >
@@ -72,8 +72,8 @@ const StepProgress = ({ currentStep }: { currentStep: number }) => {
                 currentStep > step.number
                   ? "completed"
                   : currentStep === step.number + 1
-                  ? "active"
-                  : ""
+                    ? "active"
+                    : ""
               }`}
             />
           )}
@@ -98,12 +98,13 @@ const CheckoutPage = () => {
     city: "",
     postalCode: "",
     country: "",
+    phone: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">(
-    "delivery"
+    "delivery",
   );
 
   // Calculate step based on form completion
@@ -148,6 +149,9 @@ const CheckoutPage = () => {
         })),
         payment_method: "stripe" as const,
         delivery_method: deliveryMethod,
+        shipping_name: `${formData.firstName} ${formData.lastName}`,
+        shipping_email: formData.email,
+        shipping_phone: formData.phone,
         shipping_address:
           deliveryMethod === "delivery"
             ? {
@@ -484,6 +488,9 @@ const CheckoutPage = () => {
                   <Input
                     label="Phone number *"
                     placeholder="Enter phone number"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    required
                     className="bg-transparent border-[var(--color-border)] focus:border-[var(--color-primary)] rounded-lg px-4 py-3"
                   />
 
@@ -672,7 +679,7 @@ const CheckoutPage = () => {
                   document
                     .getElementById("checkout-form")
                     ?.dispatchEvent(
-                      new Event("submit", { cancelable: true, bubbles: true })
+                      new Event("submit", { cancelable: true, bubbles: true }),
                     )
                 }
                 size="lg"

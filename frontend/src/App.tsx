@@ -29,7 +29,11 @@ const AdminDashboard = lazy(() => import("./pages/admin/DashboardPage"));
 const AdminProducts = lazy(() => import("./pages/admin/ProductsPage"));
 const AdminCategories = lazy(() => import("./pages/admin/CategoriesPage"));
 const AdminOrders = lazy(() => import("./pages/admin/OrdersPage"));
+const AdminOrderDetail = lazy(() => import("./pages/admin/OrderDetailPage"));
 const AdminLanding = lazy(() => import("./pages/admin/LandingSectionPage"));
+const AdminCategoryDisplay = lazy(
+  () => import("./pages/admin/CategoryDisplayPage"),
+);
 
 // Create QueryClient
 const queryClient = new QueryClient({
@@ -139,10 +143,26 @@ function App() {
               }
             />
             <Route
+              path="/admin/orders/:id"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <AdminOrderDetail />
+                </Suspense>
+              }
+            />
+            <Route
               path="/admin/landing"
               element={
                 <Suspense fallback={<PageLoader />}>
                   <AdminLanding />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/category-display"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <AdminCategoryDisplay />
                 </Suspense>
               }
             />

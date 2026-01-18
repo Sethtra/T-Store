@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   useAdminCategories,
+  useAllCategories,
   useCreateCategory,
   useUpdateCategory,
   useDeleteCategory,
 } from "../../hooks/useCategories";
 import type { Category } from "../../hooks/useProducts";
+import AdminLayout from "../../components/admin/AdminLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -16,24 +17,21 @@ import Badge from "../../components/ui/Badge";
 const CategoriesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [imageInputType, setImageInputType] = useState<"url" | "file">("url");
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const { data: categories, isLoading } = useAdminCategories();
+  const { data: allCategories } = useAllCategories();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
 
   const [formData, setFormData] = useState({
     name: "",
-    banner_image_url: "",
+    parent_id: "" as string | number, // Empty string for "No Parent"
   });
 
   const openCreateModal = () => {
     setEditingCategory(null);
-    setFormData({ name: "", banner_image_url: "" });
-    setImageInputType("url");
-    setSelectedImage(null);
+    setFormData({ name: "", parent_id: "" });
     setIsModalOpen(true);
   };
 
@@ -41,10 +39,8 @@ const CategoriesPage = () => {
     setEditingCategory(category);
     setFormData({
       name: category.name,
-      banner_image_url: category.banner_image || "",
+      parent_id: category.parent_id || "",
     });
-    setImageInputType("url");
-    setSelectedImage(null);
     setIsModalOpen(true);
   };
 
@@ -52,51 +48,37 @@ const CategoriesPage = () => {
     e.preventDefault();
 
     try {
-      if (imageInputType === "file" && selectedImage) {
-        const formDataToSend = new FormData();
-        formDataToSend.append("name", formData.name);
-        formDataToSend.append("banner_image", selectedImage);
+      const dataToSend = {
+        name: formData.name,
+        parent_id: formData.parent_id ? Number(formData.parent_id) : null,
+      };
 
-        if (editingCategory) {
-          await updateCategory.mutateAsync({
-            id: editingCategory.id,
-            data: formDataToSend,
-          });
-        } else {
-          await createCategory.mutateAsync(formDataToSend);
-        }
+      if (editingCategory) {
+        await updateCategory.mutateAsync({
+          id: editingCategory.id,
+          data: dataToSend,
+        });
       } else {
-        const dataToSend: { name: string; banner_image_url?: string } = {
-          name: formData.name,
-        };
-
-        if (formData.banner_image_url) {
-          dataToSend.banner_image_url = formData.banner_image_url;
-        }
-
-        if (editingCategory) {
-          await updateCategory.mutateAsync({
-            id: editingCategory.id,
-            data: dataToSend,
-          });
-        } else {
-          await createCategory.mutateAsync(dataToSend);
-        }
+        await createCategory.mutateAsync(dataToSend);
       }
 
       setIsModalOpen(false);
-      setFormData({ name: "", banner_image_url: "" });
-      setSelectedImage(null);
+      setFormData({ name: "", parent_id: "" });
     } catch (error: any) {
       alert(
         error.response?.data?.message ||
-          "Failed to save category. Please try again."
+          "Failed to save category. Please try again.",
       );
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete this category? Subcategories will be deleted too.",
+      )
+    )
+      return;
 
     try {
       await deleteCategory.mutateAsync(id);
@@ -104,6 +86,26 @@ const CategoriesPage = () => {
       alert("Failed to delete category. Please try again.");
     }
   };
+
+  // Helper to flatten categories for display
+  const flattenCategories = (
+    cats: Category[] | undefined,
+    level = 0,
+  ): Array<Category & { level: number }> => {
+    if (!cats) return [];
+    let flat: Array<Category & { level: number }> = [];
+
+    cats.forEach((cat) => {
+      flat.push({ ...cat, level });
+      if (cat.children && cat.children.length > 0) {
+        flat = [...flat, ...flattenCategories(cat.children, level + 1)];
+      }
+    });
+
+    return flat;
+  };
+
+  const flatCategories = flattenCategories(categories);
 
   if (isLoading) {
     return (
@@ -116,71 +118,109 @@ const CategoriesPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-primary)] pt-24 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/admin"
-              className="text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
-            >
-              ← Back
-            </Link>
-            <h1 className="text-3xl font-bold">Manage Categories</h1>
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Categories</h1>
+            <p className="text-[var(--color-text-muted)]">
+              Manage your product categories
+            </p>
           </div>
           <Button onClick={openCreateModal}>Add Category</Button>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories?.map((category) => (
-            <motion.div
-              key={category.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Card className="overflow-hidden">
-                {category.banner_image && (
-                  <div className="h-48 overflow-hidden">
-                    <img
-                      src={category.banner_image}
-                      alt={category.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+        {/* Categories Table */}
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-[var(--color-bg-elevated)] border-b border-[var(--color-border)]">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[var(--color-text-muted)]">
+                    Name
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[var(--color-text-muted)]">
+                    Slug
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[var(--color-text-muted)]">
+                    Products
+                  </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-[var(--color-text-muted)]">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--color-border)]">
+                {flatCategories.map((category) => (
+                  <tr
+                    key={category.id}
+                    className="hover:bg-[var(--color-bg-elevated)] transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center">
+                        {category.level > 0 && (
+                          <div
+                            style={{ width: `${category.level * 24}px` }}
+                            className="flex-shrink-0 flex justify-end pr-2"
+                          >
+                            <span className="text-[var(--color-text-muted)]">
+                              └
+                            </span>
+                          </div>
+                        )}
+                        <span
+                          className={`font-medium ${category.level === 0 ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)]"}`}
+                        >
+                          {category.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <code className="px-2 py-1 rounded bg-[var(--color-bg-surface)] text-xs font-mono text-[var(--color-text-secondary)]">
+                        {category.slug}
+                      </code>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge variant="default" size="sm">
+                        {category.products_count || 0} items
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEditModal(category)}
+                          className="hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)]"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(category.id)}
+                          className="hover:bg-red-500/10 hover:text-red-500"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {flatCategories.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-6 py-12 text-center text-[var(--color-text-muted)]"
+                    >
+                      No categories found. Click "Add Category" to create one.
+                    </td>
+                  </tr>
                 )}
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-semibold">{category.name}</h3>
-                    <Badge>{category.products_count || 0} products</Badge>
-                  </div>
-                  <p className="text-sm text-[var(--color-text-muted)] mb-4">
-                    Slug: {category.slug}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditModal(category)}
-                      className="flex-1"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(category.id)}
-                      className="text-red-500 hover:text-red-600"
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+              </tbody>
+            </table>
+          </div>
+        </Card>
 
         {/* Modal */}
         {isModalOpen && (
@@ -188,7 +228,7 @@ const CategoriesPage = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-[var(--color-bg-elevated)] rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-[var(--color-bg-elevated)] rounded-2xl p-8 max-w-md w-full"
             >
               <h2 className="text-2xl font-bold mb-6">
                 {editingCategory ? "Edit Category" : "Add Category"}
@@ -207,87 +247,32 @@ const CategoriesPage = () => {
                   />
                 </div>
 
-                {/* Image Input Toggle */}
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Banner Image
+                    Parent Category
                   </label>
-                  <div className="flex gap-4 mb-4">
-                    <button
-                      type="button"
-                      onClick={() => setImageInputType("url")}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
-                        imageInputType === "url"
-                          ? "bg-[var(--color-primary)] text-white"
-                          : "bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]"
-                      }`}
-                    >
-                      URL
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setImageInputType("file")}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
-                        imageInputType === "file"
-                          ? "bg-[var(--color-primary)] text-white"
-                          : "bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]"
-                      }`}
-                    >
-                      Upload File
-                    </button>
-                  </div>
-
-                  {imageInputType === "url" ? (
-                    <Input
-                      value={formData.banner_image_url}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          banner_image_url: e.target.value,
-                        })
-                      }
-                      placeholder="https://example.com/banner.jpg"
-                    />
-                  ) : (
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          setSelectedImage(e.target.files?.[0] || null)
-                        }
-                        className="block w-full text-sm text-[var(--color-text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-primary)] file:text-white hover:file:bg-[var(--color-primary-hover)] transition-colors"
-                      />
-                      {selectedImage && (
-                        <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-                          Selected: {selectedImage.name}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                  <select
+                    value={formData.parent_id}
+                    onChange={(e) =>
+                      setFormData({ ...formData, parent_id: e.target.value })
+                    }
+                    className="w-full px-4 py-2 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:border-[var(--color-primary)] transition-all"
+                  >
+                    <option value="">None (Top Level)</option>
+                    {allCategories
+                      ?.filter((c) => c.id !== editingCategory?.id)
+                      .map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                    Select a parent to make this a subcategory.
+                  </p>
                 </div>
 
-                {/* Preview */}
-                {(formData.banner_image_url || selectedImage) && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Preview
-                    </label>
-                    <div className="h-48 rounded-lg overflow-hidden bg-[var(--color-bg-surface)]">
-                      <img
-                        src={
-                          selectedImage
-                            ? URL.createObjectURL(selectedImage)
-                            : formData.banner_image_url
-                        }
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-4">
+                <div className="flex gap-4 pt-2">
                   <Button
                     type="submit"
                     disabled={
@@ -298,8 +283,8 @@ const CategoriesPage = () => {
                     {createCategory.isPending || updateCategory.isPending
                       ? "Saving..."
                       : editingCategory
-                      ? "Update Category"
-                      : "Create Category"}
+                        ? "Update"
+                        : "Create"}
                   </Button>
                   <Button
                     type="button"
@@ -315,7 +300,7 @@ const CategoriesPage = () => {
           </div>
         )}
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

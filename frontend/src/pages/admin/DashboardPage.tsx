@@ -1,37 +1,12 @@
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useDashboardStats } from "../../hooks/useOrders";
+import AdminLayout from "../../components/admin/AdminLayout";
 import Card from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 
 const DashboardPage = () => {
-  const location = useLocation();
   const { data: stats, isLoading } = useDashboardStats();
-
-  const navItems = [
-    {
-      label: "Dashboard",
-      href: "/admin",
-      icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
-    },
-    {
-      label: "Products",
-      href: "/admin/products",
-      icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
-    },
-    {
-      label: "Orders",
-      href: "/admin/orders",
-      icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01",
-    },
-
-    {
-      label: "Landing",
-      href: "/admin/landing",
-      icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
-    },
-    { label: "Back to Store", href: "/", icon: "M10 19l-7-7m0 0l7-7m-7 7h18" },
-  ];
 
   const statCards = [
     {
@@ -61,40 +36,147 @@ const DashboardPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-primary)]">
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 min-h-screen bg-[var(--color-bg-secondary)] border-r border-[var(--color-border)] p-4 sticky top-0">
-          {/* Logo */}
-          <Link to="/admin" className="flex items-center gap-2 mb-8 px-2">
-            <div className="w-10 h-10 bg-[var(--color-primary)] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">T</span>
-            </div>
-            <div>
-              <span className="font-bold text-lg block">T-Store</span>
-              <span className="text-xs text-[var(--color-text-muted)]">
-                Admin Panel
-              </span>
-            </div>
-          </Link>
+    <AdminLayout>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h1 className="text-2xl font-bold mb-8">Dashboard Overview</h1>
 
-          {/* Navigation */}
-          <nav className="space-y-1">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {statCards.map((stat, index) => (
+            <motion.div
+              key={stat.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Card className="p-6 relative overflow-hidden group hover:shadow-lg transition-shadow border-[var(--color-border)]">
+                <div className="absolute right-0 top-0 w-32 h-32 bg-[var(--color-primary)]/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150" />
+
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-xl bg-[var(--color-bg-surface)] ${stat.color} bg-opacity-10`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d={stat.icon}
+                        />
+                      </svg>
+                    </div>
+                    {/* Optional: Add percentage trend here if available */}
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-[var(--color-text-muted)] mb-1">
+                      {stat.title}
+                    </p>
+                    <h3 className="text-2xl font-bold text-[var(--color-text-primary)]">
+                      {isLoading ? (
+                        <span className="inline-block w-24 h-8 skeleton rounded" />
+                      ) : (
+                        stat.value
+                      )}
+                    </h3>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Revenue Overview - visual improvements */}
+          <div className="lg:col-span-1">
+            <Card className="h-full">
+              <Card.Header>
+                <h2 className="text-lg font-bold">Revenue Overview</h2>
+              </Card.Header>
+              <Card.Body>
+                <div className="space-y-6">
+                  {/* Custom 'Bar Chart' using progress bars */}
+                  {[
+                    {
+                      label: "Today",
+                      value: stats?.revenueByPeriod.day || 0,
+                      color: "bg-blue-500",
+                    },
+                    {
+                      label: "This Week",
+                      value: stats?.revenueByPeriod.week || 0,
+                      color: "bg-indigo-500",
+                    },
+                    {
+                      label: "This Month",
+                      value: stats?.revenueByPeriod.month || 0,
+                      color: "bg-violet-500",
+                    },
+                    {
+                      label: "This Year",
+                      value: stats?.revenueByPeriod.year || 0,
+                      color: "bg-purple-500",
+                    },
+                  ].map((period, idx) => {
+                    // Simple max value logic for bar width visualization (mock max if needed)
+                    const maxValue = Math.max(
+                      stats?.revenueByPeriod.year || 1,
+                      100,
+                    );
+                    const percent = Math.min(
+                      (period.value / maxValue) * 100,
+                      100,
+                    );
+
+                    return (
+                      <div key={period.label}>
+                        <div className="flex justify-between items-end mb-2">
+                          <span className="text-sm text-[var(--color-text-muted)]">
+                            {period.label}
+                          </span>
+                          <span className="font-bold text-[var(--color-text-primary)]">
+                            ${period.value.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="h-2 w-full bg-[var(--color-bg-surface)] rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percent}%` }}
+                            transition={{ duration: 1, delay: idx * 0.1 }}
+                            className={`h-full rounded-full ${period.color}`}
+                            style={{ minWidth: "5%" }} // Always show at least a sliver
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card.Body>
+            </Card>
+          </div>
+
+          {/* Recent Orders - Table Layout */}
+          <div className="lg:col-span-2">
+            <Card className="h-full overflow-hidden">
+              <Card.Header className="flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-bg-elevated)]/50 pb-4">
+                <h2 className="text-lg font-bold">Recent Orders</h2>
                 <Link
-                  key={item.href}
-                  to={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                    isActive
-                      ? "bg-[var(--color-primary)] text-white"
-                      : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)]"
-                  }`}
+                  to="/admin/orders"
+                  className="flex items-center gap-1 text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-light)] transition-colors"
                 >
+                  View All Orders
                   <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
+                    className="w-4 h-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -103,174 +185,116 @@ const DashboardPage = () => {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d={item.icon}
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
                     />
                   </svg>
-                  {item.label}
                 </Link>
-              );
-            })}
-          </nav>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 p-8">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <h1 className="text-2xl font-bold mb-8">Dashboard Overview</h1>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {statCards.map((stat, index) => (
-                <motion.div
-                  key={stat.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm text-[var(--color-text-muted)]">
-                          {stat.title}
-                        </p>
-                        <p className={`text-2xl font-bold mt-1 ${stat.color}`}>
-                          {isLoading ? (
-                            <span className="inline-block w-20 h-7 skeleton rounded" />
-                          ) : (
-                            stat.value
-                          )}
-                        </p>
-                      </div>
-                      <div
-                        className={`p-3 rounded-lg bg-[var(--color-bg-surface)] ${stat.color}`}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d={stat.icon}
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Revenue by Period */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <Card>
-                <Card.Header>
-                  <h2 className="font-semibold">Revenue Overview</h2>
-                </Card.Header>
-                <Card.Body>
-                  <div className="space-y-4">
-                    {[
-                      {
-                        label: "Today",
-                        value: stats?.revenueByPeriod.day || 0,
-                      },
-                      {
-                        label: "This Week",
-                        value: stats?.revenueByPeriod.week || 0,
-                      },
-                      {
-                        label: "This Month",
-                        value: stats?.revenueByPeriod.month || 0,
-                      },
-                      {
-                        label: "This Year",
-                        value: stats?.revenueByPeriod.year || 0,
-                      },
-                    ].map((period) => (
-                      <div
-                        key={period.label}
-                        className="flex items-center justify-between"
-                      >
-                        <span className="text-[var(--color-text-muted)]">
-                          {period.label}
-                        </span>
-                        <span className="font-semibold">
-                          ${period.value.toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </Card.Body>
-              </Card>
-
-              {/* Recent Orders */}
-              <Card>
-                <Card.Header>
-                  <h2 className="font-semibold">Recent Orders</h2>
-                </Card.Header>
-                <Card.Body className="p-0">
-                  {isLoading ? (
-                    <div className="p-4 space-y-3">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="h-12 skeleton rounded" />
-                      ))}
-                    </div>
-                  ) : stats?.recentOrders.length === 0 ? (
-                    <p className="p-4 text-center text-[var(--color-text-muted)]">
-                      No orders yet
-                    </p>
-                  ) : (
-                    <div className="divide-y divide-[var(--color-border)]">
-                      {stats?.recentOrders.slice(0, 5).map((order) => (
-                        <div
-                          key={order.id}
-                          className="flex items-center justify-between p-4"
-                        >
-                          <div>
-                            <p className="font-medium">Order #{order.id}</p>
-                            <p className="text-sm text-[var(--color-text-muted)]">
+              </Card.Header>
+              <Card.Body className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-[var(--color-bg-surface)] text-xs uppercase text-[var(--color-text-muted)] font-semibold">
+                      <tr>
+                        <th className="px-6 py-3 text-left">Order ID</th>
+                        <th className="px-6 py-3 text-left">Date</th>
+                        <th className="px-6 py-3 text-center">Status</th>
+                        <th className="px-6 py-3 text-right">Total</th>
+                        <th className="px-6 py-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--color-border)]">
+                      {isLoading ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="p-8 text-center ml-auto mr-auto"
+                          >
+                            <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                          </td>
+                        </tr>
+                      ) : stats?.recentOrders.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="px-6 py-8 text-center text-[var(--color-text-muted)]"
+                          >
+                            No recent orders found.
+                          </td>
+                        </tr>
+                      ) : (
+                        stats?.recentOrders.slice(0, 5).map((order) => (
+                          <tr
+                            key={order.id}
+                            className="hover:bg-[var(--color-bg-surface)] transition-colors"
+                          >
+                            <td className="px-6 py-4">
+                              <span className="font-mono font-medium text-sm text-[var(--color-text-primary)]">
+                                {order.tracking_id || `#${order.id}`}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-[var(--color-text-muted)]">
                               {new Date(order.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <Badge
+                                variant={
+                                  order.status === "completed"
+                                    ? "success"
+                                    : order.status === "processing"
+                                      ? "warning"
+                                      : order.status === "pending"
+                                        ? "primary"
+                                        : "default"
+                                }
+                                size="sm"
+                              >
+                                {order.status}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4 text-right font-medium text-[var(--color-text-primary)]">
                               ${Number(order.total).toFixed(2)}
-                            </p>
-                            <Badge
-                              variant={
-                                order.status === "completed"
-                                  ? "success"
-                                  : order.status === "processing"
-                                  ? "warning"
-                                  : order.status === "pending"
-                                  ? "primary"
-                                  : "default"
-                              }
-                              size="sm"
-                            >
-                              {order.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </Card.Body>
-              </Card>
-            </div>
-          </motion.div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <Link
+                                to={`/admin/orders/${order.tracking_id || order.id}`}
+                                className="inline-flex items-center justify-center p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-colors"
+                                title="View Details"
+                              >
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                  />
+                                </svg>
+                              </Link>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </Card.Body>
+            </Card>
+          </div>
+        </div>
+      </motion.div>
 
-          <Outlet />
-        </main>
-      </div>
-    </div>
+      <Outlet />
+    </AdminLayout>
   );
 };
 

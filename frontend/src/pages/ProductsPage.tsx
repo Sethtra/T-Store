@@ -5,11 +5,136 @@ import {
   useProducts,
   useCategories,
   type ProductFilters,
+  type Category,
 } from "../hooks/useProducts";
 import ProductCard from "../components/product/ProductCard";
 import { ProductGridSkeleton } from "../components/product/ProductCardSkeleton";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
+
+// Recursive Category Item Component
+const CategoryItem = ({
+  category,
+  depth = 0,
+  currentCategory,
+  onSelect,
+}: {
+  category: Category;
+  depth?: number;
+  currentCategory?: string;
+  onSelect: (slug?: string) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const hasChildren = category.children && category.children.length > 0;
+
+  // Check if this category or any child is active
+  const isActive = currentCategory === category.slug;
+  const isChildActive = category.children?.some(
+    (c) => c.slug === currentCategory,
+  );
+
+  // Auto-expand if child is active
+  useEffect(() => {
+    if (isChildActive) {
+      setIsOpen(true);
+    }
+  }, [isChildActive]);
+
+  return (
+    <div className="select-none">
+      <div
+        className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+          isActive
+            ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20"
+            : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]"
+        }`}
+        style={{ paddingLeft: `${depth * 12 + 12}px` }}
+        onClick={() => onSelect(category.slug)}
+      >
+        <span>{category.name}</span>
+        {hasChildren && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(!isOpen);
+            }}
+            className={`p-1 rounded-full hover:bg-white/20 transition-colors ${isActive ? "text-white" : ""}`}
+          >
+            <svg
+              className={`w-3 h-3 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {isOpen && hasChildren && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            {category.children!.map((child) => (
+              <CategoryItem
+                key={child.id}
+                category={child}
+                depth={depth + 1}
+                currentCategory={currentCategory}
+                onSelect={onSelect}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Main Tree Component
+const CategoryTree = ({
+  categories,
+  currentCategory,
+  onSelect,
+}: {
+  categories: Category[];
+  currentCategory?: string;
+  onSelect: (slug?: string) => void;
+}) => {
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={() => onSelect(undefined)}
+        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+          !currentCategory
+            ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20"
+            : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]"
+        }`}
+      >
+        All Categories
+      </button>
+      {categories.map((cat) => (
+        <CategoryItem
+          key={cat.id}
+          category={cat}
+          currentCategory={currentCategory}
+          onSelect={onSelect}
+        />
+      ))}
+    </div>
+  );
+};
 
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -31,7 +156,7 @@ const ProductsPage = () => {
       page: searchParams.get("page") ? Number(searchParams.get("page")) : 1,
       limit: 12,
     }),
-    [searchParams]
+    [searchParams],
   );
 
   const { data: productsData, isLoading } = useProducts(filters);
@@ -40,10 +165,10 @@ const ProductsPage = () => {
   // Local filter state
   const [localSearch, setLocalSearch] = useState(filters.search || "");
   const [localMinPrice, setLocalMinPrice] = useState(
-    filters.minPrice?.toString() || ""
+    filters.minPrice?.toString() || "",
   );
   const [localMaxPrice, setLocalMaxPrice] = useState(
-    filters.maxPrice?.toString() || ""
+    filters.maxPrice?.toString() || "",
   );
 
   // Sync URL to local state (for back/forward navigation)
@@ -225,29 +350,11 @@ const ProductsPage = () => {
                 <div className="pb-6 border-b border-[var(--color-border)]">
                   <h3 className="font-semibold mb-3 text-lg">Categories</h3>
                   <div className="space-y-1">
-                    <button
-                      onClick={() => updateFilters({ category: undefined })}
-                      className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                        !filters.category
-                          ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20"
-                          : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]"
-                      }`}
-                    >
-                      All Categories
-                    </button>
-                    {categories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        onClick={() => updateFilters({ category: cat.slug })}
-                        className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          filters.category === cat.slug
-                            ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20"
-                            : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]"
-                        }`}
-                      >
-                        {cat.name}
-                      </button>
-                    ))}
+                    <CategoryTree
+                      categories={categories}
+                      currentCategory={filters.category}
+                      onSelect={(slug) => updateFilters({ category: slug })}
+                    />
                   </div>
                 </div>
               )}

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import type { Category } from './useProducts';
 
-// Admin: Fetch all categories with product count
+// Admin: Fetch categories hierarchically
 export const useAdminCategories = () => {
   return useQuery({
     queryKey: ['admin', 'categories'],
@@ -13,19 +13,29 @@ export const useAdminCategories = () => {
   });
 };
 
+// Admin: Fetch all categories flat (for dropdown)
+export const useAllCategories = () => {
+  return useQuery({
+    queryKey: ['admin', 'categories', 'all'],
+    queryFn: async (): Promise<Category[]> => {
+      const response = await api.get('/admin/categories/all');
+      return response.data;
+    },
+  });
+};
+
 // Admin: Create category
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: FormData | { name: string; banner_image_url?: string }) => {
-      const response = await api.post('/admin/categories', data, {
-        headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
-      });
+    mutationFn: async (data: { name: string; parent_id?: number | null }) => {
+      const response = await api.post('/admin/categories', data);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories', 'all'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
   });
@@ -41,15 +51,14 @@ export const useUpdateCategory = () => {
       data 
     }: { 
       id: number; 
-      data: FormData | { name?: string; banner_image_url?: string } 
+      data: { name?: string; parent_id?: number | null } 
     }) => {
-      const response = await api.put(`/admin/categories/${id}`, data, {
-        headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
-      });
+      const response = await api.put(`/admin/categories/${id}`, data);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories', 'all'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
   });
@@ -65,6 +74,7 @@ export const useDeleteCategory = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories', 'all'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
   });
