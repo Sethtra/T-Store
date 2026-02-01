@@ -6,10 +6,10 @@ import {
   Outlet,
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useAuthStore } from "./stores/authStore";
+import api from "./lib/api";
 
-// Layout Components
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import CartDrawer from "./components/cart/CartDrawer";
@@ -87,6 +87,14 @@ const PageLoader = () => (
 );
 
 function App() {
+  // Track visitor once on mount
+  useEffect(() => {
+    // Fire and forget - count this visit
+    api.post("/visit").catch(() => {
+      // Ignore errors (e.g., ad blockers, network issues)
+    });
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

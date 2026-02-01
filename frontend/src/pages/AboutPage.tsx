@@ -42,7 +42,7 @@ const AboutPage = () => {
                 <div className="h-px flex-1 bg-[var(--color-border)]"></div>
               </div>
               <p className="text-xl font-handwriting font-medium text-center italic text-[var(--color-text-primary)]">
-                Seth Tran
+                Seth Tra
               </p>
             </div>
           </motion.div>
@@ -65,7 +65,7 @@ const AboutPage = () => {
               <div className="absolute bottom-6 left-6 right-6 p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white font-bold text-lg">Seth Tran</p>
+                    <p className="text-white font-bold text-lg">Seth Tra</p>
                     <p className="text-white/80 text-sm">
                       Full Stack Developer
                     </p>

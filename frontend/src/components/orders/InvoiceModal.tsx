@@ -19,7 +19,7 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
     const printWindow = window.open(
       windowUrl,
       windowName,
-      "left=50000,top=50000,width=0,height=0"
+      "left=50000,top=50000,width=0,height=0",
     );
 
     if (printWindow && printContent) {
@@ -143,6 +143,21 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
                           <p className="font-medium text-gray-900">
                             {item.product_title}
                           </p>
+                          {item.attributes &&
+                            Object.keys(item.attributes).length > 0 && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                {Object.entries(item.attributes).map(
+                                  ([key, value]) => (
+                                    <span key={key} className="mr-3">
+                                      {key}:{" "}
+                                      <span className="font-semibold">
+                                        {value}
+                                      </span>
+                                    </span>
+                                  ),
+                                )}
+                              </div>
+                            )}
                         </td>
                         <td className="py-4 px-2 text-right">
                           {item.quantity}

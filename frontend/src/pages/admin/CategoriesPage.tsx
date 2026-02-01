@@ -119,7 +119,7 @@ const CategoriesPage = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Categories</h1>
@@ -134,7 +134,7 @@ const CategoriesPage = () => {
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-[var(--color-bg-elevated)] border-b border-[var(--color-border)]">
+              <thead className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border)]">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-[var(--color-text-muted)]">
                     Name
@@ -228,7 +228,7 @@ const CategoriesPage = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-[var(--color-bg-elevated)] rounded-2xl p-8 max-w-md w-full"
+              className="bg-[var(--color-bg-elevated)] rounded-lg p-8 max-w-md w-full"
             >
               <h2 className="text-2xl font-bold mb-6">
                 {editingCategory ? "Edit Category" : "Add Category"}

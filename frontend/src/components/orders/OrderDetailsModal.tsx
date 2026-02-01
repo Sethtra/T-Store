@@ -150,7 +150,25 @@ const OrderDetailsModal = ({
                         <h4 className="font-medium text-sm md:text-base line-clamp-1">
                           {item.product_title}
                         </h4>
-                        <p className="text-sm text-[var(--color-text-muted)]">
+                        {item.attributes &&
+                          Object.keys(item.attributes).length > 0 && (
+                            <div className="text-xs text-[var(--color-primary)] mt-1 space-x-2">
+                              {Object.entries(item.attributes).map(
+                                ([key, value]) => (
+                                  <span
+                                    key={key}
+                                    className="bg-[var(--color-primary)]/10 px-2 py-0.5 rounded"
+                                  >
+                                    {key}:{" "}
+                                    <span className="font-semibold">
+                                      {value}
+                                    </span>
+                                  </span>
+                                ),
+                              )}
+                            </div>
+                          )}
+                        <p className="text-sm text-[var(--color-text-muted)] mt-1">
                           Qty: {item.quantity} × $
                           {Number(item.price).toFixed(2)}
                         </p>

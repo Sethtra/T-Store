@@ -38,13 +38,19 @@ const ProductDetailPage = () => {
     }
 
     for (let i = 0; i < quantity; i++) {
+      // Construct attributes object
+      const attributes: Record<string, string> = {
+        ...(selectedColor ? { Color: selectedColor } : {}),
+        ...(selectedSize ? { Size: selectedSize } : {}),
+      };
+
       addItem({
         id: product.id,
         slug: product.slug,
         title: product.title,
         price: product.price,
         image: product.images[0] || "/placeholder.jpg",
-        // You might want to pass attributes to the cart item too
+        attributes,
       });
     }
     openCart();
@@ -329,6 +335,38 @@ const ProductDetailPage = () => {
                 </div>
               </div>
             )}
+
+            {/* Other Specifications */}
+            {product.attributes &&
+              Object.entries(product.attributes).filter(
+                ([key]) => !["color", "size"].includes(key.toLowerCase()),
+              ).length > 0 && (
+                <div className="pt-4 border-t border-[var(--color-border)]">
+                  <h3 className="text-sm font-bold text-[var(--color-text-primary)] mb-3">
+                    Specifications
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {Object.entries(product.attributes)
+                      .filter(
+                        ([key]) =>
+                          !["color", "size"].includes(key.toLowerCase()),
+                      )
+                      .map(([key, value]) => (
+                        <div
+                          key={key}
+                          className="flex justify-between items-center py-2 border-b border-[var(--color-border)] last:border-0"
+                        >
+                          <span className="text-sm font-medium text-[var(--color-text-muted)] capitalize">
+                            {key}
+                          </span>
+                          <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+                            {Array.isArray(value) ? value.join(", ") : value}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
           </div>
 
           {/* Actions */}

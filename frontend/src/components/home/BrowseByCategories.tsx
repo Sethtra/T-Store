@@ -38,7 +38,7 @@ const BrowseByCategories = () => {
   }
 
   return (
-    <section className="py-32 bg-white dark:bg-black transition-colors duration-500">
+    <section className="py-32 bg-[var(--color-bg-primary)] transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Minimal Header */}
         <motion.div
@@ -49,16 +49,16 @@ const BrowseByCategories = () => {
           className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6"
         >
           <div className="max-w-xl">
-            <h2 className="text-4xl md:text-5xl font-medium text-[#1d1d1f] dark:text-white tracking-tight mb-4">
+            <h2 className="text-4xl md:text-5xl font-medium text-[var(--color-text-primary)] tracking-tight mb-4">
               Browse by Categories
             </h2>
-            <p className="text-lg text-[#86868b] font-normal leading-relaxed">
+            <p className="text-lg text-[var(--color-text-secondary)] font-normal leading-relaxed">
               Explore our curated collections designed for your lifestyle.
             </p>
           </div>
           <Link
             to="/products"
-            className="group flex items-center gap-2 text-[#0066CC] hover:text-[#004499] transition-colors font-medium text-lg"
+            className="group flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors font-medium text-lg"
           >
             View all categories
             <svg
@@ -92,27 +92,27 @@ const BrowseByCategories = () => {
                 to={mainDisplay?.link || "/products"}
                 className="group block h-full"
               >
-                <div className="relative h-full w-full bg-[#FAFAFC] dark:bg-[#1c1c1e] rounded-[32px] overflow-hidden flex flex-col p-8 md:p-10 transition-all duration-300 hover:shadow-2xl border border-transparent hover:border-[#0000000a] dark:hover:border-[#ffffff1a]">
+                <div className="relative h-full w-full bg-[var(--color-bg-surface)] rounded-[32px] overflow-hidden flex flex-col p-8 md:p-10 transition-all duration-300 hover:shadow-2xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
                   {/* Background Gradient Blob - Shifted to avoid text overlap */}
                   <div className="absolute top-0 right-0 w-[80%] h-[80%] bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 rounded-full blur-3xl opacity-100" />
 
                   {/* Text Top-Left - High Z-Index */}
                   <div className="relative z-20 flex flex-col items-start gap-4 max-w-[60%]">
                     <div>
-                      <span className="inline-block px-3 py-1 mb-3 text-xs font-semibold tracking-wide uppercase bg-black/5 dark:bg-white/10 rounded-full text-[#1d1d1f] dark:text-gray-200">
+                      <span className="inline-block px-3 py-1 mb-3 text-xs font-semibold tracking-wide uppercase bg-[var(--color-bg-elevated)] rounded-full text-[var(--color-text-primary)] shadow-sm">
                         Premium Collection
                       </span>
-                      <h3 className="text-4xl font-bold text-[#1d1d1f] dark:text-white leading-tight">
+                      <h3 className="text-4xl font-bold text-[var(--color-text-primary)] leading-tight">
                         {mainDisplay?.title || "All Products"}
                       </h3>
-                      <p className="mt-2 text-sm text-[#86868b] font-medium leading-relaxed">
+                      <p className="mt-2 text-sm text-[var(--color-text-muted)] font-medium leading-relaxed">
                         Discover the latest in technology and design.
                       </p>
                     </div>
 
                     {/* Redesigned Button - Clean & Sharp */}
-                    <button className="mt-4 group/btn flex items-center justify-between gap-4 px-1 py-1 pr-6 bg-white dark:bg-[#2c2c2e] rounded-full shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
-                      <div className="w-10 h-10 rounded-full bg-[#1d1d1f] dark:bg-white flex items-center justify-center text-white dark:text-black group-hover/btn:scale-110 transition-transform">
+                    <button className="mt-4 group/btn flex items-center justify-between gap-4 px-1 py-1 pr-6 bg-[var(--color-bg-elevated)] rounded-full shadow-sm border border-[var(--color-border)] hover:shadow-md transition-all duration-300">
+                      <div className="w-10 h-10 rounded-full bg-[var(--color-text-primary)] flex items-center justify-center text-[var(--color-bg-primary)] group-hover/btn:scale-110 transition-transform">
                         <svg
                           className="w-4 h-4"
                           fill="none"
@@ -127,7 +127,7 @@ const BrowseByCategories = () => {
                           />
                         </svg>
                       </div>
-                      <span className="font-semibold text-sm text-[#1d1d1f] dark:text-white">
+                      <span className="font-semibold text-sm text-[var(--color-text-primary)]">
                         Shop Collection
                       </span>
                     </button>
@@ -164,29 +164,29 @@ const BrowseByCategories = () => {
                 to={featuredDisplay?.link || "/products"}
                 className="group block h-full"
               >
-                <div className="relative h-full w-full bg-[#FAFAFC] dark:bg-[#1c1c1e] rounded-[32px] overflow-hidden flex flex-row items-center justify-between p-8 md:p-10 transition-all duration-300 hover:shadow-xl border border-transparent hover:border-[#0000000a]">
+                <div className="relative h-full w-full bg-[var(--color-bg-surface)] rounded-[32px] overflow-hidden flex flex-row items-center justify-between p-8 md:p-10 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
                   {/* Background Gradient Blob */}
                   <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-gradient-to-bl from-cyan-400/10 to-blue-500/10 rounded-full blur-[80px]" />
 
                   <div className="z-10 flex flex-col items-start gap-3 max-w-[50%]">
-                    <span className="text-xs font-bold tracking-wider uppercase text-blue-600 dark:text-blue-400">
+                    <span className="text-xs font-bold tracking-wider uppercase text-[var(--color-primary)]">
                       Top Rated
                     </span>
-                    <h3 className="text-2xl font-bold text-[#1d1d1f] dark:text-white">
+                    <h3 className="text-2xl font-bold text-[var(--color-text-primary)]">
                       {featuredDisplay?.title || "Displays"}
                     </h3>
-                    <p className="text-[#86868b] text-sm leading-relaxed font-medium mb-2">
+                    <p className="text-[var(--color-text-muted)] text-sm leading-relaxed font-medium mb-2">
                       {featuredDisplay?.description || "Stunning visuals."}
                     </p>
 
                     {/* View Now Button */}
-                    <div className="flex items-center gap-2 px-5 py-2 bg-white dark:bg-[#333] rounded-full shadow-sm border border-gray-100 dark:border-gray-700 group-hover:shadow-md transition-all">
-                      <span className="text-xs font-bold text-[#1d1d1f] dark:text-white">
+                    <div className="flex items-center gap-2 px-5 py-2 bg-[var(--color-bg-elevated)] rounded-full shadow-sm border border-[var(--color-border)] group-hover:shadow-md transition-all">
+                      <span className="text-xs font-bold text-[var(--color-text-primary)]">
                         View Now
                       </span>
-                      <div className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
                         <svg
-                          className="w-3 h-3 text-blue-600 dark:text-blue-400 transform group-hover:translate-x-0.5 transition-transform"
+                          className="w-3 h-3 text-[var(--color-primary)] transform group-hover:translate-x-0.5 transition-transform"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -232,13 +232,13 @@ const BrowseByCategories = () => {
                 to={small1Display?.link || "/products"}
                 className="group block h-full"
               >
-                <div className="relative h-full w-full bg-[#FAFAFC] dark:bg-[#1c1c1e] rounded-[32px] overflow-hidden flex flex-col p-8 transition-all duration-300 hover:shadow-xl border border-transparent hover:border-[#0000000a]">
+                <div className="relative h-full w-full bg-[var(--color-bg-surface)] rounded-[32px] overflow-hidden flex flex-col p-8 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-full blur-[40px]" />
 
-                  <h3 className="text-xl font-bold text-[#1d1d1f] dark:text-white z-10 mb-1">
+                  <h3 className="text-xl font-bold text-[var(--color-text-primary)] z-10 mb-1">
                     {small1Display?.title || "Headphones"}
                   </h3>
-                  <p className="text-xs text-[#86868b] font-medium z-10">
+                  <p className="text-xs text-[var(--color-text-muted)] font-medium z-10">
                     New Arrival
                   </p>
 
@@ -272,13 +272,13 @@ const BrowseByCategories = () => {
                 to={small2Display?.link || "/products"}
                 className="group block h-full"
               >
-                <div className="relative h-full w-full bg-[#FAFAFC] dark:bg-[#1c1c1e] rounded-[32px] overflow-hidden flex flex-col p-8 transition-all duration-300 hover:shadow-xl border border-transparent hover:border-[#0000000a]">
+                <div className="relative h-full w-full bg-[var(--color-bg-surface)] rounded-[32px] overflow-hidden flex flex-col p-8 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
                   <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-400/10 rounded-full blur-[40px]" />
 
-                  <h3 className="text-xl font-bold text-[#1d1d1f] dark:text-white z-10 mb-1">
+                  <h3 className="text-xl font-bold text-[var(--color-text-primary)] z-10 mb-1">
                     {small2Display?.title || "Phones"}
                   </h3>
-                  <p className="text-xs text-[#86868b] font-medium z-10">
+                  <p className="text-xs text-[var(--color-text-muted)] font-medium z-10">
                     Best Sellers
                   </p>
 

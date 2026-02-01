@@ -146,6 +146,7 @@ const CheckoutPage = () => {
         items: items.map((item) => ({
           product_id: item.id,
           quantity: item.quantity,
+          attributes: item.attributes, // Pass attributes to backend
         })),
         payment_method: "stripe" as const,
         delivery_method: deliveryMethod,

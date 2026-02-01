@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo, memo, useCallback } from "react";
 import {
   useProducts,
   useCreateProduct,
@@ -9,25 +8,173 @@ import {
 } from "../../hooks/useProducts";
 import { useAdminCategories } from "../../hooks/useCategories";
 import AdminLayout from "../../components/admin/AdminLayout";
-import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
-import Badge from "../../components/ui/Badge";
+
+// Helper for status
+const getStockStatus = (stock: number) => {
+  if (stock === 0)
+    return { label: "Out of Stock", color: "bg-red-500/20 text-red-400" };
+  if (stock < 10)
+    return { label: "Low Stock", color: "bg-yellow-500/20 text-yellow-400" };
+  return { label: "In Stock", color: "bg-green-500/20 text-green-400" };
+};
+
+// Memoized Row Component
+const ProductRow = memo(
+  ({
+    product,
+    onEdit,
+    onDelete,
+  }: {
+    product: Product;
+    onEdit: (p: Product) => void;
+    onDelete: (id: number) => void;
+  }) => {
+    const stockStatus = getStockStatus(product.stock);
+    return (
+      <tr className="hover:bg-[var(--color-bg-surface)]/50 transition-colors">
+        {/* Product Name */}
+        <td className="px-6 py-4">
+          <div className="font-medium text-[var(--color-text-primary)]">
+            {product.title}
+          </div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
+            ID: #{product.id}
+          </div>
+        </td>
+
+        {/* Image */}
+        <td className="px-4 py-4">
+          <div className="w-12 h-12 rounded-lg overflow-hidden bg-[var(--color-bg-surface)] shrink-0">
+            {product.images?.[0] ? (
+              <img
+                src={product.images[0]}
+                alt={product.title}
+                className="w-full h-full object-cover transform-gpu"
+                loading="lazy"
+                decoding="async"
+                width="48"
+                height="48"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-[var(--color-text-muted)]">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+        </td>
+        {/* Description */}
+        <td className="px-4 py-4 max-w-xs transition-colors">
+          <div
+            className="text-sm text-[var(--color-text-secondary)] line-clamp-2"
+            title={product.description}
+          >
+            {product.description || (
+              <span className="text-[var(--color-text-muted)] italic">
+                No description
+              </span>
+            )}
+          </div>
+        </td>
+        {/* Price */}
+        <td className="px-4 py-4">
+          <span className="font-semibold text-[var(--color-text-primary)]">
+            ${Number(product.price || 0).toFixed(2)}
+          </span>
+        </td>
+        {/* Stock */}
+        <td className="px-4 py-4">
+          <span className="text-[var(--color-text-primary)]">
+            {product.stock}
+          </span>
+        </td>
+        {/* Status */}
+        <td className="px-4 py-4">
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${stockStatus.color}`}
+          >
+            {stockStatus.label}
+          </span>
+        </td>
+        {/* Actions */}
+        <td className="px-6 py-4 text-right">
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={() => onEdit(product)}
+              className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-colors"
+              title="Edit"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={() => onDelete(product.id)}
+              className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-colors"
+              title="Delete"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  },
+);
 
 const ProductsPage = () => {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
-  const { data: productsData, isLoading } = useProducts({ page, limit: 10 });
+  // Fetch data
+  const { data: productsData, isLoading } = useProducts({ page, limit: 12 });
   const { data: categories } = useAdminCategories();
+
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
 
+  // Form State
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [existingImages, setExistingImages] = useState<string[]>([]); // Track existing images for removal
-
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -37,11 +184,28 @@ const ProductsPage = () => {
     image_url: "",
     attributes: {} as Record<string, string | string[]>,
   });
-
-  // State for the Parent Category dropdown
   const [selectedParentId, setSelectedParentId] = useState<string>("");
 
-  const openCreateModal = () => {
+  // Filter products
+  const filteredProducts = useMemo(() => {
+    if (!productsData?.data) return [];
+    return productsData.data.filter((product) => {
+      const matchesSearch = product.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory
+        ? product.category_id?.toString() === selectedCategory
+        : true;
+      return matchesSearch && matchesCategory;
+    });
+  }, [productsData, searchQuery, selectedCategory]);
+
+  const [attributeRows, setAttributeRows] = useState<
+    { id: number; key: string; value: string }[]
+  >([]);
+
+  // Modal & Form Handlers
+  const openCreateModal = useCallback(() => {
     setEditingProduct(null);
     setFormData({
       title: "",
@@ -52,87 +216,93 @@ const ProductsPage = () => {
       image_url: "",
       attributes: {},
     });
+    setAttributeRows([]);
     setSelectedParentId("");
     setSelectedImages([]);
     setExistingImages([]);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const openEditModal = (product: Product) => {
-    setEditingProduct(product);
+  const openEditModal = useCallback(
+    (product: Product) => {
+      setEditingProduct(product);
 
-    // Determine parent ID to pre-fill the first dropdown
-    let parentId = "";
-    if (product.category_id && categories) {
-      for (const parent of categories) {
-        // If the product belongs directly to a parent category (rare but possible)
-        if (parent.id === product.category_id) {
-          parentId = parent.id.toString();
-          break;
-        }
-        // If the product belongs to a subcategory
-        if (parent.children) {
-          const child = parent.children.find(
-            (c) => c.id === product.category_id,
-          );
-          if (child) {
+      let parentId = "";
+      if (product.category_id && categories) {
+        for (const parent of categories) {
+          if (parent.id === product.category_id) {
             parentId = parent.id.toString();
             break;
           }
+          if (parent.children) {
+            const child = parent.children.find(
+              (c) => c.id === product.category_id,
+            );
+            if (child) {
+              parentId = parent.id.toString();
+              break;
+            }
+          }
         }
       }
-    }
 
-    setFormData({
-      title: product.title,
-      description: product.description,
-      price: product.price?.toString() || "0",
-      stock: product.stock?.toString() || "0",
-      category_id: product.category_id?.toString() || "",
-      image_url: product.images?.[0] || "",
-      attributes: product.attributes || {},
-    });
-    setSelectedParentId(parentId);
+      // Convert attributes object to rows
+      const initialRows = Object.entries(product.attributes || {}).map(
+        ([key, value], index) => ({
+          id: index,
+          key,
+          value: Array.isArray(value) ? value.join(", ") : String(value),
+        }),
+      );
 
-    setSelectedImages([]);
-    setExistingImages(product.images || []);
-    setIsModalOpen(true);
-  };
+      setFormData({
+        title: product.title,
+        description: product.description,
+        price: product.price?.toString() || "0",
+        stock: product.stock?.toString() || "0",
+        category_id: product.category_id?.toString() || "",
+        image_url: product.images?.[0] || "",
+        attributes: product.attributes || {},
+      });
+      setAttributeRows(initialRows);
+      setSelectedParentId(parentId);
+      setSelectedImages([]);
+      setExistingImages(product.images || []);
+      setIsModalOpen(true);
+    },
+    [categories],
+  );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      if (selectedImages.length > 0) {
-        // Use FormData for file upload when there are new files
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
         const data = new FormData();
         data.append("title", formData.title);
         data.append("description", formData.description);
         data.append("price", formData.price);
         data.append("stock", formData.stock);
-        if (formData.category_id) {
+        if (formData.category_id)
           data.append("category_id", formData.category_id);
-        }
 
-        // Send existing images that weren't removed
         if (existingImages.length > 0) {
           data.append("existing_images", JSON.stringify(existingImages));
         } else if (editingProduct) {
-          // Explicitly send empty array if all existing images were removed
           data.append("existing_images", JSON.stringify([]));
         }
 
-        // Append all selected files
-        selectedImages.forEach((file) => {
-          data.append("images[]", file);
+        selectedImages.forEach((file) => data.append("images[]", file));
+
+        // Convert attribute rows back to object
+        const attributesObj: Record<string, string> = {};
+        attributeRows.forEach((row) => {
+          if (row.key.trim()) {
+            attributesObj[row.key.trim()] = row.value.trim();
+          }
         });
 
-        // Add attributes
-        if (
-          formData.attributes &&
-          Object.keys(formData.attributes).length > 0
-        ) {
-          data.append("attributes", JSON.stringify(formData.attributes));
+        if (Object.keys(attributesObj).length > 0) {
+          data.append("attributes", JSON.stringify(attributesObj));
         }
 
         if (editingProduct) {
@@ -144,262 +314,303 @@ const ProductsPage = () => {
         } else {
           await createProduct.mutateAsync(data as any);
         }
-      } else {
-        // JSON payload (no new file uploads)
-        const productData = {
-          title: formData.title,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          stock: parseInt(formData.stock),
-          category_id: formData.category_id
-            ? parseInt(formData.category_id)
-            : null,
-          // Send existing images (which respects any removals)
-          images: existingImages,
-          attributes: Object.fromEntries(
-            Object.entries(formData.attributes).map(([key, value]) => {
-              // Convert comma-separated strings to arrays
-              if (typeof value === "string" && value.includes(",")) {
-                return [
-                  key,
-                  value
-                    .split(",")
-                    .map((v) => v.trim())
-                    .filter(Boolean),
-                ];
-              }
-              return [key, value];
-            }),
-          ),
-        };
+        setIsModalOpen(false);
+      } catch (error: any) {
+        console.error("Failed", error);
+        alert(error.response?.data?.message || "Failed to save product.");
+      }
+    },
+    [
+      formData,
+      existingImages,
+      selectedImages,
+      editingProduct,
+      updateProduct,
+      createProduct,
+      attributeRows,
+    ],
+  );
 
-        if (editingProduct) {
-          await updateProduct.mutateAsync({
-            id: editingProduct.id,
-            data: productData,
-          });
-        } else {
-          await createProduct.mutateAsync(productData);
+  const handleDelete = useCallback(
+    async (id: number) => {
+      if (window.confirm("Delete this product?")) {
+        try {
+          await deleteProduct.mutateAsync(id);
+        } catch (error) {
+          console.error(error);
+          alert("Failed to delete.");
         }
       }
+    },
+    [deleteProduct],
+  );
 
-      setIsModalOpen(false);
-    } catch (error: any) {
-      console.error("Failed to save product:", error);
-      const message =
-        error.response?.data?.message ||
-        "Failed to save product. Please try again.";
-      alert(message);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      try {
-        await deleteProduct.mutateAsync(id);
-      } catch (error) {
-        console.error("Failed to delete product:", error);
-        alert(
-          "Failed to delete product. It might be linked to existing orders.",
-        );
-      }
-    }
-  };
-
-  // Get available subcategories based on selected parent
   const subcategories =
     categories?.find((c) => c.id.toString() === selectedParentId)?.children ||
     [];
 
+  // Attribute Handlers
+  const addAttribute = () => {
+    setAttributeRows([
+      ...attributeRows,
+      { id: Date.now(), key: "", value: "" },
+    ]);
+  };
+
+  const removeAttribute = (id: number) => {
+    setAttributeRows(attributeRows.filter((row) => row.id !== id));
+  };
+
+  const updateAttributeRow = (
+    id: number,
+    field: "key" | "value",
+    newValue: string,
+  ) => {
+    setAttributeRows(
+      attributeRows.map((row) =>
+        row.id === id ? { ...row, [field]: newValue } : row,
+      ),
+    );
+  };
+
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+      <div className="w-full px-8 py-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Products Management</h1>
-            <p className="text-[var(--color-text-muted)]">
-              {productsData?.meta.total || 0} products total
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+              Products
+            </h1>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">
+              Manage your inventory ({productsData?.meta.total || 0} total)
             </p>
           </div>
-          <Button onClick={openCreateModal}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Add Product
-          </Button>
         </div>
 
-        {/* Products Table */}
-        <Card>
+        {/* Products Table Card */}
+        <div className="bg-[var(--color-bg-elevated)] rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
+          {/* Table Header with Search */}
+          <div className="p-4 border-b border-[var(--color-border)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              All Products
+            </h2>
+            <div className="flex items-center gap-3">
+              {/* Search */}
+              <div className="relative">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
+                />
+              </div>
+              {/* Category Filter */}
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-1.5 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+              >
+                <option value="">All Categories</option>
+                {categories?.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+
+              <Button onClick={openCreateModal} className="flex-shrink-0 ml-2">
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Add Product
+              </Button>
+            </div>
+          </div>
+
+          {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
+              <thead className="bg-[var(--color-bg-surface)]">
                 <tr className="border-b border-[var(--color-border)]">
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-muted)]">
+                  <th className="px-6 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                     Product
                   </th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-muted)]">
+
+                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                    Image
+                  </th>
+                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                    Description
+                  </th>
+                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                     Price
                   </th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-muted)]">
+                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                     Stock
                   </th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-muted)]">
+                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="text-right p-4 text-sm font-medium text-[var(--color-text-muted)]">
+                  <th className="px-6 py-4 text-right text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <tr
-                      key={i}
-                      className="border-b border-[var(--color-border)]"
-                    >
-                      <td className="p-4">
-                        <div className="h-10 w-48 skeleton rounded" />
-                      </td>
-                      <td className="p-4">
-                        <div className="h-6 w-16 skeleton rounded" />
-                      </td>
-                      <td className="p-4">
-                        <div className="h-6 w-12 skeleton rounded" />
-                      </td>
-                      <td className="p-4">
-                        <div className="h-6 w-20 skeleton rounded" />
-                      </td>
-                      <td className="p-4">
-                        <div className="h-8 w-24 skeleton rounded" />
-                      </td>
-                    </tr>
-                  ))
-                ) : productsData?.data.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={5}
-                      className="p-8 text-center text-[var(--color-text-muted)]"
+                      colSpan={7}
+                      className="px-6 py-8 text-center text-[var(--color-text-muted)]"
                     >
-                      No products found. Create your first product!
+                      Loading products...
+                    </td>
+                  </tr>
+                ) : filteredProducts.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-6 py-8 text-center text-[var(--color-text-muted)]"
+                    >
+                      No products found.
+                      <button
+                        onClick={() => {
+                          setSearchQuery("");
+                          setSelectedCategory("");
+                        }}
+                        className="ml-2 text-[var(--color-primary)] hover:underline"
+                      >
+                        Clear filters
+                      </button>
                     </td>
                   </tr>
                 ) : (
-                  productsData?.data.map((product) => (
-                    <motion.tr
+                  filteredProducts.map((product) => (
+                    <ProductRow
                       key={product.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg-elevated)]"
-                    >
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-lg bg-[var(--color-bg-surface)] overflow-hidden">
-                            <img
-                              src={product.images[0] || "/placeholder.jpg"}
-                              alt={product.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{product.title}</p>
-                            <p className="text-sm text-[var(--color-text-muted)]">
-                              {product.slug}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 font-medium">
-                        ${Number(product.price).toFixed(2)}
-                      </td>
-                      <td className="p-4">{product.stock}</td>
-                      <td className="p-4">
-                        <Badge
-                          variant={product.stock > 0 ? "success" : "error"}
-                        >
-                          {product.stock > 0 ? "In Stock" : "Out of Stock"}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditModal(product)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(product.id)}
-                            className="text-[var(--color-error)]"
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </motion.tr>
+                      product={product}
+                      onEdit={openEditModal}
+                      onDelete={handleDelete}
+                    />
                   ))
                 )}
               </tbody>
             </table>
           </div>
-
-          {/* Pagination */}
+          {/* Pagination - Duralux Style */}
           {productsData && productsData.meta.last_page > 1 && (
-            <div className="flex items-center justify-between p-4 border-t border-[var(--color-border)]">
-              <p className="text-sm text-[var(--color-text-muted)]">
-                Page {productsData.meta.current_page} of{" "}
-                {productsData.meta.last_page}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={page === 1}
-                  onClick={() => setPage(page - 1)}
+            <div className="p-4 border-t border-[var(--color-border)] flex items-center justify-center gap-2">
+              {/* Previous Button */}
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  Previous
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={page === productsData.meta.last_page}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+
+              {/* Current Page */}
+              <button className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-primary)] text-white font-bold shadow-lg shadow-blue-500/30">
+                {page}
+              </button>
+
+              {/* Next Page Number */}
+              {page < productsData.meta.last_page && (
+                <button
                   onClick={() => setPage(page + 1)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] transition-all"
                 >
-                  Next
-                </Button>
-              </div>
+                  {page + 1}
+                </button>
+              )}
+
+              {/* Ellipsis and Last Page */}
+              {productsData.meta.last_page > page + 2 && (
+                <>
+                  <div className="w-1 h-1 rounded-full bg-[var(--color-text-muted)]"></div>
+                  <button
+                    onClick={() => setPage(productsData.meta.last_page)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] transition-all"
+                  >
+                    {productsData.meta.last_page}
+                  </button>
+                </>
+              )}
+
+              {/* Next Button */}
+              <button
+                onClick={() =>
+                  setPage((p) => Math.min(productsData.meta.last_page, p + 1))
+                }
+                disabled={page >= productsData.meta.last_page}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setIsModalOpen(false)}
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="relative bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-            >
-              <h2 className="text-xl font-bold mb-6">
+            <div className="relative bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-2xl p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl">
+              <h2 className="text-xl font-bold mb-6 text-[var(--color-text-primary)]">
                 {editingProduct ? "Edit Product" : "Create Product"}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -419,37 +630,33 @@ const ProductsPage = () => {
                   }
                 />
 
-                <div className="space-y-4">
-                  {/* Category Selection (Parent) */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                    <label className="text-sm font-medium mb-1 block text-[var(--color-text-primary)]">
                       Category
                     </label>
                     <select
-                      className="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-primary)] border border-[var(--color-border)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent outline-none transition-all"
+                      className="w-full px-3 py-2 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)]"
                       value={selectedParentId}
                       onChange={(e) => {
                         setSelectedParentId(e.target.value);
                         setFormData({ ...formData, category_id: "" });
                       }}
-                      required
                     >
                       <option value="">Select Category</option>
-                      {categories?.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
+                      {categories?.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
                         </option>
                       ))}
                     </select>
                   </div>
-
-                  {/* Product Type Selection (Subcategory) */}
                   <div>
-                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-                      Product Type
+                    <label className="text-sm font-medium mb-1 block text-[var(--color-text-primary)]">
+                      Subcategory
                     </label>
                     <select
-                      className="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-primary)] border border-[var(--color-border)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent outline-none transition-all"
+                      className="w-full px-3 py-2 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)]"
                       value={formData.category_id}
                       onChange={(e) =>
                         setFormData({
@@ -457,20 +664,13 @@ const ProductsPage = () => {
                           category_id: e.target.value,
                         })
                       }
-                      disabled={!selectedParentId}
-                      required
                     >
                       <option value="">Select Type</option>
-                      {subcategories.map((sub) => (
-                        <option key={sub.id} value={sub.id}>
-                          {sub.name}
+                      {subcategories.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
                         </option>
                       ))}
-                      {selectedParentId && subcategories.length === 0 && (
-                        <option value="" disabled>
-                          No types available
-                        </option>
-                      )}
                     </select>
                   </div>
                 </div>
@@ -497,201 +697,165 @@ const ProductsPage = () => {
                   />
                 </div>
 
-                {/* Attributes Section */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
-                    Attributes (Color, Size, Material)
-                  </label>
-                  <div className="space-y-3">
-                    {Object.entries(formData.attributes || {}).map(
-                      ([key, value], index) => (
-                        <div key={index} className="flex gap-2">
-                          <input
-                            placeholder="Name (e.g. Color)"
-                            className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                            value={key}
-                            onChange={(e) => {
-                              const newAttributes = { ...formData.attributes };
-                              const oldKey = Object.keys(newAttributes)[index];
-                              const newVal = newAttributes[oldKey];
-                              delete newAttributes[oldKey];
-                              newAttributes[e.target.value] = newVal;
-                              setFormData({
-                                ...formData,
-                                attributes: newAttributes,
-                              });
-                            }}
-                          />
-                          <input
-                            placeholder="Value (e.g. Red, Blue)"
-                            className="flex-[2] min-w-0 px-3 py-2 rounded-lg bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                            value={
-                              Array.isArray(value) ? value.join(", ") : value
-                            }
-                            onChange={(e) => {
-                              const newAttributes = { ...formData.attributes };
-                              const val = e.target.value;
-                              // Store as comma-separated string temporarily, or try to keep array?
-                              // Let's store as string in input, but parse when saving/typing
-                              // For simplicity here, let's keep it simple:
-                              newAttributes[key] = val;
-                              setFormData({
-                                ...formData,
-                                attributes: newAttributes,
-                              });
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newAttributes = { ...formData.attributes };
-                              delete newAttributes[key];
-                              setFormData({
-                                ...formData,
-                                attributes: newAttributes,
-                              });
-                            }}
-                            className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-error)]"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-5 w-5"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      ),
-                    )}
-                    <Button
+                {/* Attributes Builder */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-[var(--color-text-primary)]">
+                      Attributes
+                    </label>
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setFormData({
-                          ...formData,
-                          attributes: { ...formData.attributes, "": "" },
-                        });
-                      }}
+                      onClick={addAttribute}
+                      className="text-xs text-[var(--color-primary)] hover:underline"
                     >
                       + Add Attribute
-                    </Button>
+                    </button>
                   </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-3">
-                    Product Images
-                  </label>
-
-                  {/* Image Gallery - Grid Layout with existing, new, and add button */}
-                  <div className="flex flex-wrap gap-3">
-                    {/* Existing Images with Remove Button */}
-                    {existingImages.map((img, i) => (
-                      <div
-                        key={`existing-${i}`}
-                        className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-[var(--color-border)] group bg-[var(--color-bg-secondary)]"
-                      >
-                        <img
-                          src={img}
-                          alt={`Product ${i + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = "/placeholder.jpg";
-                          }}
+                  <div className="space-y-2">
+                    {attributeRows.map((row) => (
+                      <div key={row.id} className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Name (e.g. Size)"
+                          value={row.key}
+                          onChange={(e) =>
+                            updateAttributeRow(row.id, "key", e.target.value)
+                          }
+                          className="flex-1 w-full px-3 py-1.5 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Value (e.g. Medium)"
+                          value={row.value}
+                          onChange={(e) =>
+                            updateAttributeRow(row.id, "value", e.target.value)
+                          }
+                          className="flex-1 w-full px-3 py-1.5 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
                         />
                         <button
                           type="button"
-                          onClick={() => {
-                            setExistingImages((prev) =>
-                              prev.filter((_, idx) => idx !== i),
-                            );
-                          }}
-                          className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all"
-                          title="Remove image"
+                          onClick={() => removeAttribute(row.id)}
+                          className="p-1.5 text-red-500 hover:bg-red-500/10 rounded"
+                          title="Remove"
                         >
                           <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
+                            className="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
                           >
                             <path
-                              fillRule="evenodd"
-                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                              clipRule="evenodd"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
                             />
                           </svg>
                         </button>
                       </div>
                     ))}
+                    {attributeRows.length === 0 && (
+                      <div className="text-xs text-[var(--color-text-muted)] italic text-center py-2 border border-dashed border-[var(--color-border)] rounded">
+                        No custom attributes passed. Click to add.
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-                    {/* New Staged Files with Remove Button */}
-                    {selectedImages
-                      .filter((file): file is File => file instanceof File)
-                      .map((file, i) => {
-                        // Create object URL safely
-                        let previewUrl = "";
-                        try {
-                          previewUrl = URL.createObjectURL(file);
-                        } catch {
-                          console.error(
-                            "Failed to create preview for file:",
-                            file,
-                          );
-                          return null;
-                        }
+                {/* Image Upload */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block text-[var(--color-text-primary)]">
+                    Images
+                  </label>
 
-                        return (
-                          <div
-                            key={`new-${i}`}
-                            className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-green-500 group bg-[var(--color-bg-secondary)]"
+                  {/* Image Grid */}
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-4">
+                    {/* Existing Images */}
+                    {existingImages.map((img, index) => (
+                      <div
+                        key={`existing-${index}`}
+                        className="relative group aspect-square rounded-lg overflow-hidden border border-[var(--color-border)]"
+                      >
+                        <img
+                          src={img}
+                          alt={`Existing ${index}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExistingImages(
+                              existingImages.filter((_, i) => i !== index),
+                            )
+                          }
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Remove Image"
+                        >
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
                           >
-                            <img
-                              src={previewUrl}
-                              alt={`New ${i + 1}`}
-                              className="w-full h-full object-cover"
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
                             />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedImages((prev) =>
-                                  prev.filter((_, idx) => idx !== i),
-                                );
-                              }}
-                              className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all"
-                              title="Remove image"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </button>
-                            <span className="absolute bottom-0 left-0 right-0 bg-green-500 text-white text-[10px] text-center py-0.5 font-medium">
-                              NEW
-                            </span>
-                          </div>
-                        );
-                      })}
+                          </svg>
+                        </button>
+                        <div className="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[10px] py-0.5 text-center">
+                          Existing
+                        </div>
+                      </div>
+                    ))}
 
-                    {/* Add Image Button - Same size as thumbnails */}
-                    <label className="w-20 h-20 rounded-lg border-2 border-dashed border-[var(--color-border)] hover:border-[var(--color-primary)] bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-elevated)] cursor-pointer flex flex-col items-center justify-center transition-all group">
+                    {/* New Images */}
+                    {selectedImages.map((file, index) => (
+                      <div
+                        key={`new-${index}`}
+                        className="relative group aspect-square rounded-lg overflow-hidden border border-blue-500/50"
+                      >
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`New ${index}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedImages(
+                              selectedImages.filter((_, i) => i !== index),
+                            )
+                          }
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Remove Image"
+                        >
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                        <div className="absolute bottom-0 inset-x-0 bg-blue-500/80 text-white text-[10px] py-0.5 text-center">
+                          New
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Upload Button */}
+                    <label className="flex flex-col items-center justify-center aspect-square rounded-lg border-2 border-dashed border-[var(--color-border)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 cursor-pointer transition-colors">
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-8 w-8 text-[var(--color-text-muted)] group-hover:text-[var(--color-primary)] transition-colors"
+                        className="w-6 h-6 text-[var(--color-text-muted)] mb-1"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -703,34 +867,32 @@ const ProductsPage = () => {
                           d="M12 4v16m8-8H4"
                         />
                       </svg>
-                      <span className="text-[10px] text-[var(--color-text-muted)] group-hover:text-[var(--color-primary)] mt-1">
-                        Add
+                      <span className="text-xs text-[var(--color-text-muted)]">
+                        Add Image
                       </span>
                       <input
                         type="file"
+                        multiple
                         accept="image/*"
                         className="hidden"
                         onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            // Add single file to staged images
-                            const file = e.target.files[0];
-                            setSelectedImages((prev) => [...prev, file]);
+                          if (e.target.files) {
+                            setSelectedImages((prev) => [
+                              ...prev,
+                              ...Array.from(e.target.files || []),
+                            ]);
+                            e.target.value = "";
                           }
-                          // Clear input to allow re-uploading the same file
-                          e.target.value = "";
                         }}
                       />
                     </label>
                   </div>
-
-                  {/* Helper text */}
-                  <p className="text-xs text-[var(--color-text-muted)] mt-2">
-                    {existingImages.length + selectedImages.length} image(s)
-                    total
-                    {selectedImages.length > 0 &&
-                      ` • ${selectedImages.length} new to upload`}
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                    {existingImages.length} existing, {selectedImages.length}{" "}
+                    new.
                   </p>
                 </div>
+
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="button"
@@ -740,18 +902,12 @@ const ProductsPage = () => {
                   >
                     Cancel
                   </Button>
-                  <Button
-                    type="submit"
-                    fullWidth
-                    isLoading={
-                      createProduct.isPending || updateProduct.isPending
-                    }
-                  >
-                    {editingProduct ? "Update" : "Create"}
+                  <Button type="submit" fullWidth>
+                    Save Product
                   </Button>
                 </div>
               </form>
-            </motion.div>
+            </div>
           </div>
         )}
       </div>

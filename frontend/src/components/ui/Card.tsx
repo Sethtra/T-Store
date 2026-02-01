@@ -62,7 +62,7 @@ const Card = ({
       onClick={onClick}
       className={`
         ${variants[variant]}
-        rounded-xl overflow-hidden
+        rounded-lg overflow-hidden
         transition-all duration-300
         ${hover ? "cursor-pointer" : ""}
         ${className}

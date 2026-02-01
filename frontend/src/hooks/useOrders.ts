@@ -13,6 +13,7 @@ export interface OrderItem {
     image_url?: string;
     images?: string[];
   };
+  attributes?: Record<string, string>;
 }
 
 export interface Order {
@@ -23,6 +24,8 @@ export interface Order {
   total: number;
   payment_intent?: string;
   items: OrderItem[];
+  shipping_email?: string;
+  shipping_name?: string;
   created_at: string;
   updated_at: string;
 }
@@ -81,6 +84,7 @@ export interface AdminOrderFilters {
   startDate?: string;
   endDate?: string;
   page?: number;
+  perPage?: number;
 }
 
 export const useAdminOrders = (filters: AdminOrderFilters = {}) => {
@@ -92,6 +96,7 @@ export const useAdminOrders = (filters: AdminOrderFilters = {}) => {
       if (filters.startDate) params.append('start_date', filters.startDate);
       if (filters.endDate) params.append('end_date', filters.endDate);
       if (filters.page) params.append('page', String(filters.page));
+      if (filters.perPage) params.append('per_page', String(filters.perPage));
       
       const response = await api.get(`/admin/orders?${params.toString()}`);
       return response.data;
@@ -119,7 +124,9 @@ export interface DashboardStats {
   totalOrders: number;
   totalRevenue: number;
   pendingOrders: number;
+  totalUsers: number;
   recentOrders: Order[];
+  totalVisitors: number;
   revenueByPeriod: {
     day: number;
     week: number;
