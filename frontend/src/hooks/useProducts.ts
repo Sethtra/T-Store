@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import api from '../lib/api';
 
 // Types
@@ -66,6 +66,7 @@ export const useProducts = (filters: ProductFilters = {}) => {
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    placeholderData: keepPreviousData, // Keep old data visible while loading new page
   });
 };
 

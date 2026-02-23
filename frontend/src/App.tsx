@@ -13,6 +13,7 @@ import api from "./lib/api";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import CartDrawer from "./components/cart/CartDrawer";
+import ScrollToTop from "./components/layout/ScrollToTop";
 
 // Pages - Eager load critical pages
 import HomePage from "./pages/HomePage";
@@ -33,6 +34,9 @@ const AdminOrderDetail = lazy(() => import("./pages/admin/OrderDetailPage"));
 const AdminLanding = lazy(() => import("./pages/admin/LandingSectionPage"));
 const AdminCategoryDisplay = lazy(
   () => import("./pages/admin/CategoryDisplayPage"),
+);
+const AdminNotifications = lazy(
+  () => import("./pages/admin/NotificationsPage"),
 );
 
 // Create QueryClient
@@ -98,6 +102,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           {/* Public Routes */}
           <Route element={<MainLayout />}>
@@ -171,6 +176,14 @@ function App() {
               element={
                 <Suspense fallback={<PageLoader />}>
                   <AdminCategoryDisplay />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/notifications"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <AdminNotifications />
                 </Suspense>
               }
             />

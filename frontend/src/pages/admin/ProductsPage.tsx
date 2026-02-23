@@ -1,10 +1,11 @@
-import { useState, useMemo, memo, useCallback } from "react";
+import { useState, useMemo, memo, useCallback, useEffect } from "react";
 import {
   useProducts,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
   type Product,
+  type Category,
 } from "../../hooks/useProducts";
 import { useAdminCategories } from "../../hooks/useCategories";
 import AdminLayout from "../../components/admin/AdminLayout";
@@ -15,7 +16,7 @@ import Input from "../../components/ui/Input";
 const getStockStatus = (stock: number) => {
   if (stock === 0)
     return { label: "Out of Stock", color: "bg-red-500/20 text-red-400" };
-  if (stock < 10)
+  if (stock <= 10)
     return { label: "Low Stock", color: "bg-yellow-500/20 text-yellow-400" };
   return { label: "In Stock", color: "bg-green-500/20 text-green-400" };
 };
@@ -26,11 +27,35 @@ const ProductRow = memo(
     product,
     onEdit,
     onDelete,
+    categories,
   }: {
     product: Product;
     onEdit: (p: Product) => void;
     onDelete: (id: number) => void;
+    categories?: Category[];
   }) => {
+    // Find parent and sub-category names
+    const getCategoryInfo = () => {
+      if (!product.category_id || !categories)
+        return { parent: null, sub: null };
+      // Check if product.category is a parent
+      for (const parent of categories) {
+        if (parent.id === product.category_id) {
+          return { parent: parent.name, sub: null };
+        }
+        if (parent.children) {
+          const child = parent.children.find(
+            (c) => c.id === product.category_id,
+          );
+          if (child) {
+            return { parent: parent.name, sub: child.name };
+          }
+        }
+      }
+      // Fallback: use product.category directly
+      return { parent: product.category?.name || null, sub: null };
+    };
+    const categoryInfo = getCategoryInfo();
     const stockStatus = getStockStatus(product.stock);
     return (
       <tr className="hover:bg-[var(--color-bg-surface)]/50 transition-colors">
@@ -88,6 +113,25 @@ const ProductRow = memo(
               </span>
             )}
           </div>
+        </td>
+        {/* Category */}
+        <td className="px-4 py-4">
+          {categoryInfo.parent ? (
+            <div>
+              <div className="text-sm font-medium text-[var(--color-text-primary)]">
+                {categoryInfo.parent}
+              </div>
+              {categoryInfo.sub && (
+                <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                  └ {categoryInfo.sub}
+                </div>
+              )}
+            </div>
+          ) : (
+            <span className="text-xs text-[var(--color-text-muted)] italic">
+              Uncategorized
+            </span>
+          )}
         </td>
         {/* Price */}
         <td className="px-4 py-4">
@@ -163,6 +207,7 @@ const ProductsPage = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState("");
 
   // Fetch data
   const { data: productsData, isLoading } = useProducts({ page, limit: 12 });
@@ -171,6 +216,13 @@ const ProductsPage = () => {
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    document
+      .getElementById("admin-main-content")
+      ?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
 
   // Form State
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -186,6 +238,13 @@ const ProductsPage = () => {
   });
   const [selectedParentId, setSelectedParentId] = useState<string>("");
 
+  // Build flat list of sub-categories for the selected parent
+  const subCategories = useMemo(() => {
+    if (!selectedCategory || !categories) return [];
+    const parent = categories.find((c) => c.id.toString() === selectedCategory);
+    return parent?.children || [];
+  }, [selectedCategory, categories]);
+
   // Filter products
   const filteredProducts = useMemo(() => {
     if (!productsData?.data) return [];
@@ -193,12 +252,37 @@ const ProductsPage = () => {
       const matchesSearch = product.title
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory
-        ? product.category_id?.toString() === selectedCategory
-        : true;
-      return matchesSearch && matchesCategory;
+
+      // Sub-category filter takes priority
+      if (selectedSubCategory) {
+        return (
+          matchesSearch &&
+          product.category_id?.toString() === selectedSubCategory
+        );
+      }
+
+      // Parent category filter: match the parent itself OR any of its children
+      if (selectedCategory) {
+        const parent = categories?.find(
+          (c) => c.id.toString() === selectedCategory,
+        );
+        const childIds = parent?.children?.map((c) => c.id) || [];
+        const parentId = Number(selectedCategory);
+        const matchesCategory =
+          product.category_id === parentId ||
+          childIds.includes(product.category_id ?? -1);
+        return matchesSearch && matchesCategory;
+      }
+
+      return matchesSearch;
     });
-  }, [productsData, searchQuery, selectedCategory]);
+  }, [
+    productsData,
+    searchQuery,
+    selectedCategory,
+    selectedSubCategory,
+    categories,
+  ]);
 
   const [attributeRows, setAttributeRows] = useState<
     { id: number; key: string; value: string }[]
@@ -422,7 +506,10 @@ const ProductsPage = () => {
               {/* Category Filter */}
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setSelectedSubCategory(""); // Reset sub-category when parent changes
+                }}
                 className="px-3 py-1.5 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
               >
                 <option value="">All Categories</option>
@@ -432,6 +519,22 @@ const ProductsPage = () => {
                   </option>
                 ))}
               </select>
+
+              {/* Sub-Category Filter - Only visible when a parent category is selected */}
+              {subCategories.length > 0 && (
+                <select
+                  value={selectedSubCategory}
+                  onChange={(e) => setSelectedSubCategory(e.target.value)}
+                  className="px-3 py-1.5 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+                >
+                  <option value="">All Sub-Categories</option>
+                  {subCategories.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </option>
+                  ))}
+                </select>
+              )}
 
               <Button onClick={openCreateModal} className="flex-shrink-0 ml-2">
                 <svg
@@ -468,6 +571,9 @@ const ProductsPage = () => {
                     Description
                   </th>
                   <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                     Price
                   </th>
                   <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
@@ -485,7 +591,7 @@ const ProductsPage = () => {
                 {isLoading ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-6 py-8 text-center text-[var(--color-text-muted)]"
                     >
                       Loading products...
@@ -494,7 +600,7 @@ const ProductsPage = () => {
                 ) : filteredProducts.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-6 py-8 text-center text-[var(--color-text-muted)]"
                     >
                       No products found.
@@ -502,6 +608,7 @@ const ProductsPage = () => {
                         onClick={() => {
                           setSearchQuery("");
                           setSelectedCategory("");
+                          setSelectedSubCategory("");
                         }}
                         className="ml-2 text-[var(--color-primary)] hover:underline"
                       >
@@ -516,6 +623,7 @@ const ProductsPage = () => {
                       product={product}
                       onEdit={openEditModal}
                       onDelete={handleDelete}
+                      categories={categories}
                     />
                   ))
                 )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAdminOrders, useUpdateOrderStatus } from "../../hooks/useOrders";
@@ -12,9 +12,17 @@ const OrdersPage = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [page, setPage] = useState(1);
 
+  // Scroll to top when page changes
+  useEffect(() => {
+    document
+      .getElementById("admin-main-content")
+      ?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
+
   const { data: ordersData, isLoading } = useAdminOrders({
     status: statusFilter,
     page,
+    perPage: 8,
   });
   const updateStatus = useUpdateOrderStatus();
 
@@ -320,30 +328,82 @@ const OrdersPage = () => {
           )}
         </div>
 
-        {/* Pagination */}
+        {/* Pagination - Duralux Style */}
         {ordersData?.meta && ordersData.meta.last_page > 1 && (
-          <div className="flex items-center justify-between mt-8">
-            <p className="text-sm text-[var(--color-text-muted)]">
-              Page {ordersData.meta.current_page} of {ordersData.meta.last_page}
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
+          <div className="mt-8 bg-[var(--color-bg-elevated)] rounded-xl border border-[var(--color-border)] p-4 flex items-center justify-center gap-2">
+            {/* Previous Button */}
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                Previous
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={page === ordersData.meta.last_page}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+
+            {/* Current Page */}
+            <button className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-primary)] text-white font-bold shadow-lg shadow-blue-500/30">
+              {page}
+            </button>
+
+            {/* Next Page Number */}
+            {page < ordersData.meta.last_page && (
+              <button
                 onClick={() => setPage(page + 1)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] transition-all"
               >
-                Next
-              </Button>
-            </div>
+                {page + 1}
+              </button>
+            )}
+
+            {/* Ellipsis and Last Page */}
+            {ordersData.meta.last_page > page + 2 && (
+              <>
+                <div className="w-1 h-1 rounded-full bg-[var(--color-text-muted)]"></div>
+                <button
+                  onClick={() => setPage(ordersData.meta.last_page)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] transition-all"
+                >
+                  {ordersData.meta.last_page}
+                </button>
+              </>
+            )}
+
+            {/* Next Button */}
+            <button
+              onClick={() =>
+                setPage((p) => Math.min(ordersData.meta.last_page, p + 1))
+              }
+              disabled={page >= ordersData.meta.last_page}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
           </div>
         )}
       </div>

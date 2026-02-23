@@ -16,6 +16,7 @@ A premium, full-stack e-commerce platform built with **React** (frontend) and **
 - Browse products with advanced filtering (category, price range, search)
 - Product detail pages with image galleries
 - Shopping cart with persistent storage
+- Real-time order status notifications
 - User authentication (register/login)
 - Responsive design (mobile, tablet, desktop)
 
@@ -24,6 +25,7 @@ A premium, full-stack e-commerce platform built with **React** (frontend) and **
 - Admin dashboard with revenue analytics
 - Product management (CRUD operations)
 - Order management with status workflow
+- Real-time stock and order notifications
 - Secure admin-only routes
 
 ### 🔒 Security & Performance
@@ -32,7 +34,7 @@ A premium, full-stack e-commerce platform built with **React** (frontend) and **
 - **Password Security**: Bcrypt hashing
 - **API Protection**: CORS, CSRF tokens, XSS prevention
 - **Database**: Optimized queries with eager loading
-- **Frontend**: Code splitting, lazy loading
+- **Frontend**: Code splitting, lazy loading, global scroll restoration
 
 ---
 

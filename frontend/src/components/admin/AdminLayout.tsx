@@ -1,7 +1,8 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { useThemeStore } from "../../stores/themeStore";
+import { useAdminNotifications } from "../../hooks/useNotifications";
 import { AnimatePresence, motion } from "framer-motion";
 import Button from "../../components/ui/Button";
 
@@ -164,6 +165,277 @@ const navItems = [
     ],
   },
 ];
+
+// Time ago helper
+const timeAgo = (dateStr: string) => {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+};
+
+// Notification type config
+const notificationConfig = {
+  out_of_stock: {
+    icon: (
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+        />
+      </svg>
+    ),
+    color: "text-red-400",
+    bg: "bg-red-500/10",
+    dot: "bg-red-500",
+  },
+  low_stock: {
+    icon: (
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+    ),
+    color: "text-yellow-400",
+    bg: "bg-yellow-500/10",
+    dot: "bg-yellow-500",
+  },
+  new_order: {
+    icon: (
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+        />
+      </svg>
+    ),
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
+    dot: "bg-blue-500",
+  },
+};
+
+const NotificationBell = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { data } = useAdminNotifications();
+
+  const totalCount = data?.counts.total ?? 0;
+
+  // Close on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  const handleNotificationClick = (notification: {
+    type: string;
+    product_id?: number;
+    order_id?: number;
+  }) => {
+    setIsOpen(false);
+    if (notification.type === "new_order" && notification.order_id) {
+      navigate(`/admin/orders/${notification.order_id}`);
+    } else {
+      navigate("/admin/products");
+    }
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="relative w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-surface)] transition-all"
+      >
+        {totalCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold text-white bg-red-500 rounded-full border-2 border-[var(--color-bg-secondary)]">
+            {totalCount > 99 ? "99+" : totalCount}
+          </span>
+        )}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
+        </svg>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-12 w-80 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-xl shadow-2xl shadow-black/20 z-50 overflow-hidden"
+          >
+            {/* Header */}
+            <div className="px-4 py-3 border-b border-[var(--color-border)]">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  Notifications
+                </h3>
+                {totalCount > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 font-medium">
+                    {totalCount} alert{totalCount !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+
+              {/* Category counts */}
+              {data && totalCount > 0 && (
+                <div className="flex gap-3 mt-2">
+                  {data.counts.out_of_stock > 0 && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400">
+                      {data.counts.out_of_stock} out of stock
+                    </span>
+                  )}
+                  {data.counts.low_stock > 0 && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-400">
+                      {data.counts.low_stock} low stock
+                    </span>
+                  )}
+                  {data.counts.new_orders > 0 && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">
+                      {data.counts.new_orders} new order
+                      {data.counts.new_orders !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Notification List */}
+            <div className="max-h-80 overflow-y-auto">
+              {!data || totalCount === 0 ? (
+                <div className="px-4 py-8 text-center">
+                  <svg
+                    className="w-10 h-10 mx-auto text-[var(--color-text-muted)] mb-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p className="text-sm text-[var(--color-text-muted)]">
+                    All clear! No alerts.
+                  </p>
+                </div>
+              ) : (
+                data.notifications.slice(0, 5).map((notification) => {
+                  const config = notificationConfig[notification.type];
+                  return (
+                    <button
+                      key={notification.id}
+                      onClick={() => handleNotificationClick(notification)}
+                      className="w-full flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-bg-surface)] transition-colors text-left border-b border-[var(--color-border)] last:border-b-0"
+                    >
+                      <div
+                        className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-full ${config.bg} ${config.color} flex items-center justify-center`}
+                      >
+                        {config.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                          {notification.title}
+                        </p>
+                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                          {notification.message}
+                        </p>
+                      </div>
+                      <span className="text-[10px] text-[var(--color-text-muted)] flex-shrink-0 mt-0.5">
+                        {timeAgo(notification.created_at)}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* See More Footer */}
+            {totalCount > 0 && (
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate("/admin/notifications");
+                }}
+                className="w-full px-4 py-3 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-bg-surface)] transition-colors border-t border-[var(--color-border)] flex items-center justify-center gap-1"
+              >
+                See all notifications
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
@@ -370,9 +642,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       </motion.aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full bg-[var(--color-bg-primary)] overflow-hidden relative">
+      <div className="flex-1 flex flex-col h-full bg-[var(--color-bg-primary)] relative">
         {/* Top Header - Duralux Style */}
-        <header className="h-20 px-8 flex items-center justify-between z-10 sticky top-0 bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] shadow-sm">
+        <header className="h-20 px-8 flex items-center justify-between z-30 sticky top-0 bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] shadow-sm">
           <div className="flex items-center gap-4">
             <button className="md:hidden text-[var(--color-text-secondary)]">
               <svg
@@ -491,29 +763,16 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               )}
             </button>
 
-            {/* Notifications (Mock) */}
-            <button className="relative w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-surface)] transition-all">
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-            </button>
+            {/* Notifications */}
+            <NotificationBell />
           </div>
         </header>
 
         {/* Content Body - No global padding here */}
-        <main className="flex-1 overflow-y-auto relative scroll-smooth">
+        <main
+          id="admin-main-content"
+          className="flex-1 overflow-y-auto relative scroll-smooth"
+        >
           <div className="min-h-full">{children}</div>
         </main>
       </div>

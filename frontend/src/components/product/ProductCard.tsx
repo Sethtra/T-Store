@@ -40,10 +40,8 @@ const ProductCard = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -12 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       className="group"
     >
       <Link to={`/products/${slug}`} className="block">
@@ -64,36 +62,27 @@ const ProductCard = ({
 
             {/* Category Badge */}
             {category && (
-              <motion.span
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="absolute top-3 left-3 px-3 py-1 text-xs font-medium bg-black/40 backdrop-blur-md text-white rounded-full border border-white/10 z-20"
-              >
+              <span className="absolute top-3 left-3 px-3 py-1 text-xs font-medium bg-black/40 backdrop-blur-md text-white rounded-full border border-white/10 z-20">
                 {category}
-              </motion.span>
+              </span>
             )}
 
             {/* Out of Stock Overlay */}
             {isOutOfStock && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-30"
-              >
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-30">
                 <span className="text-white font-semibold text-lg px-4 py-2 bg-black/50 rounded-full border border-white/20">
                   Out of Stock
                 </span>
-              </motion.div>
+              </div>
             )}
           </div>
 
           {/* Content */}
           <div className="p-5">
             {/* Title */}
-            <motion.h3 className="font-medium text-[var(--color-text-primary)] truncate group-hover:text-[var(--color-primary)] transition-colors duration-300">
+            <h3 className="font-medium text-[var(--color-text-primary)] truncate group-hover:text-[var(--color-primary)] transition-colors duration-300">
               {title}
-            </motion.h3>
+            </h3>
 
             {/* Description */}
             {description && (
@@ -115,13 +104,9 @@ const ProductCard = ({
 
               {/* Stock Indicator */}
               {stock && stock > 0 && stock <= 5 && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-xs text-[var(--color-warning)] bg-[var(--color-warning)]/10 px-2 py-1 rounded-full"
-                >
+                <span className="text-xs text-[var(--color-warning)] bg-[var(--color-warning)]/10 px-2 py-1 rounded-full">
                   Only {stock} left
-                </motion.span>
+                </span>
               )}
             </div>
 

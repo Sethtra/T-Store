@@ -6,6 +6,7 @@ import { useCartStore } from "../../stores/cartStore";
 import { useThemeStore } from "../../stores/themeStore";
 import { useCategories } from "../../hooks/useProducts";
 import Button from "../ui/Button";
+import CustomerNotificationBell from "../notifications/CustomerNotificationBell";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -256,6 +257,9 @@ const Navbar = () => {
                 </motion.div>
               </AnimatePresence>
             </button>
+
+            {/* Customer Notifications (Only shows if authenticated) */}
+            <CustomerNotificationBell />
 
             {/* Cart Button */}
             <button
