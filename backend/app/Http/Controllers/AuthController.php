@@ -44,7 +44,9 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (Auth::attempt($credentials)) {
+        $remember = $request->boolean('remember', false);
+
+        if (Auth::attempt($credentials, $remember)) {
             // When called from Sanctum "stateful" SPA requests, a session is available.
             // Avoid a 500 if this endpoint is hit without session middleware (e.g. non-stateful clients/tests).
             if ($request->hasSession()) {

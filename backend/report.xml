@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="C:\Users\costomer\Desktop\T-Store\T-Store\backend\phpunit.xml" tests="10" assertions="29" errors="4" failures="0" skipped="0" time="0.558546">
+    <testsuite name="Feature" tests="10" assertions="29" errors="4" failures="0" skipped="0" time="0.558546">
+      <testsuite name="Tests\Feature\ApiSmokeTest" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" tests="10" assertions="29" errors="4" failures="0" skipped="0" time="0.558546">
+        <testcase name="test_public_products_index_returns_paginated_payload" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" line="44" class="Tests\Feature\ApiSmokeTest" classname="Tests.Feature.ApiSmokeTest" assertions="8" time="0.360482"/>
+        <testcase name="test_category_filter_includes_child_products" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" line="59" class="Tests\Feature\ApiSmokeTest" classname="Tests.Feature.ApiSmokeTest" assertions="3" time="0.019751"/>
+        <testcase name="test_featured_products_returns_in_stock_only_and_max_8" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" line="75" class="Tests\Feature\ApiSmokeTest" classname="Tests.Feature.ApiSmokeTest" assertions="10" time="0.024932"/>
+        <testcase name="test_public_product_show_by_slug" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" line="94" class="Tests\Feature\ApiSmokeTest" classname="Tests.Feature.ApiSmokeTest" assertions="2" time="0.016092"/>
+        <testcase name="test_register_creates_customer_user" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" line="103" class="Tests\Feature\ApiSmokeTest" classname="Tests.Feature.ApiSmokeTest" assertions="4" time="0.030752"/>
+        <testcase name="test_login_works_for_valid_credentials" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" line="120" class="Tests\Feature\ApiSmokeTest" classname="Tests.Feature.ApiSmokeTest" assertions="2" time="0.021661"/>
+        <testcase name="test_authenticated_user_endpoint_returns_user" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" line="135" class="Tests\Feature\ApiSmokeTest" classname="Tests.Feature.ApiSmokeTest" assertions="0" time="0.035256">
+          <error type="BadMethodCallException">Tests\Feature\ApiSmokeTest::test_authenticated_user_endpoint_returns_user&#13;
+BadMethodCallException: Call to undefined method App\Models\User::withAccessToken()
+&#13;
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2540
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\sanctum\src\Sanctum.php:82
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php:144</error>
+        </testcase>
+        <testcase name="test_orders_can_be_created_and_decrement_stock" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" line="151" class="Tests\Feature\ApiSmokeTest" classname="Tests.Feature.ApiSmokeTest" assertions="0" time="0.016260">
+          <error type="BadMethodCallException">Tests\Feature\ApiSmokeTest::test_orders_can_be_created_and_decrement_stock&#13;
+BadMethodCallException: Call to undefined method App\Models\User::withAccessToken()
+&#13;
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2540
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\sanctum\src\Sanctum.php:82
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php:165</error>
+        </testcase>
+        <testcase name="test_admin_routes_forbidden_for_non_admin" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" line="180" class="Tests\Feature\ApiSmokeTest" classname="Tests.Feature.ApiSmokeTest" assertions="0" time="0.015456">
+          <error type="BadMethodCallException">Tests\Feature\ApiSmokeTest::test_admin_routes_forbidden_for_non_admin&#13;
+BadMethodCallException: Call to undefined method App\Models\User::withAccessToken()
+&#13;
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2540
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\sanctum\src\Sanctum.php:82
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php:189</error>
+        </testcase>
+        <testcase name="test_admin_routes_allowed_for_admin" file="C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php" line="196" class="Tests\Feature\ApiSmokeTest" classname="Tests.Feature.ApiSmokeTest" assertions="0" time="0.017905">
+          <error type="BadMethodCallException">Tests\Feature\ApiSmokeTest::test_admin_routes_allowed_for_admin&#13;
+BadMethodCallException: Call to undefined method App\Models\User::withAccessToken()
+&#13;
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2540
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\vendor\laravel\sanctum\src\Sanctum.php:82
+C:\Users\costomer\Desktop\T-Store\T-Store\backend\tests\Feature\ApiSmokeTest.php:206</error>
+        </testcase>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

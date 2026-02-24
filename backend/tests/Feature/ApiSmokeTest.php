@@ -205,8 +205,7 @@ class ApiSmokeTest extends TestCase
         $this->makeProduct();
         Sanctum::actingAs($admin);
 
-        $this->getJson('/api/admin/products')
-            ->assertOk()
+        $this->getJson('/api/admin/products')->assertOk()
             ->assertJsonStructure([
                 'data',
                 'meta' => ['current_page', 'last_page', 'per_page', 'total'],

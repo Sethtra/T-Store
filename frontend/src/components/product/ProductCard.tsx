@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useCartStore } from "../../stores/cartStore";
 import Button from "../ui/Button";
@@ -39,38 +38,32 @@ const ProductCard = ({
   const isOutOfStock = (stock ?? 0) <= 0;
 
   return (
-    <motion.div
-      whileHover={{ y: -12 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="group"
-    >
+    <div className="group will-change-transform transition-transform duration-300 ease-out hover:-translate-y-3">
       <Link to={`/products/${slug}`} className="block">
-        <div className="relative bg-[var(--color-bg-elevated)] rounded-2xl overflow-hidden border border-[var(--color-border)] transition-all duration-500 hover:border-[var(--color-primary)]/30 hover:shadow-2xl hover:shadow-[var(--color-primary)]/10">
+        <div className="relative bg-[var(--color-bg-elevated)] rounded-2xl overflow-hidden border border-[var(--color-border)] transition-[border-color,box-shadow] duration-300 hover:border-[var(--color-primary)]/30 hover:shadow-lg hover:shadow-[var(--color-primary)]/10">
           {/* Image Container */}
           <div className="relative aspect-square overflow-hidden bg-[var(--color-bg-surface)]">
             {/* Gradient Overlay on Hover */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
 
-            <motion.img
+            <img
               src={image}
               alt={title}
               loading="lazy"
-              className="w-full h-full object-cover"
-              whileHover={{ scale: 1.1 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="w-full h-full object-cover will-change-transform transition-transform duration-500 ease-out group-hover:scale-110"
             />
 
             {/* Category Badge */}
             {category && (
-              <span className="absolute top-3 left-3 px-3 py-1 text-xs font-medium bg-black/40 backdrop-blur-md text-white rounded-full border border-white/10 z-20">
+              <span className="absolute top-3 left-3 px-3 py-1 text-xs font-medium bg-black/60 text-white rounded-full border border-white/10 z-20 shadow-sm">
                 {category}
               </span>
             )}
 
             {/* Out of Stock Overlay */}
             {isOutOfStock && (
-              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-30">
-                <span className="text-white font-semibold text-lg px-4 py-2 bg-black/50 rounded-full border border-white/20">
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-30">
+                <span className="text-white font-semibold text-lg px-4 py-2 bg-black/60 rounded-full border border-white/20 shadow-lg">
                   Out of Stock
                 </span>
               </div>
@@ -93,14 +86,11 @@ const ProductCard = ({
 
             {/* Price Row */}
             <div className="flex items-center justify-between mt-3">
-              <motion.p
-                className="text-xl font-bold"
-                whileHover={{ scale: 1.05 }}
-              >
+              <p className="text-xl font-bold inline-block origin-left">
                 <span className="gradient-text">
                   ${Number(price).toFixed(2)}
                 </span>
-              </motion.p>
+              </p>
 
               {/* Stock Indicator */}
               {stock && stock > 0 && stock <= 5 && (
@@ -135,7 +125,7 @@ const ProductCard = ({
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 };
 
