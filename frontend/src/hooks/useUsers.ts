@@ -1,0 +1,89 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '../lib/api';
+
+// Types
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  google_id: boolean;
+  orders_count: number;
+  total_spent: number;
+  created_at: string;
+}
+
+export interface AdminUserDetail extends AdminUser {
+  stats: {
+    total_orders: number;
+    total_spent: number;
+    last_order_at: string | null;
+  };
+  orders: {
+    id: number;
+    tracking_id: string;
+    status: string;
+    total: number;
+    items_count: number;
+    created_at: string;
+  }[];
+}
+
+export interface AdminUserFilters {
+  search?: string;
+  role?: string;
+  status?: string;
+  page?: number;
+  perPage?: number;
+  sortBy?: string;
+  sortDir?: string;
+}
+
+// Admin: Fetch paginated users
+export const useAdminUsers = (filters: AdminUserFilters = {}) => {
+  return useQuery({
+    queryKey: ['admin', 'users', filters],
+    queryFn: async (): Promise<{ data: AdminUser[]; meta: { total: number; current_page: number; last_page: number; per_page: number } }> => {
+      const params = new URLSearchParams();
+      if (filters.search) params.append('search', filters.search);
+      if (filters.role) params.append('role', filters.role);
+      if (filters.status) params.append('status', filters.status);
+      if (filters.page) params.append('page', String(filters.page));
+      if (filters.perPage) params.append('per_page', String(filters.perPage));
+      if (filters.sortBy) params.append('sort_by', filters.sortBy);
+      if (filters.sortDir) params.append('sort_dir', filters.sortDir);
+
+      const response = await api.get(`/admin/users?${params.toString()}`);
+      return response.data;
+    },
+  });
+};
+
+// Admin: Fetch single user details
+export const useAdminUser = (id: number | null) => {
+  return useQuery({
+    queryKey: ['admin', 'user', id],
+    queryFn: async (): Promise<AdminUserDetail> => {
+      const response = await api.get(`/admin/users/${id}`);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+};
+
+// Admin: Update user role/status
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: { role?: string; status?: string } }) => {
+      const response = await api.put(`/admin/users/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'user'] });
+    },
+  });
+};

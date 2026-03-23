@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useAdminCategories,
   useAllCategories,
@@ -17,6 +17,7 @@ import Badge from "../../components/ui/Badge";
 const CategoriesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
   const { data: categories, isLoading } = useAdminCategories();
   const { data: allCategories } = useAllCategories();
@@ -29,6 +30,10 @@ const CategoriesPage = () => {
     parent_id: "" as string | number, // Empty string for "No Parent"
   });
   const [searchQuery, setSearchQuery] = useState("");
+
+  const selectedCategory = useMemo(() => {
+    return categories?.find((c) => c.id === selectedCategoryId);
+  }, [categories, selectedCategoryId]);
 
   const openCreateModal = () => {
     setEditingCategory(null);
@@ -83,252 +88,368 @@ const CategoriesPage = () => {
 
     try {
       await deleteCategory.mutateAsync(id);
+      if (selectedCategoryId === id) {
+        setSelectedCategoryId(null);
+      }
     } catch (error) {
       alert("Failed to delete category. Please try again.");
     }
   };
 
-  // Helper to flatten categories for display
-  const flattenCategories = (
-    cats: Category[] | undefined,
-    level = 0,
-  ): Array<Category & { level: number }> => {
-    if (!cats) return [];
-    let flat: Array<Category & { level: number }> = [];
-
-    cats.forEach((cat) => {
-      flat.push({ ...cat, level });
-      if (cat.children && cat.children.length > 0) {
-        flat = [...flat, ...flattenCategories(cat.children, level + 1)];
-      }
-    });
-
-    return flat;
-  };
-
-  const flatCategories = flattenCategories(categories);
-
-  // Filter categories by search query
-  const filteredCategories = useMemo(() => {
-    if (!searchQuery) return flatCategories;
+  // Filter ONLY main categories (which is what useAdminCategories returns by default at top level)
+  const filteredParents = useMemo(() => {
+    const parentCats = categories || [];
+    if (!searchQuery) return parentCats;
     const query = searchQuery.toLowerCase();
-    return flatCategories.filter(
+    return parentCats.filter(
       (cat) =>
         cat.name.toLowerCase().includes(query) ||
         cat.slug.toLowerCase().includes(query),
     );
-  }, [flatCategories, searchQuery]);
+  }, [categories, searchQuery]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg-primary)] pt-24 px-4">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-center">Loading...</p>
+      <AdminLayout>
+        <div className="w-full px-8 py-6 flex items-center justify-center min-h-[50vh]">
+          <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="w-full px-8 py-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Categories</h1>
-            <p className="text-[var(--color-text-muted)]">
-              Manage your product categories
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+              Categories
+            </h1>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">
+              Manage your product categories and subcategories
             </p>
           </div>
         </div>
 
-        {/* Categories Table */}
-        <Card className="overflow-hidden">
-          {/* Table Header with Search */}
-          <div className="p-4 border-b border-[var(--color-border)] flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              All Categories
-            </h2>
-            <div className="flex items-center gap-3">
-              {/* Search */}
-              <div className="relative">
-                <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search categories..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
-                />
+        {/* Filters Bar */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px] max-w-[320px]">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search main categories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+            />
+          </div>
+          <Button onClick={openCreateModal} className="flex-shrink-0">
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Main Category
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Categories Table (Left Side) */}
+          <div className="xl:col-span-2">
+            <Card className="overflow-hidden border border-[var(--color-border)] shadow-sm">
+              <div className="p-4 border-b border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+                  Main Categories
+                </h2>
               </div>
-              <Button onClick={openCreateModal} className="flex-shrink-0">
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Add Category
-              </Button>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border)]">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[var(--color-text-muted)]">
-                    Name
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[var(--color-text-muted)]">
-                    Slug
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-[var(--color-text-muted)]">
-                    Products
-                  </th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-[var(--color-text-muted)]">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--color-border)]">
-                {filteredCategories.map((category) => (
-                  <tr
-                    key={category.id}
-                    className="hover:bg-[var(--color-bg-elevated)] transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        {category.level > 0 && (
-                          <div
-                            style={{ width: `${category.level * 24}px` }}
-                            className="flex-shrink-0 flex justify-end pr-2"
-                          >
-                            <span className="text-[var(--color-text-muted)]">
-                              └
+              <div className="overflow-x-auto bg-[var(--color-bg-elevated)]">
+                <table className="w-full">
+                  <thead className="bg-[var(--color-bg-surface)]">
+                    <tr className="border-b border-[var(--color-border)]">
+                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                        Slug
+                      </th>
+                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                        Products
+                      </th>
+                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                        Subcategories
+                      </th>
+                      <th className="px-5 py-4 text-right text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--color-border)]">
+                    {filteredParents.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="px-5 py-12 text-center text-[var(--color-text-muted)]"
+                        >
+                          {searchQuery
+                            ? "No matching categories found."
+                            : 'No categories found. Click "Add Main Category" to create one.'}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredParents.map((category) => (
+                        <motion.tr
+                          key={category.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          onClick={() => setSelectedCategoryId(category.id)}
+                          className={`hover:bg-[var(--color-bg-surface)]/50 transition-colors cursor-pointer ${
+                            selectedCategoryId === category.id
+                              ? "bg-[var(--color-bg-surface)]"
+                              : ""
+                          }`}
+                        >
+                          <td className="px-5 py-4">
+                            <span className="font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+                              <span className="w-8 h-8 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center font-bold text-[10px] uppercase">
+                                {category.name.substring(0, 2)}
+                              </span>
+                              {category.name}
                             </span>
-                          </div>
-                        )}
-                        <span
-                          className={`font-medium ${category.level === 0 ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)]"}`}
-                        >
-                          {category.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <code className="px-2 py-1 rounded bg-[var(--color-bg-surface)] text-xs font-mono text-[var(--color-text-secondary)]">
-                        {category.slug}
-                      </code>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant="default" size="sm">
-                        {category.products_count || 0} items
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openEditModal(category)}
-                          className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-colors"
-                          title="Edit"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(category.id)}
-                          className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                          title="Delete"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {filteredCategories.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-6 py-12 text-center text-[var(--color-text-muted)]"
-                    >
-                      {searchQuery ? (
-                        <>
-                          No categories match your search.
-                          <button
-                            onClick={() => setSearchQuery("")}
-                            className="ml-2 text-[var(--color-primary)] hover:underline"
-                          >
-                            Clear search
-                          </button>
-                        </>
-                      ) : (
-                        'No categories found. Click "Add Category" to create one.'
-                      )}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                          </td>
+                          <td className="px-5 py-4">
+                            <code className="px-2 py-1 rounded bg-[var(--color-bg-surface)] text-xs font-mono text-[var(--color-text-secondary)]">
+                              {category.slug}
+                            </code>
+                          </td>
+                          <td className="px-5 py-4">
+                            <Badge variant="default" size="sm">
+                              {category.products_count || 0} items
+                            </Badge>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-surface)] px-2.5 py-1 rounded-full border border-[var(--color-border)]">
+                              {category.children?.length || 0}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-right">
+                            <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                onClick={() => openEditModal(category)}
+                                className="p-1.5 rounded text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-colors"
+                                title="Edit"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDelete(category.id)}
+                                className="p-1.5 rounded text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                title="Delete"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           </div>
-        </Card>
+
+          {/* Category Detail Panel (Right Side) */}
+          <div className="xl:col-span-1">
+            <AnimatePresence mode="wait">
+              {selectedCategoryId && selectedCategory ? (
+                <motion.div
+                  key={selectedCategoryId}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className="border border-[var(--color-border)] shadow-sm sticky top-28">
+                    <Card.Body className="p-6">
+                      <div className="space-y-6">
+                        {/* Detail Header */}
+                        <div className="text-center">
+                          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-purple-600 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3 ring-4 ring-[var(--color-border)] shadow-lg shadow-[var(--color-primary)]/20">
+                            {selectedCategory.name.substring(0, 2).toUpperCase()}
+                          </div>
+                          <h3 className="text-lg font-bold text-[var(--color-text-primary)]">
+                            {selectedCategory.name}
+                          </h3>
+                          <p className="text-sm font-mono text-[var(--color-text-muted)] mt-1">
+                            /{selectedCategory.slug}
+                          </p>
+                        </div>
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="text-center p-3 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border)]">
+                            <div className="text-xl font-bold text-[var(--color-text-primary)]">
+                              {selectedCategory.products_count || 0}
+                            </div>
+                            <div className="text-[10px] text-[var(--color-text-muted)] uppercase font-semibold mt-1">
+                              Products
+                            </div>
+                          </div>
+                          <div className="text-center p-3 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border)]">
+                            <div className="text-xl font-bold text-[var(--color-text-primary)]">
+                              {selectedCategory.children?.length || 0}
+                            </div>
+                            <div className="text-[10px] text-[var(--color-text-muted)] uppercase font-semibold mt-1">
+                              Subcategories
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Subcategories List */}
+                        <div>
+                          <div className="flex justify-between items-center mb-3">
+                            <h4 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                              Subcategories
+                            </h4>
+                            <button
+                              onClick={() => {
+                                setEditingCategory(null);
+                                setFormData({ name: "", parent_id: selectedCategory.id });
+                                setIsModalOpen(true);
+                              }}
+                              className="text-xs font-semibold text-[var(--color-primary)] hover:underline flex items-center gap-1"
+                            >
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Add New
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+                            {selectedCategory.children && selectedCategory.children.length > 0 ? (
+                              selectedCategory.children.map((sub) => (
+                                <div
+                                  key={sub.id}
+                                  className="flex items-center justify-between p-3 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg transition-colors hover:border-[var(--color-primary)]/50 group"
+                                >
+                                  <div className="min-w-0">
+                                    <div className="text-sm font-semibold text-[var(--color-text-primary)] truncate">
+                                      {sub.name}
+                                    </div>
+                                    <div className="text-[10px] font-mono text-[var(--color-text-muted)] truncate mt-0.5">
+                                      /{sub.slug}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                      onClick={() => openEditModal(sub)}
+                                      className="p-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded"
+                                      title="Edit Subcategory"
+                                    >
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete(sub.id)}
+                                      className="p-1.5 text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded"
+                                      title="Delete Subcategory"
+                                    >
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-center py-6 border border-dashed border-[var(--color-border)] rounded-lg">
+                                <p className="text-xs text-[var(--color-text-muted)]">No subcategories yet.</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center justify-center py-20 text-center"
+                >
+                  <div className="w-16 h-16 rounded-full bg-[var(--color-bg-surface)] flex items-center justify-center mb-4 border border-[var(--color-border)]">
+                    <svg
+                      className="w-8 h-8 text-[var(--color-text-muted)] opacity-50"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                    No Category Selected
+                  </p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1 max-w-[200px]">
+                    Select a main category from the list to view its subcategories and details.
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
 
         {/* Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-[var(--color-bg-elevated)] rounded-lg p-8 max-w-md w-full"
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="bg-[var(--color-bg-elevated)] rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-[var(--color-border)]"
             >
-              <h2 className="text-2xl font-bold mb-6">
+              <h2 className="text-2xl font-bold mb-6 text-[var(--color-text-primary)]">
                 {editingCategory ? "Edit Category" : "Add Category"}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Name</label>
+                  <label className="block text-sm font-medium mb-1.5 text-[var(--color-text-primary)]">Name</label>
                   <Input
                     value={formData.name}
                     onChange={(e) =>
@@ -340,7 +461,7 @@ const CategoriesPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label className="block text-sm font-medium mb-1.5 text-[var(--color-text-primary)]">
                     Parent Category
                   </label>
                   <select
@@ -348,41 +469,41 @@ const CategoriesPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, parent_id: e.target.value })
                     }
-                    className="w-full px-4 py-2 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:border-[var(--color-primary)] transition-all"
+                    className="w-full px-4 py-2.5 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:border-[var(--color-primary)] transition-all text-sm text-[var(--color-text-primary)]"
                   >
-                    <option value="">None (Top Level)</option>
+                    <option value="">None (Make it a Top Level Category)</option>
                     {allCategories
-                      ?.filter((c) => c.id !== editingCategory?.id)
+                      ?.filter((c) => c.id !== editingCategory?.id) // Prevent setting itself as parent
                       .map((cat) => (
                         <option key={cat.id} value={cat.id}>
                           {cat.name}
                         </option>
                       ))}
                   </select>
-                  <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                    Select a parent to make this a subcategory.
+                  <p className="text-xs text-[var(--color-text-muted)] mt-2">
+                    Select a parent to nest this category under it.
                   </p>
                 </div>
 
-                <div className="flex gap-4 pt-2">
+                <div className="flex gap-3 pt-4">
                   <Button
                     type="submit"
                     disabled={
                       createCategory.isPending || updateCategory.isPending
                     }
-                    className="flex-1"
+                    className="flex-1 py-2.5 rounded-xl font-medium shadow-sm"
                   >
                     {createCategory.isPending || updateCategory.isPending
                       ? "Saving..."
                       : editingCategory
-                        ? "Update"
-                        : "Create"}
+                        ? "Save Changes"
+                        : "Create Category"}
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-1"
+                    className="flex-1 py-2.5 rounded-xl font-medium"
                   >
                     Cancel
                   </Button>
@@ -397,3 +518,4 @@ const CategoriesPage = () => {
 };
 
 export default CategoriesPage;
+

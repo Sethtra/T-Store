@@ -984,13 +984,16 @@ const ProductsPage = () => {
                         accept="image/*"
                         className="hidden"
                         onChange={(e) => {
-                          if (e.target.files) {
+                          const files = e.target.files;
+                          if (files && files.length > 0) {
+                            const newFiles = Array.from(files);
                             setSelectedImages((prev) => [
                               ...prev,
-                              ...Array.from(e.target.files || []),
+                              ...newFiles,
                             ]);
-                            e.target.value = "";
                           }
+                          // Reset after capturing so re-selecting same file works
+                          e.target.value = "";
                         }}
                       />
                     </label>

@@ -16,9 +16,10 @@ class GoogleAuthController extends Controller
      */
     public function redirect()
     {
-        return Socialite::driver('google')
-            ->stateless()
-            ->redirect();
+        /** @var \Laravel\Socialite\Two\GoogleProvider $driver */
+        $driver = Socialite::driver('google');
+
+        return $driver->stateless()->redirect();
     }
 
     /**
@@ -30,9 +31,9 @@ class GoogleAuthController extends Controller
     public function callback(Request $request)
     {
         try {
-            $googleUser = Socialite::driver('google')
-                ->stateless()
-                ->user();
+            /** @var \Laravel\Socialite\Two\GoogleProvider $driver */
+            $driver = Socialite::driver('google');
+            $googleUser = $driver->stateless()->user();
 
             // Find existing user by google_id or email
             $user = User::where('google_id', $googleUser->getId())

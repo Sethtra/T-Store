@@ -67,18 +67,29 @@ class AdminProductController extends Controller
             $slug = $slug . '-' . Str::random(5);
         }
 
-        $images = $request->images ?? [];
+        // We only store the final URLs as strings
+        $imageUrls = [];
+
+        // If explicit string URLs were sent (uncommon for creation, but just in case)
+        if ($request->has('images') && !is_array($request->file('images'))) {
+            $inputImages = $request->input('images');
+            if (is_array($inputImages)) {
+                $imageUrls = array_filter($inputImages, function($img) {
+                    return is_string($img) && filter_var($img, FILTER_VALIDATE_URL);
+                });
+            }
+        }
 
         // Handle Multiple File Uploads
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
                 $path = $file->store('products', 'public');
-                $images[] = url('storage/' . $path);
+                $imageUrls[] = asset('storage/' . $path);
             }
         } elseif ($request->hasFile('image')) {
             // Fallback for single file
             $path = $request->file('image')->store('products', 'public');
-            $images[] = url('storage/' . $path);
+            $imageUrls[] = asset('storage/' . $path);
         }
 
         $product = Product::create([
@@ -88,7 +99,7 @@ class AdminProductController extends Controller
             'price' => $request->price,
             'stock' => $request->stock,
             'category_id' => $request->category_id,
-            'images' => json_encode($images), // Ensure images are stored as JSON string
+            'images' => json_encode(array_values($imageUrls)), // Ensure only clean string arrays are saved
             'attributes' => $request->input('attributes') ?? [],
         ]);
 
@@ -172,11 +183,11 @@ class AdminProductController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
                 $path = $file->store('products', 'public');
-                $newImages[] = url('storage/' . $path);
+                $newImages[] = asset('storage/' . $path);
             }
         } elseif ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
-            $newImages[] = url('storage/' . $path);
+            $newImages[] = asset('storage/' . $path);
         }
 
         // If new images were uploaded, append them to existing ones

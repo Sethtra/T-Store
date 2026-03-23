@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategoryDisplayController;
 use App\Http\Controllers\OrderController;
@@ -19,6 +20,10 @@ use App\Http\Controllers\Admin\AdminBannerController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\LandingSectionController as AdminLandingSectionController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminInventoryController;
+use App\Http\Controllers\Admin\AdminReportController;
+use App\Http\Controllers\Admin\AdminExportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,11 +63,19 @@ Route::post('/auth/google/verify', [GoogleAuthController::class, 'verify']);
 // Visitor Routes
 Route::post('/visit', [\App\Http\Controllers\VisitController::class, 'store']);
 
+// Stripe Webhook (public, no auth - Stripe signs these)
+Route::post('/webhooks/stripe', [PaymentController::class, 'stripeWebhook']);
+
 // Protected Routes (Authenticated Users)
 Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Payment
+    Route::post('/payment/stripe/create-intent', [PaymentController::class, 'createStripeIntent']);
+    Route::post('/payment/paypal/create-order', [PaymentController::class, 'createPaypalOrder']);
+    Route::post('/payment/paypal/capture', [PaymentController::class, 'capturePaypalOrder']);
 
     // Orders (Customer)
     Route::get('/orders', [OrderController::class, 'index']);
@@ -81,6 +94,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/products', [AdminProductController::class, 'index']);
         Route::post('/products', [AdminProductController::class, 'store']);
         Route::put('/products/{id}', [AdminProductController::class, 'update']);
+        // Handles FormData uploads where frontend sends POST with _method=PUT
+        Route::post('/products/{id}', [AdminProductController::class, 'update']);
         Route::delete('/products/{id}', [AdminProductController::class, 'destroy']);
 
         // Categories Management
@@ -115,5 +130,26 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/orders', [AdminOrderController::class, 'index']);
         Route::get('/orders/{id}', [AdminOrderController::class, 'show']);
         Route::patch('/orders/{id}/status', [AdminOrderController::class, 'updateStatus']);
+
+        // Users Management
+        Route::get('/users', [AdminUserController::class, 'index']);
+        Route::get('/users/{id}', [AdminUserController::class, 'show']);
+        Route::put('/users/{id}', [AdminUserController::class, 'update']);
+
+        // Inventory Management
+        Route::get('/inventory', [AdminInventoryController::class, 'index']);
+        Route::get('/inventory/{product}/history', [AdminInventoryController::class, 'history']);
+        Route::post('/inventory/adjust', [AdminInventoryController::class, 'adjust']);
+        Route::post('/inventory/bulk-adjust', [AdminInventoryController::class, 'bulkAdjust']);
+
+        // Reports Management
+        Route::get('/reports/summary', [AdminReportController::class, 'salesSummary']);
+        Route::get('/reports/revenue', [AdminReportController::class, 'revenueChart']);
+        Route::get('/reports/top-products', [AdminReportController::class, 'topProducts']);
+
+        // Exports
+        Route::get('/export/orders', [AdminExportController::class, 'exportOrders']);
+        Route::get('/export/products', [AdminExportController::class, 'exportProducts']);
+        Route::get('/export/users', [AdminExportController::class, 'exportUsers']);
     });
 });

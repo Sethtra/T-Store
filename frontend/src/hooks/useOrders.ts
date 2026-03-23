@@ -61,14 +61,44 @@ export const useOrder = (id: number) => {
   });
 };
 
-// Customer: Create order (checkout)
+// Customer: Create order (checkout - now just creates the pending order)
 export const useCreateOrder = () => {
-  const queryClient = useQueryClient();
-  const clearCart = useCartStore((state) => state.clearCart);
-  
   return useMutation({
     mutationFn: async (data: CreateOrderData) => {
       const response = await api.post('/orders', data);
+      return response.data;
+    },
+  });
+};
+
+// Payment: Create Stripe Intent
+export const useCreateStripeIntent = () => {
+  return useMutation({
+    mutationFn: async (data: { order_id: number }) => {
+      const response = await api.post('/payment/stripe/create-intent', data);
+      return response.data;
+    },
+  });
+};
+
+// Payment: Create PayPal Order
+export const useCreatePaypalOrder = () => {
+  return useMutation({
+    mutationFn: async (data: { order_id: number }) => {
+      const response = await api.post('/payment/paypal/create-order', data);
+      return response.data;
+    },
+  });
+};
+
+// Payment: Capture PayPal Order
+export const useCapturePaypalOrder = () => {
+  const queryClient = useQueryClient();
+  const clearCart = useCartStore((state) => state.clearCart);
+
+  return useMutation({
+    mutationFn: async (data: { order_id: number; paypal_order_id: string }) => {
+      const response = await api.post('/payment/paypal/capture', data);
       return response.data;
     },
     onSuccess: () => {

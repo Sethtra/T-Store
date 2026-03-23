@@ -112,8 +112,11 @@ export const useCreateProduct = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (product: Partial<Product>) => {
-      const response = await api.post('/admin/products', product);
+    mutationFn: async (product: Partial<Product> | FormData) => {
+      const isFormData = product instanceof FormData;
+      const response = await api.post('/admin/products', product, {
+        headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -127,8 +130,15 @@ export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<Product> }) => {
-      const response = await api.put(`/admin/products/${id}`, data);
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Product> | FormData }) => {
+      // If data is FormData, we need to send POST with _method=PUT mechanism
+      // because native PUT requests cannot parse multipart/form-data in PHP
+      const isFormData = data instanceof FormData;
+      const response = isFormData 
+        ? await api.post(`/admin/products/${id}`, data, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          })
+        : await api.put(`/admin/products/${id}`, data);
       return response.data;
     },
     onSuccess: (_, variables) => {

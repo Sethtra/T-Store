@@ -40,6 +40,9 @@ const AdminCategoryDisplay = lazy(
 const AdminNotifications = lazy(
   () => import("./pages/admin/NotificationsPage"),
 );
+const AdminUsers = lazy(() => import("./pages/admin/UsersPage"));
+const AdminInventory = lazy(() => import("./pages/admin/InventoryPage"));
+const AdminReports = lazy(() => import("./pages/admin/ReportsPage"));
 
 // Create QueryClient
 const queryClient = new QueryClient({
@@ -150,6 +153,22 @@ function App() {
                 </Suspense>
               }
             />
+            <Route
+              path="/admin/inventory"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <AdminInventory />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <AdminReports />
+                </Suspense>
+              }
+            />
 
             <Route
               path="/admin/orders"
@@ -188,6 +207,14 @@ function App() {
               element={
                 <Suspense fallback={<PageLoader />}>
                   <AdminNotifications />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <AdminUsers />
                 </Suspense>
               }
             />

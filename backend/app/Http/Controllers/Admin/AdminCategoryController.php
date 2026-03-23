@@ -24,6 +24,12 @@ class AdminCategoryController extends Controller
             ->withCount('products')
             ->get();
 
+        // Add children product counts to the parent product count
+        $categories->each(function ($category) {
+            $childrenCount = $category->children->sum('products_count');
+            $category->products_count += $childrenCount;
+        });
+
         return response()->json($categories);
     }
 
@@ -32,7 +38,18 @@ class AdminCategoryController extends Controller
      */
     public function all()
     {
-        $categories = Category::withCount('products')->get();
+        $categories = Category::with([
+            'children' => function ($query) {
+                $query->withCount('products');
+            }
+        ])->withCount('products')->get();
+
+        $categories->each(function ($category) {
+            if ($category->children) {
+                $category->products_count += $category->children->sum('products_count');
+            }
+        });
+
         return response()->json($categories);
     }
 

@@ -36,7 +36,8 @@ class OrderController extends Controller
     }
 
     /**
-     * Create a new order.
+     * Create a new order (payment pending).
+     * Stock is NOT decremented here - it happens after payment confirmation.
      */
     public function store(Request $request)
     {
@@ -78,9 +79,6 @@ class OrderController extends Controller
                     'price' => $product->price,
                     'attributes' => $item['attributes'] ?? null,
                 ];
-
-                // Decrement stock
-                $product->decrement('stock', $item['quantity']);
             }
 
             // Handle shipping address based on delivery method
@@ -99,10 +97,11 @@ class OrderController extends Controller
                 $shippingAddress = 'Self Pick Up';
             }
 
-            // Create order with shipping info
+            // Create order with pending payment status
             $order = Order::create([
                 'user_id' => $request->user()->id,
                 'status' => 'pending',
+                'payment_status' => 'pending',
                 'total' => $total,
                 'payment_method' => $request->payment_method,
                 'shipping_name' => $request->shipping_name ?? $request->user()->name,
@@ -119,9 +118,6 @@ class OrderController extends Controller
             foreach ($orderItems as $item) {
                 $order->items()->create($item);
             }
-
-            // TODO: Process payment with Stripe/PayPal
-            // For now, we'll just return the order
 
             return response()->json([
                 'message' => 'Order created successfully',

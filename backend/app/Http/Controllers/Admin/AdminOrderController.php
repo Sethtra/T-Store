@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\StockMovement;
 use Illuminate\Http\Request;
 
 class AdminOrderController extends Controller
@@ -108,6 +109,15 @@ class AdminOrderController extends Controller
                 $product = Product::find($item->product_id);
                 if ($product) {
                     $product->increment('stock', $item->quantity);
+
+                    // Record stock movement
+                    StockMovement::create([
+                        'product_id' => $product->id,
+                        'quantity_change' => $item->quantity, // Positive for addition
+                        'type' => 'cancellation',
+                        'reference' => 'Order #' . $order->tracking_id,
+                        'created_by' => $request->user()->id,
+                    ]);
                 }
             }
         }

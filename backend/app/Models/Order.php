@@ -18,6 +18,8 @@ class Order extends Model
         'total',
         'payment_method',
         'payment_intent',
+        'payment_status',
+        'paypal_order_id',
         'tracking_id',
         'shipping_name',
         'shipping_phone',
