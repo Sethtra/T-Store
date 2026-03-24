@@ -12,7 +12,10 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL')],
+    'allowed_origins' => [
+        'http://localhost:3000',
+        env('FRONTEND_URL'),
+    ],
 
     'allowed_origins_patterns' => [
         '#^https://.*\.vercel\.app$#',
