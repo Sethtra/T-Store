@@ -14,7 +14,7 @@ import PaypalForm from "../components/checkout/PaypalForm";
 
 // Initialize Stripe outside component
 // Use a placeholder if env var is missing to avoid crashing, but payment will fail
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_KEY || "pk_test_placeholder");
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_placeholder");
 
 // Step Progress Component
 const StepProgress = ({ currentStep }: { currentStep: number }) => {
