@@ -20,7 +20,7 @@ class AdminInventoryController extends Controller
         // Search by title or SKU (if you had SKU)
         if ($request->has('search')) {
             $search = $request->search;
-            $query->where('title', 'like', "%{$search}%");
+            $query->where('title', 'ilike', "%{$search}%");
         }
 
         // Filter by stock status

@@ -18,7 +18,7 @@ class AdminProductController extends Controller
         $query = Product::with('category')->orderBy('created_at', 'desc');
 
         if ($request->filled('search')) {
-            $query->where('title', 'LIKE', "%{$request->search}%");
+            $query->where('title', 'ilike', "%{$request->search}%");
         }
 
         $perPage = min($request->limit ?? 10, 50);
