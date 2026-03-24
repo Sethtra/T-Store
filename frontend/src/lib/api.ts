@@ -1,9 +1,12 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+const BACKEND_URL = API_URL.replace(/\/api$/, '');
+
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_URL,
   headers: {
     'Accept': 'application/json',
     'X-Requested-With': 'XMLHttpRequest', // Required for Laravel to detect AJAX
@@ -19,7 +22,7 @@ let csrfInitialized = false;
 // Function to initialize CSRF
 const initCsrf = async () => {
   if (!csrfInitialized) {
-    await axios.get('/sanctum/csrf-cookie', { withCredentials: true });
+    await axios.get(`${BACKEND_URL}/sanctum/csrf-cookie`, { withCredentials: true });
     csrfInitialized = true;
   }
 };
