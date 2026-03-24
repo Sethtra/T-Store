@@ -12,7 +12,7 @@ interface StripeFormProps {
   onError: (error: string) => void;
 }
 
-const StripeForm = ({ clientSecret, onSuccess, onError }: StripeFormProps) => {
+const StripeForm = ({ clientSecret: _clientSecret, onSuccess, onError }: StripeFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
