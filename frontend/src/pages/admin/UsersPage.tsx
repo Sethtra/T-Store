@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDebounce } from "../../hooks/useDebounce";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useAdminUsers,
@@ -16,9 +17,10 @@ const UsersPage = () => {
   const [page, setPage] = useState(1);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const PER_PAGE = 10;
+  const debouncedSearch = useDebounce(search, 500);
 
   const { data, isLoading } = useAdminUsers({
-    search,
+    search: debouncedSearch,
     role: roleFilter,
     status: statusFilter,
     page,
@@ -73,7 +75,7 @@ const UsersPage = () => {
 
   return (
     <AdminLayout>
-      <div className="w-full px-8 py-6 space-y-6">
+      <div className="w-full px-4 lg:px-8 py-4 lg:py-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>

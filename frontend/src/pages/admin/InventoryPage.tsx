@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { useAdminInventory, useStockHistory, useAdjustStock } from '../../hooks/useInventory';
@@ -12,10 +13,11 @@ const InventoryPage = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [adjustAmount, setAdjustAmount] = useState<number | ''>('');
   const [adjustNotes, setAdjustNotes] = useState('');
+  const debouncedSearch = useDebounce(search, 500);
 
   const { data: inventoryData, isLoading } = useAdminInventory({
     page,
-    search: search.length >= 3 ? search : undefined,
+    search: debouncedSearch || undefined,
     status: statusFilter || undefined,
   });
 
@@ -54,7 +56,7 @@ const InventoryPage = () => {
       label = "In Stock";
     }
     return (
-      <span className={`px-2.5 py-1 rounded text-[11px] font-bold uppercase tracking-wider ${styles}`}>
+      <span className={`px-2.5 py-1 rounded text-[11px] font-bold uppercase tracking-wider whitespace-nowrap ${styles}`}>
         {label}
       </span>
     );
@@ -62,7 +64,7 @@ const InventoryPage = () => {
 
   return (
     <AdminLayout>
-      <div className="w-full px-8 py-6 space-y-6">
+      <div className="w-full px-4 lg:px-8 py-4 lg:py-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -121,11 +123,11 @@ const InventoryPage = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]">
-                  <th className="px-6 py-4 font-semibold text-sm">Product</th>
-                  <th className="px-6 py-4 font-semibold text-sm">Price</th>
-                  <th className="px-6 py-4 font-semibold text-sm text-center">Stock Level</th>
-                  <th className="px-6 py-4 font-semibold text-sm">Status</th>
-                  <th className="px-6 py-4 font-semibold text-sm text-right">Actions</th>
+                  <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm">Product</th>
+                  <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm hidden sm:table-cell">Price</th>
+                  <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm text-center">Stock</th>
+                  <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm">Status</th>
+                  <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm text-right hidden md:table-cell">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
@@ -149,7 +151,7 @@ const InventoryPage = () => {
                       onClick={() => setSelectedProduct(product)}
                       className={`hover:bg-[var(--color-bg-surface)] transition-colors cursor-pointer ${selectedProduct?.id === product.id ? 'bg-[var(--color-primary)]/5' : ''}`}
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-3 lg:px-6 py-3 lg:py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-white rounded-lg border border-[var(--color-border)] flex items-center justify-center overflow-hidden p-1 flex-shrink-0">
                             {product.images && product.images.length > 0 ? (
@@ -158,22 +160,22 @@ const InventoryPage = () => {
                               <span className="text-gray-400">?</span>
                             )}
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <div className="font-medium line-clamp-1">{product.title}</div>
                             <div className="text-xs text-[var(--color-text-muted)]">{product.category?.name}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap hidden sm:table-cell">
                         ${Number(product.price).toFixed(2)}
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-3 lg:px-6 py-3 lg:py-4 text-center">
                         <span className="font-mono font-medium text-lg">{product.stock}</span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 lg:px-6 py-3 lg:py-4">
                         {getStockStatusBadge(product.stock)}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-3 lg:px-6 py-3 lg:py-4 text-right hidden md:table-cell">
                         <button 
                           className="text-[var(--color-primary)] hover:underline text-sm font-medium"
                           onClick={(e) => {

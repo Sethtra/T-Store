@@ -169,7 +169,7 @@ const DashboardPage = () => {
 
   return (
     <AdminLayout>
-      <div className="w-full px-8 py-6 space-y-6">
+      <div className="w-full px-4 lg:px-8 py-4 lg:py-6 space-y-4 lg:space-y-6">
         {/* Breadcrumb */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
           <div className="text-[var(--color-text-secondary)] text-sm font-medium">

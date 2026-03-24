@@ -1,4 +1,5 @@
 import { useState, useMemo, memo, useCallback, useEffect } from "react";
+import { useDebounce } from "../../hooks/useDebounce";
 import {
   useProducts,
   useCreateProduct,
@@ -60,7 +61,7 @@ const ProductRow = memo(
     return (
       <tr className="hover:bg-[var(--color-bg-surface)]/50 transition-colors">
         {/* Product Name */}
-        <td className="px-6 py-4">
+        <td className="px-3 lg:px-6 py-3 lg:py-4">
           <div className="font-medium text-[var(--color-text-primary)]">
             {product.title}
           </div>
@@ -70,7 +71,7 @@ const ProductRow = memo(
         </td>
 
         {/* Image */}
-        <td className="px-4 py-4">
+        <td className="px-3 lg:px-4 py-3 lg:py-4 hidden md:table-cell">
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-[var(--color-bg-surface)] shrink-0">
             {product.images?.[0] ? (
               <img
@@ -102,7 +103,7 @@ const ProductRow = memo(
           </div>
         </td>
         {/* Description */}
-        <td className="px-4 py-4 max-w-xs transition-colors">
+        <td className="px-3 lg:px-4 py-3 lg:py-4 max-w-xs transition-colors hidden lg:table-cell">
           <div
             className="text-sm text-[var(--color-text-secondary)] line-clamp-2"
             title={product.description}
@@ -115,7 +116,7 @@ const ProductRow = memo(
           </div>
         </td>
         {/* Category */}
-        <td className="px-4 py-4">
+        <td className="px-3 lg:px-4 py-3 lg:py-4 hidden sm:table-cell">
           {categoryInfo.parent ? (
             <div>
               <div className="text-sm font-medium text-[var(--color-text-primary)]">
@@ -134,27 +135,27 @@ const ProductRow = memo(
           )}
         </td>
         {/* Price */}
-        <td className="px-4 py-4">
-          <span className="font-semibold text-[var(--color-text-primary)]">
+        <td className="px-3 lg:px-4 py-3 lg:py-4">
+          <span className="font-semibold text-[var(--color-text-primary)] whitespace-nowrap">
             ${Number(product.price || 0).toFixed(2)}
           </span>
         </td>
         {/* Stock */}
-        <td className="px-4 py-4">
+        <td className="px-3 lg:px-4 py-3 lg:py-4 hidden sm:table-cell">
           <span className="text-[var(--color-text-primary)]">
             {product.stock}
           </span>
         </td>
         {/* Status */}
-        <td className="px-4 py-4">
+        <td className="px-3 lg:px-4 py-3 lg:py-4 hidden md:table-cell">
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${stockStatus.color}`}
+            className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${stockStatus.color}`}
           >
             {stockStatus.label}
           </span>
         </td>
         {/* Actions */}
-        <td className="px-6 py-4 text-right">
+        <td className="px-3 lg:px-6 py-3 lg:py-4 text-right">
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={() => onEdit(product)}
@@ -208,9 +209,10 @@ const ProductsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
-  // Fetch data
-  const { data: productsData, isLoading } = useProducts({ page, limit: 12 });
+  // Fetch data — search is now server-side via debounced query
+  const { data: productsData, isLoading } = useProducts({ page, limit: 12, search: debouncedSearch || undefined });
   const { data: categories } = useAdminCategories();
 
   const createProduct = useCreateProduct();
@@ -245,20 +247,13 @@ const ProductsPage = () => {
     return parent?.children || [];
   }, [selectedCategory, categories]);
 
-  // Filter products
+  // Filter products (category filtering is still client-side, search is server-side)
   const filteredProducts = useMemo(() => {
     if (!productsData?.data) return [];
     return productsData.data.filter((product) => {
-      const matchesSearch = product.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-
       // Sub-category filter takes priority
       if (selectedSubCategory) {
-        return (
-          matchesSearch &&
-          product.category_id?.toString() === selectedSubCategory
-        );
+        return product.category_id?.toString() === selectedSubCategory;
       }
 
       // Parent category filter: match the parent itself OR any of its children
@@ -268,17 +263,16 @@ const ProductsPage = () => {
         );
         const childIds = parent?.children?.map((c) => c.id) || [];
         const parentId = Number(selectedCategory);
-        const matchesCategory =
+        return (
           product.category_id === parentId ||
-          childIds.includes(product.category_id ?? -1);
-        return matchesSearch && matchesCategory;
+          childIds.includes(product.category_id ?? -1)
+        );
       }
 
-      return matchesSearch;
+      return true;
     });
   }, [
     productsData,
-    searchQuery,
     selectedCategory,
     selectedSubCategory,
     categories,
@@ -459,7 +453,7 @@ const ProductsPage = () => {
 
   return (
     <AdminLayout>
-      <div className="w-full px-8 py-6 space-y-6">
+      <div className="w-full px-4 lg:px-8 py-4 lg:py-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -479,7 +473,7 @@ const ProductsPage = () => {
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
               All Products
             </h2>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {/* Search */}
               <div className="relative">
                 <svg
@@ -499,7 +493,10 @@ const ProductsPage = () => {
                   type="text"
                   placeholder="Search products..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
                   className="w-full pl-9 pr-3 py-1.5 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
                 />
               </div>
@@ -560,29 +557,29 @@ const ProductsPage = () => {
             <table className="w-full">
               <thead className="bg-[var(--color-bg-surface)]">
                 <tr className="border-b border-[var(--color-border)]">
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                  <th className="px-3 lg:px-6 py-3 lg:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                     Product
                   </th>
 
-                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                  <th className="px-3 lg:px-4 py-3 lg:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden md:table-cell">
                     Image
                   </th>
-                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                  <th className="px-3 lg:px-4 py-3 lg:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden lg:table-cell">
                     Description
                   </th>
-                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                  <th className="px-3 lg:px-4 py-3 lg:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">
                     Category
                   </th>
-                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                  <th className="px-3 lg:px-4 py-3 lg:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                     Price
                   </th>
-                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                  <th className="px-3 lg:px-4 py-3 lg:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">
                     Stock
                   </th>
-                  <th className="px-4 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                  <th className="px-3 lg:px-4 py-3 lg:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden md:table-cell">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-right text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                  <th className="px-3 lg:px-6 py-3 lg:py-4 text-right text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>

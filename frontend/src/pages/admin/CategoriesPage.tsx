@@ -111,7 +111,7 @@ const CategoriesPage = () => {
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="w-full px-8 py-6 flex items-center justify-center min-h-[50vh]">
+        <div className="w-full px-4 lg:px-8 py-4 lg:py-6 flex items-center justify-center min-h-[50vh]">
           <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
         </div>
       </AdminLayout>
@@ -120,7 +120,7 @@ const CategoriesPage = () => {
 
   return (
     <AdminLayout>
-      <div className="w-full px-8 py-6 space-y-6">
+      <div className="w-full px-4 lg:px-8 py-4 lg:py-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>

@@ -139,6 +139,14 @@ const CategoryTree = ({
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+
+  // Track window resize reactively
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Extract filters from URL
   const filters: ProductFilters = useMemo(
@@ -290,7 +298,7 @@ const ProductsPage = () => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar Filters */}
         <AnimatePresence>
-          {(isFilterOpen || window.innerWidth >= 1024) && (
+          {(isFilterOpen || isDesktop) && (
             <motion.aside
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}

@@ -500,6 +500,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Auto-close sidebar on route change (mobile)
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -522,12 +528,29 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   return (
     <div className="flex h-screen bg-[var(--color-bg-primary)] overflow-hidden font-sans">
-      {/* Sidebar - Theme-aware Style */}
+      {/* Mobile Backdrop Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar - Hidden on mobile, overlay when toggled, always visible on lg+ */}
       <motion.aside
-        initial={{ x: -280 }}
+        initial={false}
         animate={{ x: 0 }}
         transition={{ type: "spring", damping: 20 }}
-        className="w-[280px] bg-[var(--color-bg-secondary)] border-r border-[var(--color-border)] flex flex-col z-20 shadow-xl"
+        className={`w-[280px] bg-[var(--color-bg-secondary)] border-r border-[var(--color-border)] flex flex-col shadow-xl flex-shrink-0
+          fixed inset-y-0 left-0 z-40 lg:relative lg:z-20
+          transition-transform duration-300 ease-in-out
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}
       >
         {/* Brand */}
         <div className="h-20 flex items-center px-6 border-b border-[var(--color-border)]">
@@ -701,9 +724,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full bg-[var(--color-bg-primary)] relative">
         {/* Top Header - Duralux Style */}
-        <header className="h-20 px-8 flex items-center justify-between z-30 sticky top-0 bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] shadow-sm">
+        <header className="h-16 lg:h-20 px-4 lg:px-8 flex items-center justify-between z-20 sticky top-0 bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] shadow-sm">
           <div className="flex items-center gap-4">
-            <button className="md:hidden text-[var(--color-text-secondary)]">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="lg:hidden text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors p-2 -ml-2"
+            >
               <svg
                 className="w-6 h-6"
                 fill="none"
