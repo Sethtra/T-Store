@@ -2,7 +2,6 @@ import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
-const BACKEND_URL = API_URL.replace(/\/api$/, '');
 
 // Create axios instance with default config
 const api = axios.create({
@@ -11,28 +10,14 @@ const api = axios.create({
     'Accept': 'application/json',
     'X-Requested-With': 'XMLHttpRequest', // Required for Laravel to detect AJAX
   },
-  withCredentials: true, // Important for Sanctum cookie-based auth
-  xsrfCookieName: 'XSRF-TOKEN', // Cookie name set by Sanctum
-  xsrfHeaderName: 'X-XSRF-TOKEN', // Header name Laravel expects
 });
 
-// Flag to track if CSRF cookie has been fetched
-let csrfInitialized = false;
-
-// Function to initialize CSRF
-const initCsrf = async () => {
-  if (!csrfInitialized) {
-    await axios.get(`${BACKEND_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-    csrfInitialized = true;
-  }
-};
-
-// Request interceptor to ensure CSRF token
+// Request interceptor to add auth token
 api.interceptors.request.use(
-  async (config) => {
-    // Ensure CSRF cookie is set before mutating requests
-    if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase() || '')) {
-      await initCsrf();
+  (config) => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
@@ -45,14 +30,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // If CSRF token mismatch, retry once after refreshing token
-    if (error.response?.status === 419) {
-      csrfInitialized = false;
-      await initCsrf();
-      return api.request(error.config);
-    }
     if (error.response?.status === 401) {
-      // Clear auth state from localStorage directly to prevent race condition
+      // Clear auth state
+      localStorage.removeItem('auth_token');
       localStorage.removeItem('t-store-auth');
       // Also clear Zustand store state immediately
       useAuthStore.getState().setUser(null);

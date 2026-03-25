@@ -37,7 +37,10 @@ export const useAuthStore = create<AuthState>()(
       login: async (email, password, remember) => {
         set({ isLoading: true });
         try {
-          await api.post('/login', { email, password, remember: remember || false });
+          const response = await api.post('/login', { email, password, remember: remember || false });
+          if (response.data.token) {
+            localStorage.setItem('auth_token', response.data.token);
+          }
           await get().fetchUser();
         } finally {
           set({ isLoading: false });
@@ -47,7 +50,10 @@ export const useAuthStore = create<AuthState>()(
       register: async (name, email, password, password_confirmation) => {
         set({ isLoading: true });
         try {
-          await api.post('/register', { name, email, password, password_confirmation });
+          const response = await api.post('/register', { name, email, password, password_confirmation });
+          if (response.data.token) {
+            localStorage.setItem('auth_token', response.data.token);
+          }
           await get().fetchUser();
         } finally {
           set({ isLoading: false });
@@ -58,9 +64,11 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           await api.post('/logout');
-          set({ user: null, isAuthenticated: false });
+        } catch (error) {
+          // Ignore failures on logout (e.g. 401)
         } finally {
-          set({ isLoading: false });
+          localStorage.removeItem('auth_token');
+          set({ user: null, isAuthenticated: false, isLoading: false });
         }
       },
 

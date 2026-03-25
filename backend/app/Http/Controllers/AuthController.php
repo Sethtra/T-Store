@@ -28,9 +28,12 @@ class AuthController extends Controller
             'role' => 'customer', // Default role
         ]);
 
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'message' => 'Registration successful',
             'user' => $user,
+            'token' => $token,
         ], 201);
     }
 
@@ -47,14 +50,20 @@ class AuthController extends Controller
         $remember = $request->boolean('remember', false);
 
         if (Auth::attempt($credentials, $remember)) {
-            // When called from Sanctum "stateful" SPA requests, a session is available.
-            // Avoid a 500 if this endpoint is hit without session middleware (e.g. non-stateful clients/tests).
+            $user = clone Auth::user();
+            
+            // Ensure old session is cleared (if they exist)
             if ($request->hasSession()) {
-                $request->session()->regenerate();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
             }
+
+            $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
                 'message' => 'Login successful',
+                'user' => $user,
+                'token' => $token,
             ]);
         }
 
@@ -76,10 +85,16 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        if ($request->user()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+
         Auth::guard('web')->logout();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json([
             'message' => 'Logged out successfully',
