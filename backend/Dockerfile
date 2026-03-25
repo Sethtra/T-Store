@@ -19,22 +19,29 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# 5. Install Composer
+# 5. Enable AllowOverride so .htaccess works for Laravel routing
+RUN sed -ri -e 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+
+# 6. Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 6. Set the working directory
+# 7. Set the working directory
 WORKDIR /var/www/html
 
-# 7. Copy your backend code into the container
+# 8. Copy your backend code into the container
 COPY . .
 
-# 8. Install Laravel dependencies securely
+# 9. Install Laravel dependencies securely
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --optimize-autoloader
 
-# 9. Give Laravel permission to write to storage
+# 10. Give Laravel permission to write to storage
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 10. Start the server
+# 11. Copy and enable the startup script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# 12. Start the server
 EXPOSE 80
-CMD ["apache2-foreground"]
+CMD ["docker-entrypoint.sh"]
