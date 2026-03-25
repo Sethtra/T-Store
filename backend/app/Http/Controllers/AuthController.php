@@ -50,7 +50,7 @@ class AuthController extends Controller
         $remember = $request->boolean('remember', false);
 
         if (Auth::attempt($credentials, $remember)) {
-            $user = clone Auth::user();
+            $user = Auth::user();
             
             // Ensure old session is cleared (if they exist)
             if ($request->hasSession()) {

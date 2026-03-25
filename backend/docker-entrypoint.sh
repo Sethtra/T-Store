@@ -12,17 +12,24 @@ if [ -f /etc/secrets/.env ]; then
 fi
 
 # Generate APP_KEY if not set
-if [ -z "$APP_KEY" ]; then
+if [ -z "$APP_KEY" ] && [ ! -f .env ]; then
     php artisan key:generate --force
 fi
 
 # Create storage symlink
 php artisan storage:link --force 2>/dev/null || true
 
-# Optimize Laravel for production
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Run migrations (Important!)
+php artisan migrate --force
+
+# Permissions (Fix 500 error caused by root-owned storage/cache)
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Optimize Laravel for production (Optional but recommended)
+# We clear old cache first
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
 
 # Start Apache
 exec apache2-foreground
