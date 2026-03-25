@@ -6,9 +6,9 @@ PORT=${PORT:-80}
 sed -i "s/Listen 80/Listen $PORT/" /etc/apache2/ports.conf
 sed -i "s/:80/:$PORT/" /etc/apache2/sites-available/*.conf
 
-# Copy secret file .env if it exists (Render Secret Files)
-if [ -f /etc/secrets/.env ]; then
-    cp /etc/secrets/.env /var/www/html/.env
+# Copy secret file if it exists (Render Secret Files)
+if [ -d /etc/secrets ] && [ "$(ls -A /etc/secrets 2>/dev/null)" ]; then
+    cat /etc/secrets/* > /var/www/html/.env
 fi
 
 # Generate APP_KEY if not set
