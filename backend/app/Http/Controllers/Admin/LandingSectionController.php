@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\LandingSection;
 use App\Models\Product;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -21,7 +22,7 @@ class LandingSectionController extends Controller
             ->map(function ($section) {
                 // Use custom image if set, otherwise use product image
                 $imageUrl = $section->image
-                    ? asset('storage/' . $section->image)
+                    ? (str_starts_with($section->image, 'http') ? $section->image : asset('storage/' . $section->image))
                     : ($section->product->images[0] ?? null);
 
                 return [
@@ -29,7 +30,7 @@ class LandingSectionController extends Controller
                     'section_type' => $section->section_type,
                     'title' => $section->title ?? $section->product->title,
                     'description' => $section->description ?? $section->product->description,
-                    'custom_image' => $section->image ? asset('storage/' . $section->image) : null,
+                    'custom_image' => $section->image ? (str_starts_with($section->image, 'http') ? $section->image : asset('storage/' . $section->image)) : null,
                     'is_active' => $section->is_active,
                     'order' => $section->order,
                     'product' => [
@@ -63,7 +64,8 @@ class LandingSectionController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('landing-sections', 'public');
+            $supabase = app(SupabaseStorageService::class);
+            $validated['image'] = $supabase->upload($request->file('image'), 'landing-sections');
         }
 
         $section = LandingSection::create($validated);
@@ -99,16 +101,18 @@ class LandingSectionController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             // Delete old image if exists
+            $supabase = app(SupabaseStorageService::class);
             if ($landingSection->image) {
-                \Storage::disk('public')->delete($landingSection->image);
+                $supabase->delete($landingSection->image);
             }
-            $validated['image'] = $request->file('image')->store('landing-sections', 'public');
+            $validated['image'] = $supabase->upload($request->file('image'), 'landing-sections');
         }
 
         // Allow clearing the image
         if ($request->has('clear_image') && $request->clear_image) {
             if ($landingSection->image) {
-                \Storage::disk('public')->delete($landingSection->image);
+                $supabase = $supabase ?? app(SupabaseStorageService::class);
+                $supabase->delete($landingSection->image);
             }
             $validated['image'] = null;
         }
@@ -124,9 +128,10 @@ class LandingSectionController extends Controller
      */
     public function destroy(LandingSection $landingSection): JsonResponse
     {
-        // Delete associated image
+        // Delete associated image from Supabase
         if ($landingSection->image) {
-            \Storage::disk('public')->delete($landingSection->image);
+            $supabase = app(SupabaseStorageService::class);
+            $supabase->delete($landingSection->image);
         }
 
         $landingSection->delete();

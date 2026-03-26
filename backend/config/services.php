@@ -53,4 +53,10 @@ return [
         'mode' => env('PAYPAL_MODE', 'sandbox'),
     ],
 
+    'supabase' => [
+        'url' => env('SUPABASE_URL'),
+        'key' => env('SUPABASE_KEY'),
+        'storage_bucket' => env('SUPABASE_STORAGE_BUCKET', 'images'),
+    ],
+
 ];

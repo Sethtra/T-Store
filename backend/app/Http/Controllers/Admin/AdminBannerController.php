@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class AdminBannerController extends Controller
 {
@@ -46,9 +46,8 @@ class AdminBannerController extends Controller
 
         // Handle image upload - REQUIRED
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $path = $file->store('banners', 'public');
-            $validated['image'] = asset('storage/' . $path);
+            $supabase = app(SupabaseStorageService::class);
+            $validated['image'] = $supabase->upload($request->file('image'), 'banners');
         } elseif ($request->filled('image_url')) {
             $validated['image'] = $request->input('image_url');
         } else {
@@ -91,20 +90,17 @@ class AdminBannerController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            // Delete old image if it exists and is stored locally
-            if ($banner->image && str_starts_with($banner->image, url('storage/'))) {
-                $oldPath = str_replace(url('storage/'), '', $banner->image);
-                Storage::disk('public')->delete($oldPath);
+            // Delete old image from Supabase if it exists
+            $supabase = app(SupabaseStorageService::class);
+            if ($banner->image) {
+                $supabase->delete($banner->image);
             }
-
-            $file = $request->file('image');
-            $path = $file->store('banners', 'public');
-            $validated['image'] = asset('storage/' . $path);
+            $validated['image'] = $supabase->upload($request->file('image'), 'banners');
         } elseif ($request->filled('image_url')) {
-            // Delete old image if replacing with URL
-            if ($banner->image && str_starts_with($banner->image, url('storage/'))) {
-                $oldPath = str_replace(url('storage/'), '', $banner->image);
-                Storage::disk('public')->delete($oldPath);
+            // Delete old image from Supabase if replacing with URL
+            $supabase = app(SupabaseStorageService::class);
+            if ($banner->image) {
+                $supabase->delete($banner->image);
             }
             $validated['image'] = $request->input('image_url');
         }
@@ -116,10 +112,10 @@ class AdminBannerController extends Controller
 
     public function destroy(Banner $banner)
     {
-        // Delete image if it exists
-        if ($banner->image && str_starts_with($banner->image, url('storage/'))) {
-            $path = str_replace(url('storage/'), '', $banner->image);
-            Storage::disk('public')->delete($path);
+        // Delete image from Supabase if it exists
+        if ($banner->image) {
+            $supabase = app(SupabaseStorageService::class);
+            $supabase->delete($banner->image);
         }
 
         $banner->delete();

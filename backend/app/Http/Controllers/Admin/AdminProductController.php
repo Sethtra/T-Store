@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class AdminProductController extends Controller
 {
@@ -80,16 +80,15 @@ class AdminProductController extends Controller
             }
         }
 
-        // Handle Multiple File Uploads
+        // Handle Multiple File Uploads via Supabase Storage
+        $supabase = app(SupabaseStorageService::class);
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
-                $path = $file->store('products', 'public');
-                $imageUrls[] = asset('storage/' . $path);
+                $imageUrls[] = $supabase->upload($file, 'products');
             }
         } elseif ($request->hasFile('image')) {
             // Fallback for single file
-            $path = $request->file('image')->store('products', 'public');
-            $imageUrls[] = asset('storage/' . $path);
+            $imageUrls[] = $supabase->upload($request->file('image'), 'products');
         }
 
         $product = Product::create([
@@ -158,7 +157,6 @@ class AdminProductController extends Controller
         if ($request->has('existing_images')) {
             // Frontend sent explicit list of images to keep (user may have removed some)
             $existingInput = $request->input('existing_images');
-            \Log::info('Existing Images Input:', ['type' => gettype($existingInput), 'value' => $existingInput]);
 
             if (is_string($existingInput)) {
                 $decoded = json_decode($existingInput, true);
@@ -180,14 +178,13 @@ class AdminProductController extends Controller
         }));
 
         $newImages = [];
+        $supabase = app(SupabaseStorageService::class);
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
-                $path = $file->store('products', 'public');
-                $newImages[] = asset('storage/' . $path);
+                $newImages[] = $supabase->upload($file, 'products');
             }
         } elseif ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $newImages[] = asset('storage/' . $path);
+            $newImages[] = $supabase->upload($request->file('image'), 'products');
         }
 
         // If new images were uploaded, append them to existing ones

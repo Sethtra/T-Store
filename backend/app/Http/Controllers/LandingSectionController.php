@@ -18,8 +18,9 @@ class LandingSectionController extends Controller
             ->get()
             ->map(function ($section) {
                 // Use custom image if set, otherwise use product image
+                // Image is now a full Supabase URL (or legacy local path)
                 $imageUrl = $section->image
-                    ? asset('storage/' . $section->image)
+                    ? (str_starts_with($section->image, 'http') ? $section->image : asset('storage/' . $section->image))
                     : ($section->product?->images[0] ?? null);
 
                 return [

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CategoryDisplay;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class AdminCategoryDisplayController extends Controller
 {
@@ -59,16 +59,14 @@ class AdminCategoryDisplayController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
-        // Delete old image if it exists and is stored locally
-        if ($categoryDisplay->image_url && str_starts_with($categoryDisplay->image_url, url('storage/'))) {
-            $oldPath = str_replace(url('storage/'), '', $categoryDisplay->image_url);
-            Storage::disk('public')->delete($oldPath);
+        // Delete old image from Supabase if it exists
+        $supabase = app(SupabaseStorageService::class);
+        if ($categoryDisplay->image_url) {
+            $supabase->delete($categoryDisplay->image_url);
         }
 
-        // Store new image
-        $file = $request->file('image');
-        $path = $file->store('category-displays', 'public');
-        $imageUrl = url('storage/' . $path);
+        // Upload new image to Supabase
+        $imageUrl = $supabase->upload($request->file('image'), 'category-displays');
 
         $categoryDisplay->update(['image_url' => $imageUrl]);
 
@@ -83,9 +81,9 @@ class AdminCategoryDisplayController extends Controller
      */
     public function deleteImage(CategoryDisplay $categoryDisplay)
     {
-        if ($categoryDisplay->image_url && str_starts_with($categoryDisplay->image_url, url('storage/'))) {
-            $path = str_replace(url('storage/'), '', $categoryDisplay->image_url);
-            Storage::disk('public')->delete($path);
+        if ($categoryDisplay->image_url) {
+            $supabase = app(SupabaseStorageService::class);
+            $supabase->delete($categoryDisplay->image_url);
         }
 
         $categoryDisplay->update(['image_url' => null]);
