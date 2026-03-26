@@ -1,6 +1,4 @@
 import { Link } from "react-router-dom";
-import { useCartStore } from "../../stores/cartStore";
-import Button from "../ui/Button";
 
 interface ProductCardProps {
   id: number;
@@ -14,7 +12,6 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({
-  id,
   slug,
   title,
   price,
@@ -23,18 +20,6 @@ const ProductCard = ({
   stock,
   description,
 }: ProductCardProps) => {
-  const addItem = useCartStore((state) => state.addItem);
-  const openCart = useCartStore((state) => state.openCart);
-
-  const handleAddToCart = (e?: React.MouseEvent<HTMLButtonElement>) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    addItem({ id, slug, title, price, image });
-    openCart();
-  };
-
   const isOutOfStock = (stock ?? 0) <= 0;
 
   return (
@@ -98,29 +83,6 @@ const ProductCard = ({
                   Only {stock} left
                 </span>
               )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="mt-4 flex gap-2">
-              <Button
-                onClick={handleAddToCart}
-                size="sm"
-                variant="secondary"
-                className="flex-1"
-              >
-                Add to Cart
-              </Button>
-              <Button
-                onClick={(e) => {
-                  e?.preventDefault();
-                  // Clicking bubbles to the parent Link, so we don't need to do anything else.
-                }}
-                size="sm"
-                fullWidth
-                className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white flex-1"
-              >
-                Buy Now
-              </Button>
             </div>
           </div>
         </div>
