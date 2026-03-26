@@ -31,6 +31,26 @@ use App\Http\Controllers\Admin\AdminExportController;
 |--------------------------------------------------------------------------
 */
 
+// TEMPORARY DEBUG - Remove after fixing!
+Route::get('/debug-env', function () {
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        $dbStatus = 'Connected to: ' . \Illuminate\Support\Facades\DB::connection()->getDatabaseName();
+    } catch (\Exception $e) {
+        $dbStatus = 'FAILED: ' . $e->getMessage();
+    }
+
+    return response()->json([
+        'app_env' => config('app.env'),
+        'app_url' => config('app.url'),
+        'db_status' => $dbStatus,
+        'supabase_url' => config('services.supabase.url') ? 'SET' : 'MISSING',
+        'supabase_key' => config('services.supabase.key') ? 'SET' : 'MISSING',
+        'supabase_bucket' => config('services.supabase.storage_bucket'),
+        'stripe_secret' => config('services.stripe.secret') ? substr(config('services.stripe.secret'), 0, 10) . '...' : 'MISSING',
+    ]);
+});
+
 // Public Routes
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/featured', [ProductController::class, 'featured']);
