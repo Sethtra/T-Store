@@ -33,22 +33,68 @@ use App\Http\Controllers\Admin\AdminExportController;
 
 // TEMPORARY DEBUG - Remove after fixing!
 Route::get('/debug-env', function () {
+    $results = [];
+
+    // Test DB connection
     try {
         \Illuminate\Support\Facades\DB::connection()->getPdo();
-        $dbStatus = 'Connected to: ' . \Illuminate\Support\Facades\DB::connection()->getDatabaseName();
+        $results['db'] = 'Connected';
     } catch (\Exception $e) {
-        $dbStatus = 'FAILED: ' . $e->getMessage();
+        $results['db'] = 'FAILED: ' . $e->getMessage();
     }
 
-    return response()->json([
-        'app_env' => config('app.env'),
-        'app_url' => config('app.url'),
-        'db_status' => $dbStatus,
-        'supabase_url' => config('services.supabase.url') ? 'SET' : 'MISSING',
-        'supabase_key' => config('services.supabase.key') ? 'SET' : 'MISSING',
-        'stripe_secret' => config('services.stripe.secret') ? substr(config('services.stripe.secret'), 0, 10) . '...' : 'MISSING',
-        'session_driver' => config('session.driver'),
-    ]);
+    // Test Visit query
+    try {
+        $count = \App\Models\Visit::count();
+        $results['visits'] = "OK ($count rows)";
+    } catch (\Exception $e) {
+        $results['visits'] = 'FAILED: ' . $e->getMessage();
+    }
+
+    // Test CategoryDisplay query
+    try {
+        $count = \App\Models\CategoryDisplay::count();
+        $results['category_displays'] = "OK ($count rows)";
+    } catch (\Exception $e) {
+        $results['category_displays'] = 'FAILED: ' . $e->getMessage();
+    }
+
+    // Test Products query
+    try {
+        $count = \App\Models\Product::count();
+        $results['products'] = "OK ($count rows)";
+    } catch (\Exception $e) {
+        $results['products'] = 'FAILED: ' . $e->getMessage();
+    }
+
+    // Test Category query
+    try {
+        $count = \App\Models\Category::count();
+        $results['categories'] = "OK ($count rows)";
+    } catch (\Exception $e) {
+        $results['categories'] = 'FAILED: ' . $e->getMessage();
+    }
+
+    // Test LandingSection query
+    try {
+        $sections = \App\Models\LandingSection::with('product')->active()->ordered()->get();
+        $results['landing_sections'] = "OK (" . $sections->count() . " rows)";
+    } catch (\Exception $e) {
+        $results['landing_sections'] = 'FAILED: ' . $e->getMessage();
+    }
+
+    // Test Orders without auth
+    try {
+        $count = \App\Models\Order::count();
+        $results['orders'] = "OK ($count rows)";
+    } catch (\Exception $e) {
+        $results['orders'] = 'FAILED: ' . $e->getMessage();
+    }
+
+    $results['app_env'] = config('app.env');
+    $results['app_url'] = config('app.url');
+
+    return response()->json($results);
 });
 
 // Public Routes
