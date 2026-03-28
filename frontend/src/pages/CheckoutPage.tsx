@@ -13,6 +13,14 @@ import StripeForm from "../components/checkout/StripeForm";
 // Initialize Stripe outside component
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_placeholder");
 
+declare global {
+  interface Window {
+    AbaPayway: {
+      checkout: () => void;
+    };
+  }
+}
+
 // Step Progress Component
 const StepProgress = ({ currentStep }: { currentStep: number }) => {
   const steps = [
@@ -201,10 +209,16 @@ const CheckoutPage = () => {
     }
   }, [searchParams, clearCart]);
 
-  // Auto-submit PayWay form when data is ready
+  // Auto-submit PayWay form using ABA PayWay JS Plugin
   useEffect(() => {
     if (paywayFormData && paywayFormRef.current) {
-      paywayFormRef.current.submit();
+      if (typeof window !== "undefined" && window.AbaPayway) {
+        // This opens a beautiful popup/bottom-sheet modal with the QR code.
+        window.AbaPayway.checkout();
+      } else {
+        // Fallback for browsers that block the script
+        paywayFormRef.current.submit();
+      }
     }
   }, [paywayFormData]);
 
@@ -513,6 +527,8 @@ const CheckoutPage = () => {
       {paywayFormData && (
         <form
           ref={paywayFormRef}
+          id="aba_merchant_request"
+          target="aba_webservice"
           action={paywayCheckoutUrl}
           method="POST"
           style={{ display: "none" }}
