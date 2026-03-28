@@ -200,42 +200,40 @@ const OrdersPage = () => {
                   <Card>
                     <div className="p-3 md:p-4 lg:p-6">
                       {/* Order Header */}
-                      <div className="flex flex-col mb-3">
-                        <div className="flex justify-between items-start w-full gap-2">
-                          <div className="min-w-0 pr-1">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <h3 className="text-sm md:text-lg font-bold text-[var(--color-text-primary)] truncate">
-                                {order.tracking_id || `#${order.id}`}
-                              </h3>
-                              <Badge
-                                variant={getStatusBadgeVariant(order.status)}
-                              >
-                                {order.status.charAt(0).toUpperCase() +
-                                  order.status.slice(1)}
-                              </Badge>
-                            </div>
-                            <p className="text-[10px] md:text-xs text-[var(--color-text-muted)] font-medium">
-                              {new Date(order.created_at).toLocaleDateString()} •
-                              Customer #{order.user_id}
-                            </p>
+                      <div className="flex flex-row justify-between items-start mb-3 gap-2 w-full min-w-0">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h3 className="text-sm md:text-lg font-bold text-[var(--color-text-primary)] truncate">
+                              {order.tracking_id || `#${order.id}`}
+                            </h3>
+                            <Badge
+                              variant={getStatusBadgeVariant(order.status)}
+                            >
+                              {order.status.charAt(0).toUpperCase() +
+                                order.status.slice(1)}
+                            </Badge>
                           </div>
-                          <div className="flex-shrink-0 text-right">
-                            <p className="text-sm md:text-lg font-bold text-[var(--color-primary)]">
-                              ${Number(order.total).toFixed(2)}
-                            </p>
-                          </div>
+                          <p className="text-[10px] md:text-xs text-[var(--color-text-muted)] font-medium">
+                            {new Date(order.created_at).toLocaleDateString()} •
+                            Customer #{order.user_id}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm md:text-lg font-bold text-[var(--color-primary)]">
+                            ${Number(order.total).toFixed(2)}
+                          </p>
                         </div>
                       </div>
 
                       {/* Items Summary - compact on mobile */}
                       <div className="border-t border-[var(--color-border)] pt-2 md:pt-3 mb-2 md:mb-3">
-                        <div className="flex items-center justify-between mt-1 mb-2">
-                          <p className="text-[10px] md:text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
+                        <div className="flex items-center justify-between mt-1 mb-2 w-full min-w-0">
+                          <p className="text-[10px] md:text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider shrink-0">
                             {order.items.length} item{order.items.length > 1 ? 's' : ''}
                           </p>
                           <Link
                             to={`/admin/orders/${order.tracking_id || order.id}`}
-                            className="text-[10px] md:text-xs font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1 bg-[var(--color-primary)]/10 px-2 py-1 rounded-md transition-colors hover:bg-[var(--color-primary)]/20"
+                            className="text-[10px] md:text-xs font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1 bg-[var(--color-primary)]/10 px-2 py-1 rounded-md transition-colors hover:bg-[var(--color-primary)]/20 shrink-0 ml-2"
                           >
                             View Detail
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -266,11 +264,11 @@ const OrdersPage = () => {
                       </div>
 
                       {/* Status Actions - compact */}
-                      <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-[var(--color-border)] gap-2">
+                      <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-[var(--color-border)] gap-2 w-full min-w-0">
                         <p className="text-[10px] md:text-sm font-semibold text-[var(--color-text-muted)] hidden sm:block uppercase tracking-wider">
                           Update Status
                         </p>
-                        <div className="flex gap-2 flex-wrap w-full sm:w-auto">
+                        <div className="flex flex-row gap-2 flex-wrap sm:ml-auto">
                           {order.status === "pending" && (
                             <Button
                               size="sm"
@@ -278,7 +276,7 @@ const OrdersPage = () => {
                                 handleStatusChange(order.id, "processing")
                               }
                               isLoading={updateStatus.isPending}
-                              className="flex-1 sm:flex-none justify-center text-[10px] md:text-xs px-2.5 py-1.5"
+                              className="justify-center text-[10px] md:text-xs px-3 py-1.5 shrink-0"
                             >
                               Process
                             </Button>
@@ -290,7 +288,7 @@ const OrdersPage = () => {
                                 handleStatusChange(order.id, "shipped")
                               }
                               isLoading={updateStatus.isPending}
-                              className="flex-1 sm:flex-none justify-center text-[10px] md:text-xs px-2.5 py-1.5"
+                              className="justify-center text-[10px] md:text-xs px-3 py-1.5 shrink-0"
                             >
                               Ship
                             </Button>
@@ -303,7 +301,7 @@ const OrdersPage = () => {
                                 handleStatusChange(order.id, "completed")
                               }
                               isLoading={updateStatus.isPending}
-                              className="flex-1 sm:flex-none justify-center text-[10px] md:text-xs px-2.5 py-1.5"
+                              className="justify-center text-[10px] md:text-xs px-3 py-1.5 shrink-0"
                             >
                               Complete
                             </Button>
@@ -312,7 +310,7 @@ const OrdersPage = () => {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="flex-none justify-center text-[var(--color-error)] text-[10px] md:text-xs px-2.5 py-1.5"
+                              className="justify-center text-[var(--color-error)] text-[10px] md:text-xs px-3 py-1.5 shrink-0"
                               onClick={() =>
                                 handleStatusChange(order.id, "cancelled")
                               }
