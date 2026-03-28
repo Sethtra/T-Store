@@ -494,16 +494,65 @@ const UsersPage = () => {
                               <div className="text-lg font-bold text-[var(--color-text-primary)]">
                                 {userDetail.stats.last_order_at
                                   ? new Date(
-                                      userDetail.stats.last_order_at,
+                                  userDetail.stats.last_order_at,
                                     ).toLocaleDateString(undefined, {
                                       month: "short",
                                       day: "numeric",
                                     })
-                                  : "—"}
+                                  : "Never"}
                               </div>
                               <div className="text-[10px] text-[var(--color-text-muted)] uppercase font-semibold">
                                 Last Order
                               </div>
+                            </div>
+                          </div>
+
+                          {/* Actions Panel */}
+                          <div className="pt-4 border-t border-[var(--color-border)]">
+                            <h4 className="text-[10px] md:text-xs font-bold text-[var(--color-text-muted)] w-full text-center uppercase tracking-wider mb-2">
+                              Actions
+                            </h4>
+                            <div className="flex gap-2 w-full mt-2">
+                              {/* Change Role Button */}
+                              <button
+                                onClick={() => {
+                                  handleRoleChange(userDetail.id, userDetail.role === 'admin' ? 'user' : 'admin');
+                                  setSelectedUserId(null); // Optional: close panel
+                                }}
+                                disabled={updateUser.isPending}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 md:py-2.5 bg-[var(--color-bg-surface)] hover:bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-lg text-[11px] md:text-xs font-semibold transition-colors border border-[var(--color-border)] hover:border-[var(--color-primary)]/30 disabled:opacity-50"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                </svg>
+                                {userDetail.role === 'admin' ? 'Make User' : 'Make Admin'}
+                              </button>
+                                
+                              {/* Suspend/Activate Button */}
+                              <button
+                                onClick={() => {
+                                  handleStatusToggle(userDetail.id, userDetail.status);
+                                  setSelectedUserId(null); // Optional: close panel
+                                }}
+                                disabled={updateUser.isPending}
+                                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 md:py-2.5 bg-[var(--color-bg-surface)] rounded-lg text-[11px] md:text-xs font-semibold transition-colors border border-[var(--color-border)] disabled:opacity-50 ${userDetail.status === 'active' ? 'text-red-500 hover:bg-red-500/10 hover:border-red-500/30' : 'text-emerald-500 hover:bg-emerald-500/10 hover:border-emerald-500/30'}`}
+                              >
+                                {userDetail.status === "active" ? (
+                                  <>
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                    </svg>
+                                    Suspend
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Activate
+                                  </>
+                                )}
+                              </button>
                             </div>
                           </div>
 

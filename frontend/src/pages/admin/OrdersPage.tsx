@@ -200,60 +200,65 @@ const OrdersPage = () => {
                   <Card>
                     <div className="p-3 md:p-4 lg:p-6">
                       {/* Order Header */}
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-sm md:text-lg font-semibold font-mono truncate">
-                              {order.tracking_id || `#${order.id}`}
-                            </h3>
-                            <Badge
-                              variant={getStatusBadgeVariant(order.status)}
-                            >
-                              {order.status.charAt(0).toUpperCase() +
-                                order.status.slice(1)}
-                            </Badge>
+                      <div className="flex flex-col mb-3">
+                        <div className="flex justify-between items-start w-full gap-2">
+                          <div className="min-w-0 pr-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <h3 className="text-sm md:text-lg font-bold text-[var(--color-text-primary)] truncate">
+                                {order.tracking_id || `#${order.id}`}
+                              </h3>
+                              <Badge
+                                variant={getStatusBadgeVariant(order.status)}
+                              >
+                                {order.status.charAt(0).toUpperCase() +
+                                  order.status.slice(1)}
+                              </Badge>
+                            </div>
+                            <p className="text-[10px] md:text-xs text-[var(--color-text-muted)] font-medium">
+                              {new Date(order.created_at).toLocaleDateString()} •
+                              Customer #{order.user_id}
+                            </p>
                           </div>
-                          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                            {new Date(order.created_at).toLocaleDateString()} •
-                            Customer #{order.user_id}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <p className="text-base md:text-xl font-bold text-[var(--color-primary)]">
-                            ${Number(order.total).toFixed(2)}
-                          </p>
+                          <div className="flex-shrink-0 text-right">
+                            <p className="text-sm md:text-lg font-bold text-[var(--color-primary)]">
+                              ${Number(order.total).toFixed(2)}
+                            </p>
+                          </div>
                         </div>
                       </div>
 
                       {/* Items Summary - compact on mobile */}
                       <div className="border-t border-[var(--color-border)] pt-2 md:pt-3 mb-2 md:mb-3">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-[var(--color-text-muted)]">
+                        <div className="flex items-center justify-between mt-1 mb-2">
+                          <p className="text-[10px] md:text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
                             {order.items.length} item{order.items.length > 1 ? 's' : ''}
                           </p>
                           <Link
                             to={`/admin/orders/${order.tracking_id || order.id}`}
-                            className="text-xs font-medium text-[var(--color-primary)] hover:underline"
+                            className="text-[10px] md:text-xs font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1 bg-[var(--color-primary)]/10 px-2 py-1 rounded-md transition-colors hover:bg-[var(--color-primary)]/20"
                           >
-                            View Detail →
+                            View Detail
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                            </svg>
                           </Link>
                         </div>
-                        <div className="mt-1.5 space-y-1">
+                        <div className="space-y-1.5">
                           {order.items.slice(0, 2).map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center justify-between text-xs md:text-sm"
+                              className="flex items-start justify-between text-[11px] md:text-sm gap-2"
                             >
-                              <span className="truncate mr-2">
-                                {item.product_title} × {item.quantity}
+                              <span className="truncate flex-1 text-[var(--color-text-primary)] font-medium">
+                                {item.product_title} <span className="text-[var(--color-text-muted)] ml-1">× {item.quantity}</span>
                               </span>
-                              <span className="font-medium flex-shrink-0">
+                              <span className="font-semibold text-[var(--color-text-primary)] flex-shrink-0">
                                 ${(item.price * item.quantity).toFixed(2)}
                               </span>
                             </div>
                           ))}
                           {order.items.length > 2 && (
-                            <p className="text-[10px] text-[var(--color-text-muted)]">
+                            <p className="text-[10px] text-[var(--color-text-muted)] pt-0.5 font-medium">
                               +{order.items.length - 2} more item{order.items.length - 2 > 1 ? 's' : ''}
                             </p>
                           )}
@@ -261,11 +266,11 @@ const OrdersPage = () => {
                       </div>
 
                       {/* Status Actions - compact */}
-                      <div className="flex items-center justify-between pt-2 md:pt-3 border-t border-[var(--color-border)] gap-2">
-                        <p className="text-[10px] md:text-sm text-[var(--color-text-muted)] hidden sm:block">
-                          Update Status:
+                      <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-[var(--color-border)] gap-2">
+                        <p className="text-[10px] md:text-sm font-semibold text-[var(--color-text-muted)] hidden sm:block uppercase tracking-wider">
+                          Update Status
                         </p>
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex gap-2 flex-wrap w-full sm:w-auto">
                           {order.status === "pending" && (
                             <Button
                               size="sm"
@@ -273,9 +278,9 @@ const OrdersPage = () => {
                                 handleStatusChange(order.id, "processing")
                               }
                               isLoading={updateStatus.isPending}
-                              className="text-xs px-2.5 py-1"
+                              className="flex-1 sm:flex-none justify-center text-[10px] md:text-xs px-2.5 py-1.5"
                             >
-                              Mark Processing
+                              Process
                             </Button>
                           )}
                           {order.status === "processing" && (
@@ -285,9 +290,9 @@ const OrdersPage = () => {
                                 handleStatusChange(order.id, "shipped")
                               }
                               isLoading={updateStatus.isPending}
-                              className="text-xs px-2.5 py-1"
+                              className="flex-1 sm:flex-none justify-center text-[10px] md:text-xs px-2.5 py-1.5"
                             >
-                              Mark Shipped
+                              Ship
                             </Button>
                           )}
                           {order.status === "shipped" && (
@@ -298,16 +303,16 @@ const OrdersPage = () => {
                                 handleStatusChange(order.id, "completed")
                               }
                               isLoading={updateStatus.isPending}
-                              className="text-xs px-2.5 py-1"
+                              className="flex-1 sm:flex-none justify-center text-[10px] md:text-xs px-2.5 py-1.5"
                             >
-                              Mark Completed
+                              Complete
                             </Button>
                           )}
                           {["pending", "processing"].includes(order.status) && (
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="text-[var(--color-error)] text-xs px-2.5 py-1"
+                              className="flex-none justify-center text-[var(--color-error)] text-[10px] md:text-xs px-2.5 py-1.5"
                               onClick={() =>
                                 handleStatusChange(order.id, "cancelled")
                               }
