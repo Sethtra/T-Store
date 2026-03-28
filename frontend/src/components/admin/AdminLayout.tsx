@@ -722,7 +722,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       </motion.aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full bg-[var(--color-bg-primary)] relative">
+      <div className="flex-1 flex flex-col h-full bg-[var(--color-bg-primary)] relative min-w-0">
         {/* Top Header - Duralux Style */}
         <header className="h-16 lg:h-20 px-4 lg:px-8 flex items-center justify-between z-20 sticky top-0 bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] shadow-sm">
           <div className="flex items-center gap-4">
@@ -854,7 +854,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         {/* Content Body - No global padding here */}
         <main
           id="admin-main-content"
-          className="flex-1 overflow-y-auto relative scroll-smooth"
+          className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth"
         >
           <div className="min-h-full">{children}</div>
         </main>

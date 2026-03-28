@@ -89,9 +89,9 @@ const OrdersPage = () => {
         </div>
 
         {/* Filter Tabs + Search */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 min-w-0">
           {/* Status Filter */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none w-[100vw] sm:w-auto max-w-full">
             {statusOptions.map((option) => (
               <button
                 key={option.value}
@@ -247,9 +247,9 @@ const OrdersPage = () => {
                               key={item.id}
                               className="grid grid-cols-[1fr_auto] items-start text-[11px] md:text-sm gap-2"
                             >
-                              <span className="truncate text-[var(--color-text-primary)] font-medium">
+                              <div className="truncate text-[var(--color-text-primary)] font-medium min-w-0">
                                 {item.product_title} <span className="text-[var(--color-text-muted)] ml-1">× {item.quantity}</span>
-                              </span>
+                              </div>
                               <span className="font-semibold text-right text-[var(--color-text-primary)] whitespace-nowrap">
                                 ${(item.price * item.quantity).toFixed(2)}
                               </span>
