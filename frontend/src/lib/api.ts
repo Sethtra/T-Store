@@ -31,14 +31,21 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
+      // Only redirect to login if user was previously authenticated (session expired)
+      const hadToken = localStorage.getItem('auth_token');
+      const hadAuth = localStorage.getItem('t-store-auth');
+      
       // Clear auth state
       localStorage.removeItem('auth_token');
       localStorage.removeItem('t-store-auth');
-      // Also clear Zustand store state immediately
       useAuthStore.getState().setUser(null);
-      // Only redirect if not already on login/register page
-      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
-        window.location.href = '/login';
+      
+      // Only redirect if user was previously logged in (session expired)
+      // Do NOT redirect guests who were never logged in
+      if (hadToken || (hadAuth && JSON.parse(hadAuth)?.state?.isAuthenticated)) {
+        if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+          window.location.href = '/login';
+        }
       }
     }
     if (error.response?.status === 403) {

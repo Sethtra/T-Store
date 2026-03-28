@@ -61,10 +61,10 @@ class GoogleAuthController extends Controller
             Cache::put('google_auth_token:' . $token, $user->id, now()->addMinutes(5));
 
             // Redirect to frontend with the token
-            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+            $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
             return redirect($frontendUrl . '/login?google=pending&token=' . $token);
         } catch (\Exception $e) {
-            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+            $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
             return redirect($frontendUrl . '/login?google=error&message=' . urlencode($e->getMessage()));
         }
     }
