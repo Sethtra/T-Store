@@ -3,7 +3,7 @@ set -e
 
 # Use Render's PORT variable (default: 80)
 PORT=${PORT:-80}
-sed -i "s/Listen 80/Listen $PORT/" /etc/apache2/ports.conf
+sed -i "s/Listen 80/Listen 0.0.0.0:$PORT/" /etc/apache2/ports.conf
 sed -i "s/:80/:$PORT/" /etc/apache2/sites-available/*.conf
 
 # Copy secret file if it exists (Render Secret Files)
