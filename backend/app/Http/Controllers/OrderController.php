@@ -46,7 +46,7 @@ class OrderController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.attributes' => 'nullable|array',
-            'payment_method' => 'required|in:stripe,paypal',
+            'payment_method' => 'required|in:stripe,payway',
             'delivery_method' => 'nullable|in:delivery,pickup',
             'shipping_address' => 'nullable|array',
             'shipping_name' => 'nullable|string',
