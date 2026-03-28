@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -94,14 +93,13 @@ class GoogleAuthController extends Controller
             return response()->json(['message' => 'User not found.'], 404);
         }
 
-        Auth::login($user, true);
-
-        if ($request->hasSession()) {
-            $request->session()->regenerate();
-        }
+        // Create a Sanctum personal access token (same as normal login)
+        $sanctumToken = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',
+            'token' => $sanctumToken,
+            'user' => $user,
         ]);
     }
 }

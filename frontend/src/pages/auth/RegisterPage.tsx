@@ -146,7 +146,8 @@ const RegisterPage = () => {
           <button
             type="button"
             onClick={() => {
-              window.location.href = "/api/auth/google";
+              const backendUrl = import.meta.env.VITE_API_URL || '/api';
+              window.location.href = `${backendUrl}/auth/google`;
             }}
             className="w-full flex items-center justify-center gap-3 px-5 py-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] font-medium transition-[background-color,border-color,box-shadow] duration-200 hover:bg-[var(--color-bg-surface)] hover:shadow-sm"
           >

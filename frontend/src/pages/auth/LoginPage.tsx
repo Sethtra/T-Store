@@ -26,11 +26,14 @@ const LoginPage = () => {
       }
       const handleGoogleLogin = async () => {
         try {
-          // Exchange the one-time token for a session
-          await api.post("/auth/google/verify", { token });
+          // Exchange the one-time token for a bearer token
+          const response = await api.post("/auth/google/verify", { token });
+          if (response.data.token) {
+            localStorage.setItem('auth_token', response.data.token);
+          }
           // Fetch user data so Zustand persists it to localStorage
           await useAuthStore.getState().fetchUser();
-          // Full page reload so browser processes the new session cookie
+          // Redirect to home
           window.location.href = "/";
         } catch {
           setError("Google login failed. Please try again.");
