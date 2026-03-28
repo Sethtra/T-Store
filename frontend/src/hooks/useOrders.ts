@@ -35,7 +35,7 @@ export interface CreateOrderData {
     product_id: number;
     quantity: number;
   }[];
-  payment_method: 'stripe' | 'paypal';
+  payment_method: 'stripe' | 'payway';
 }
 
 // Customer: Fetch own orders
@@ -61,7 +61,7 @@ export const useOrder = (id: number) => {
   });
 };
 
-// Customer: Create order (checkout - now just creates the pending order)
+// Customer: Create order (checkout)
 export const useCreateOrder = () => {
   return useMutation({
     mutationFn: async (data: CreateOrderData) => {
@@ -81,29 +81,22 @@ export const useCreateStripeIntent = () => {
   });
 };
 
-// Payment: Create PayPal Order
-export const useCreatePaypalOrder = () => {
+// Payment: Create ABA PayWay Transaction
+export const useCreatePaywayTransaction = () => {
   return useMutation({
     mutationFn: async (data: { order_id: number }) => {
-      const response = await api.post('/payment/paypal/create-order', data);
+      const response = await api.post('/payment/payway/create', data);
       return response.data;
     },
   });
 };
 
-// Payment: Capture PayPal Order
-export const useCapturePaypalOrder = () => {
-  const queryClient = useQueryClient();
-  const clearCart = useCartStore((state) => state.clearCart);
-
+// Payment: Check PayWay payment status
+export const useCheckPaywayStatus = () => {
   return useMutation({
-    mutationFn: async (data: { order_id: number; paypal_order_id: string }) => {
-      const response = await api.post('/payment/paypal/capture', data);
+    mutationFn: async (data: { order_id: number }) => {
+      const response = await api.get('/payment/payway/status', { params: data });
       return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      clearCart();
     },
   });
 };
@@ -172,6 +165,6 @@ export const useDashboardStats = () => {
       const response = await api.get('/admin/dashboard');
       return response.data;
     },
-    staleTime: 60 * 1000, // Refresh every minute
+    staleTime: 60 * 1000,
   });
 };

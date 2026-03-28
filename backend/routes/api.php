@@ -65,6 +65,7 @@ Route::post('/visit', [\App\Http\Controllers\VisitController::class, 'store']);
 
 // Stripe Webhook (public, no auth - Stripe signs these)
 Route::post('/webhooks/stripe', [PaymentController::class, 'stripeWebhook']);
+Route::post('/payment/payway/callback', [PaymentController::class, 'paywayCallback']);
 
 // Protected Routes (Authenticated Users)
 Route::middleware('auth:sanctum')->group(function () {
@@ -74,8 +75,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Payment
     Route::post('/payment/stripe/create-intent', [PaymentController::class, 'createStripeIntent']);
-    Route::post('/payment/paypal/create-order', [PaymentController::class, 'createPaypalOrder']);
-    Route::post('/payment/paypal/capture', [PaymentController::class, 'capturePaypalOrder']);
+    Route::post('/payment/payway/create', [PaymentController::class, 'createPaywayTransaction']);
+    Route::get('/payment/payway/status', [PaymentController::class, 'paywayCheckStatus']);
 
     // Orders (Customer)
     Route::get('/orders', [OrderController::class, 'index']);

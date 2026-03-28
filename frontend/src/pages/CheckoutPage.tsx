@@ -1,19 +1,16 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
-import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useCartStore } from "../stores/cartStore";
-import { useCreateOrder, useCreateStripeIntent } from "../hooks/useOrders";
+import { useCreateOrder, useCreateStripeIntent, useCreatePaywayTransaction } from "../hooks/useOrders";
 import { useAuthStore } from "../stores/authStore";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import StripeForm from "../components/checkout/StripeForm";
-import PaypalForm from "../components/checkout/PaypalForm";
 
 // Initialize Stripe outside component
-// Use a placeholder if env var is missing to avoid crashing, but payment will fail
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_placeholder");
 
 // Step Progress Component
@@ -73,13 +70,103 @@ const StepProgress = ({ currentStep }: { currentStep: number }) => {
   );
 };
 
+// Payment Method Card Component
+const PaymentMethodCard = ({
+  id,
+  selected,
+  onSelect,
+  icon,
+  title,
+  description,
+  accentColor,
+}: {
+  id: string;
+  selected: boolean;
+  onSelect: () => void;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  accentColor: string;
+}) => (
+  <button
+    type="button"
+    onClick={onSelect}
+    className={`relative w-full text-left p-5 rounded-2xl border-2 transition-all duration-300 group ${
+      selected
+        ? `border-[${accentColor}] bg-gradient-to-br from-[${accentColor}]/5 to-[${accentColor}]/10 shadow-lg shadow-[${accentColor}]/10`
+        : "border-[var(--color-border)] hover:border-[var(--color-border-hover)] hover:shadow-md"
+    }`}
+    style={selected ? {
+      borderColor: accentColor,
+      background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}15)`,
+      boxShadow: `0 8px 25px -5px ${accentColor}20`,
+    } : {}}
+  >
+    {/* Selection indicator */}
+    <div className="absolute top-4 right-4">
+      <div
+        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+          selected ? "border-transparent" : "border-[var(--color-border)]"
+        }`}
+        style={selected ? { backgroundColor: accentColor } : {}}
+      >
+        {selected && (
+          <motion.svg
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="w-3.5 h-3.5 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+          </motion.svg>
+        )}
+      </div>
+    </div>
+
+    <div className="flex items-start gap-4">
+      <div
+        className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+          selected ? "scale-110" : "group-hover:scale-105"
+        }`}
+        style={{
+          background: selected
+            ? `linear-gradient(135deg, ${accentColor}, ${accentColor}CC)`
+            : `${accentColor}15`,
+        }}
+      >
+        <div style={{ color: selected ? "white" : accentColor }} className="text-2xl">
+          {icon}
+        </div>
+      </div>
+      <div className="flex-1 pr-6">
+        <h4
+          className={`font-bold text-base mb-1 transition-colors ${
+            selected ? "" : "text-[var(--color-text-primary)]"
+          }`}
+          style={selected ? { color: accentColor } : {}}
+        >
+          {title}
+        </h4>
+        <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">
+          {description}
+        </p>
+      </div>
+    </div>
+  </button>
+);
+
 const CheckoutPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { items, totalPrice, clearCart } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   
   const createOrder = useCreateOrder();
   const createStripeIntent = useCreateStripeIntent();
+  const createPaywayTransaction = useCreatePaywayTransaction();
+  const paywayFormRef = useRef<HTMLFormElement>(null);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -94,14 +181,32 @@ const CheckoutPage = () => {
   });
 
   const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">("delivery");
-  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "paypal">("stripe");
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "payway">("stripe");
   
   // Payment Flow State
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
+  const [paywayFormData, setPaywayFormData] = useState<Record<string, string> | null>(null);
+  const [paywayCheckoutUrl, setPaywayCheckoutUrl] = useState<string>("");
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  // Check if returning from PayWay payment
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    if (paymentStatus === "success") {
+      clearCart();
+      setOrderSuccess(true);
+    }
+  }, [searchParams, clearCart]);
+
+  // Auto-submit PayWay form when data is ready
+  useEffect(() => {
+    if (paywayFormData && paywayFormRef.current) {
+      paywayFormRef.current.submit();
+    }
+  }, [paywayFormData]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -146,13 +251,18 @@ const CheckoutPage = () => {
       const orderId = res.order.id;
       setCreatedOrderId(orderId);
 
-      // If Stripe, we need a PaymentIntent immediately
       if (paymentMethod === "stripe") {
+        // Stripe: get client secret and show card form
         const intentRes = await createStripeIntent.mutateAsync({ order_id: orderId });
         setStripeClientSecret(intentRes.client_secret);
+        setCurrentStep(2);
+      } else if (paymentMethod === "payway") {
+        // PayWay: get checkout form data and auto-redirect
+        const paywayRes = await createPaywayTransaction.mutateAsync({ order_id: orderId });
+        setPaywayCheckoutUrl(paywayRes.checkout_url);
+        setPaywayFormData(paywayRes.form_data);
+        // Form will auto-submit via useEffect
       }
-
-      setCurrentStep(2); // Move to payment step
     } catch (error: any) {
       setPaymentError(error.response?.data?.message || "Failed to create order. Please try again.");
       console.error("Order creation failed", error);
@@ -231,15 +341,21 @@ const CheckoutPage = () => {
                       <button
                         type="button"
                         onClick={() => setDeliveryMethod("delivery")}
-                        className={`py-4 rounded-xl border-2 font-medium transition-all ${deliveryMethod === "delivery" ? "border-blue-500 bg-blue-500/10 text-blue-500" : "border-[var(--color-border)]"}`}
+                        className={`flex items-center justify-center gap-3 py-4 rounded-xl border-2 font-medium transition-all ${deliveryMethod === "delivery" ? "border-blue-500 bg-blue-500/10 text-blue-500" : "border-[var(--color-border)] hover:border-[var(--color-border-hover)]"}`}
                       >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                        </svg>
                         Delivery
                       </button>
                       <button
                         type="button"
                         onClick={() => setDeliveryMethod("pickup")}
-                        className={`py-4 rounded-xl border-2 font-medium transition-all ${deliveryMethod === "pickup" ? "border-blue-500 bg-blue-500/10 text-blue-500" : "border-[var(--color-border)]"}`}
+                        className={`flex items-center justify-center gap-3 py-4 rounded-xl border-2 font-medium transition-all ${deliveryMethod === "pickup" ? "border-blue-500 bg-blue-500/10 text-blue-500" : "border-[var(--color-border)] hover:border-[var(--color-border-hover)]"}`}
                       >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
                         Pick up
                       </button>
                     </div>
@@ -265,24 +381,37 @@ const CheckoutPage = () => {
                       )}
                     </div>
 
-                    {/* Payment Selection */}
+                    {/* Payment Method Selection - Premium UI */}
                     <div className="pt-6 border-t border-[var(--color-border)]">
-                      <h3 className="text-lg font-bold mb-4">Select Payment Method</h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod("stripe")}
-                          className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === "stripe" ? "border-indigo-500 bg-indigo-500/5 text-indigo-500" : "border-[var(--color-border)]"}`}
-                        >
-                          Credit Card (Stripe)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod("paypal")}
-                          className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all ${paymentMethod === "paypal" ? "border-[#0070ba] bg-[#0070ba]/5 text-[#0070ba]" : "border-[var(--color-border)]"}`}
-                        >
-                          PayPal
-                        </button>
+                      <h3 className="text-lg font-bold mb-2">Select Payment Method</h3>
+                      <p className="text-sm text-[var(--color-text-muted)] mb-5">Choose your preferred payment option</p>
+                      <div className="space-y-4">
+                        <PaymentMethodCard
+                          id="stripe"
+                          selected={paymentMethod === "stripe"}
+                          onSelect={() => setPaymentMethod("stripe")}
+                          accentColor="#635BFF"
+                          title="Credit / Debit Card"
+                          description="Pay securely with Visa, Mastercard, or American Express via Stripe"
+                          icon={
+                            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                          }
+                        />
+                        <PaymentMethodCard
+                          id="payway"
+                          selected={paymentMethod === "payway"}
+                          onSelect={() => setPaymentMethod("payway")}
+                          accentColor="#E21937"
+                          title="ABA PayWay"
+                          description="Pay with ABA Mobile, KHQR, or local bank cards via ABA PayWay"
+                          icon={
+                            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                          }
+                        />
                       </div>
                     </div>
                   </form>
@@ -309,16 +438,6 @@ const CheckoutPage = () => {
                             onError={setPaymentError} 
                           />
                         </Elements>
-                      )}
-                      
-                      {paymentMethod === "paypal" && (
-                        <PayPalScriptProvider options={{ clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "test", currency: "USD" }}>
-                          <PaypalForm 
-                            orderId={createdOrderId} 
-                            onSuccess={handlePaymentSuccess} 
-                            onError={setPaymentError} 
-                          />
-                        </PayPalScriptProvider>
                       )}
                     </div>
                   )}
@@ -362,6 +481,17 @@ const CheckoutPage = () => {
                 </div>
               </div>
 
+              {/* Payment method badge */}
+              <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-[var(--color-bg-surface)] rounded-lg">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: paymentMethod === "stripe" ? "#635BFF" : "#E21937" }}
+                />
+                <span className="text-xs font-medium text-[var(--color-text-muted)]">
+                  Paying with {paymentMethod === "stripe" ? "Credit/Debit Card (Stripe)" : "ABA PayWay"}
+                </span>
+              </div>
+
               {currentStep === 1 && (
                 <Button
                   onClick={() => document.getElementById("checkout-form")?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }))}
@@ -371,13 +501,27 @@ const CheckoutPage = () => {
                   disabled={!isAuthenticated}
                   className="py-4 text-base rounded-xl mb-6 bg-[var(--color-primary)] text-white border-none shadow-lg shadow-blue-500/20"
                 >
-                  Proceed to Payment
+                  {paymentMethod === "stripe" ? "Proceed to Payment" : "Pay with ABA PayWay"}
                 </Button>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Hidden PayWay redirect form */}
+      {paywayFormData && (
+        <form
+          ref={paywayFormRef}
+          action={paywayCheckoutUrl}
+          method="POST"
+          style={{ display: "none" }}
+        >
+          {Object.entries(paywayFormData).map(([key, value]) => (
+            <input key={key} type="hidden" name={key} value={value} />
+          ))}
+        </form>
+      )}
     </motion.div>
   );
 };
