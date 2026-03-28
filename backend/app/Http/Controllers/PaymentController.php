@@ -101,6 +101,10 @@ class PaymentController extends Controller
     /**
      * Create an ABA PayWay transaction.
      * Returns the form data needed to redirect the user to PayWay checkout.
+     * Hash order per official docs: req_time, merchant_id, tran_id, amount, items, shipping,
+     * firstname, lastname, email, phone, type, payment_option, return_url, cancel_url,
+     * continue_success_url, return_deeplink, currency, custom_fields, return_params,
+     * payout, lifetime, additional_params, google_pay_token, skip_success_page
      */
     public function createPaywayTransaction(Request $request)
     {
@@ -123,23 +127,51 @@ class PaymentController extends Controller
             ], 500);
         }
 
-        $tranId = 'TS' . str_replace('-', '', $order->tracking_id) . Str::random(4);
+        // tran_id max 20 chars per ABA docs
+        $tranId = substr('TS' . $order->id . time(), 0, 20);
+        $reqTime = gmdate('YmdHis'); // UTC format per docs
         $amount = number_format($order->total, 2, '.', '');
         $firstName = $order->shipping_name ?? 'Customer';
         $lastName = '';
         $email = $order->shipping_email ?? '';
         $phone = $order->shipping_phone ?? '';
+        $type = 'purchase';
+        $paymentOption = ''; // Let PayWay show all available options
         $currency = 'USD';
+
+        // Items (base64-encoded JSON array per docs)
+        $itemsList = [];
+        foreach ($order->items as $item) {
+            $itemsList[] = [
+                'name' => $item->product_title,
+                'quantity' => $item->quantity,
+                'price' => (float) $item->price,
+            ];
+        }
+        $items = base64_encode(json_encode($itemsList));
+
+        $shipping = '0';
         $returnUrl = config('app.frontend_url', 'http://localhost:3000') . '/orders?payment=success&order_id=' . $order->id;
+        $cancelUrl = config('app.frontend_url', 'http://localhost:3000') . '/checkout';
         $continueSuccessUrl = $returnUrl;
         $returnDeeplink = '';
-        $type = 'purchase';
+        $customFields = '';
+        $returnParams = 'order_id=' . $order->id;
+        $payout = '';
+        $lifetime = '';
+        $additionalParams = '';
+        $googlePayToken = '';
+        $skipSuccessPage = '';
 
-        // Build the hash string per ABA PayWay docs
-        $hashStr = $tranId . $amount . $firstName . $lastName . $email . $phone . $type . $currency . $returnUrl;
+        // Build hash string per official ABA PayWay docs (exact order matters!)
+        $b4hash = $reqTime . $merchantId . $tranId . $amount . $items . $shipping
+            . $firstName . $lastName . $email . $phone . $type . $paymentOption
+            . $returnUrl . $cancelUrl . $continueSuccessUrl . $returnDeeplink
+            . $currency . $customFields . $returnParams . $payout . $lifetime
+            . $additionalParams . $googlePayToken . $skipSuccessPage;
 
-        // HMAC-SHA512 hash
-        $hash = base64_encode(hash_hmac('sha512', $hashStr, $apiKey, true));
+        // HMAC-SHA512 hash (base64 encoded) using public key
+        $hash = base64_encode(hash_hmac('sha512', $b4hash, $apiKey, true));
 
         // Store the PayWay transaction ID on the order
         $order->update([
@@ -153,31 +185,36 @@ class PaymentController extends Controller
                 'hash' => $hash,
                 'tran_id' => $tranId,
                 'amount' => $amount,
+                'items' => $items,
+                'shipping' => $shipping,
                 'firstname' => $firstName,
                 'lastname' => $lastName,
                 'email' => $email,
                 'phone' => $phone,
                 'type' => $type,
-                'payment_option' => '',
+                'payment_option' => $paymentOption,
                 'currency' => $currency,
                 'merchant_id' => $merchantId,
+                'req_time' => $reqTime,
                 'return_url' => $returnUrl,
+                'cancel_url' => $cancelUrl,
                 'continue_success_url' => $continueSuccessUrl,
                 'return_deeplink' => $returnDeeplink,
-                'return_params' => 'order_id=' . $order->id,
+                'custom_fields' => $customFields,
+                'return_params' => $returnParams,
             ],
         ]);
     }
 
     /**
-     * Handle ABA PayWay callback (push-back notification).
-     * Verifies the response signature using RSA public key.
+     * Handle ABA PayWay callback (pushback notification).
+     * Verifies HMAC-SHA512 signature from X-PayWay-HMAC-SHA512 header per official docs.
      */
     public function paywayCallback(Request $request)
     {
-        $tranId = $request->input('tran_id');
-        $status = $request->input('status');
-        $signature = $request->input('hash');
+        $response = $request->all();
+        $tranId = $response['tran_id'] ?? null;
+        $status = $response['status'] ?? null;
 
         if (!$tranId) {
             return response()->json(['error' => 'Missing transaction ID'], 400);
@@ -189,31 +226,37 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        // Verify RSA signature from ABA PayWay
-        $rsaPublicKey = config('services.payway.rsa_public_key');
-        if ($rsaPublicKey && $signature) {
-            $dataToVerify = $tranId . $request->input('amount') . $status;
-            $publicKeyResource = openssl_pkey_get_public($rsaPublicKey);
-            
-            if ($publicKeyResource) {
-                $isValid = openssl_verify(
-                    $dataToVerify,
-                    base64_decode($signature),
-                    $publicKeyResource,
-                    OPENSSL_ALGO_SHA256
-                );
+        // Verify HMAC signature from header (per ABA PayWay official docs)
+        $apiKey = config('services.payway.api_key');
+        $receivedSignature = $request->header('X-PayWay-HMAC-SHA512', '');
 
-                if ($isValid !== 1) {
-                    Log::warning('PayWay callback signature verification failed', [
-                        'tran_id' => $tranId,
-                        'status' => $status,
-                    ]);
-                    return response()->json(['error' => 'Invalid signature'], 403);
+        if ($apiKey && $receivedSignature) {
+            // 1. Sort fields by key ascending
+            ksort($response);
+
+            // 2. Concatenate all values
+            $b4hash = '';
+            foreach ($response as $value) {
+                if (is_array($value)) {
+                    $value = json_encode($value);
                 }
+                $b4hash .= $value;
+            }
+
+            // 3. Generate HMAC-SHA512 signature
+            $signature = base64_encode(hash_hmac('sha512', $b4hash, $apiKey, true));
+
+            // 4. Compare signatures
+            if (!hash_equals($signature, $receivedSignature)) {
+                Log::warning('PayWay callback signature verification failed', [
+                    'tran_id' => $tranId,
+                    'status' => $status,
+                ]);
+                return response()->json(['error' => 'Invalid signature'], 403);
             }
         }
 
-        // Status codes: 0 = Approved, others = various failures
+        // Status "0" = Approved per ABA PayWay docs
         if ($status == '0') {
             if ($order->payment_status !== 'paid') {
                 $order->update([
