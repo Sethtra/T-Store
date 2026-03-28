@@ -177,7 +177,7 @@ const CategoriesPage = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
           {/* Categories Table (Left Side) */}
           <div className="xl:col-span-2">
             <Card className="overflow-hidden border border-[var(--color-border)] shadow-sm">
@@ -190,19 +190,19 @@ const CategoriesPage = () => {
                 <table className="w-full">
                   <thead className="bg-[var(--color-bg-surface)]">
                     <tr className="border-b border-[var(--color-border)]">
-                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                         Name
                       </th>
-                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden md:table-cell">
                         Slug
                       </th>
-                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                         Products
                       </th>
-                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">
                         Subcategories
                       </th>
-                      <th className="px-5 py-4 text-right text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-right text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">
                         Actions
                       </th>
                     </tr>
@@ -232,30 +232,30 @@ const CategoriesPage = () => {
                               : ""
                           }`}
                         >
-                          <td className="px-5 py-4">
+                          <td className="px-3 md:px-5 py-3 md:py-4">
                             <span className="font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-                              <span className="w-8 h-8 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center font-bold text-[10px] uppercase">
+                              <span className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center font-bold text-[10px] uppercase flex-shrink-0">
                                 {category.name.substring(0, 2)}
                               </span>
-                              {category.name}
+                              <span className="truncate">{category.name}</span>
                             </span>
                           </td>
-                          <td className="px-5 py-4">
+                          <td className="px-3 md:px-5 py-3 md:py-4 hidden md:table-cell">
                             <code className="px-2 py-1 rounded bg-[var(--color-bg-surface)] text-xs font-mono text-[var(--color-text-secondary)]">
                               {category.slug}
                             </code>
                           </td>
-                          <td className="px-5 py-4">
+                          <td className="px-3 md:px-5 py-3 md:py-4">
                             <Badge variant="default" size="sm">
-                              {category.products_count || 0} items
+                              {category.products_count || 0}
                             </Badge>
                           </td>
-                          <td className="px-5 py-4">
+                          <td className="px-3 md:px-5 py-3 md:py-4 hidden sm:table-cell">
                             <span className="text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-surface)] px-2.5 py-1 rounded-full border border-[var(--color-border)]">
                               {category.children?.length || 0}
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-right">
+                          <td className="px-3 md:px-5 py-3 md:py-4 text-right hidden sm:table-cell">
                             <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                               <button
                                 onClick={() => openEditModal(category)}
@@ -286,20 +286,35 @@ const CategoriesPage = () => {
             </Card>
           </div>
 
-          {/* Category Detail Panel (Right Side) */}
-          <div className="xl:col-span-1">
-            <AnimatePresence mode="wait">
-              {selectedCategoryId && selectedCategory ? (
-                <motion.div
-                  key={selectedCategoryId}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card className="border border-[var(--color-border)] shadow-sm sticky top-28">
+          {/* Category Detail Panel (Right Side) - Bottom sheet on mobile */}
+          <AnimatePresence mode="wait">
+            {selectedCategoryId && selectedCategory && (
+              <motion.div
+                key={selectedCategoryId}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-50 xl:relative xl:inset-auto xl:z-auto xl:col-span-1 bg-black/50 xl:bg-transparent flex items-end xl:items-stretch"
+                onClick={(e) => { if (e.target === e.currentTarget) setSelectedCategoryId(null); }}
+              >
+                <div className="w-full xl:w-auto max-h-[85vh] xl:max-h-none overflow-y-auto rounded-t-2xl xl:rounded-xl">
+                  <Card className="border border-[var(--color-border)] shadow-sm xl:sticky xl:top-28 rounded-t-2xl xl:rounded-xl">
                     <Card.Body className="p-6">
                       <div className="space-y-6">
+                        {/* Close button for mobile */}
+                        <div className="flex items-center justify-between xl:hidden">
+                          <h3 className="text-sm font-bold text-[var(--color-text-muted)] uppercase">Category Details</h3>
+                          <button
+                            onClick={() => setSelectedCategoryId(null)}
+                            className="p-1.5 rounded-lg hover:bg-[var(--color-bg-surface)] text-[var(--color-text-muted)]"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+
                         {/* Detail Header */}
                         <div className="text-center">
                           <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-purple-600 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3 ring-4 ring-[var(--color-border)] shadow-lg shadow-[var(--color-primary)]/20">
@@ -369,7 +384,7 @@ const CategoriesPage = () => {
                                       /{sub.slug}
                                     </div>
                                   </div>
-                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <div className="flex items-center gap-1 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity">
                                     <button
                                       onClick={() => openEditModal(sub)}
                                       className="p-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded"
@@ -401,38 +416,10 @@ const CategoriesPage = () => {
                       </div>
                     </Card.Body>
                   </Card>
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center py-20 text-center"
-                >
-                  <div className="w-16 h-16 rounded-full bg-[var(--color-bg-surface)] flex items-center justify-center mb-4 border border-[var(--color-border)]">
-                    <svg
-                      className="w-8 h-8 text-[var(--color-text-muted)] opacity-50"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                    No Category Selected
-                  </p>
-                  <p className="text-xs text-[var(--color-text-muted)] mt-1 max-w-[200px]">
-                    Select a main category from the list to view its subcategories and details.
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Modal */}

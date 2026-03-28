@@ -91,12 +91,12 @@ const OrdersPage = () => {
         {/* Filter Tabs + Search */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
           {/* Status Filter */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none">
             {statusOptions.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setStatusFilter(option.value)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   statusFilter === option.value
                     ? "bg-[var(--color-primary)] text-white"
                     : "bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
@@ -198,12 +198,13 @@ const OrdersPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <Card>
-                    <div className="p-4 lg:p-6">
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-3">
-                        <div>
-                          <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-semibold font-mono">
-                              {order.tracking_id || `Order #${order.id}`}
+                    <div className="p-3 md:p-4 lg:p-6">
+                      {/* Order Header */}
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-sm md:text-lg font-semibold font-mono truncate">
+                              {order.tracking_id || `#${order.id}`}
                             </h3>
                             <Badge
                               variant={getStatusBadgeVariant(order.status)}
@@ -212,63 +213,56 @@ const OrdersPage = () => {
                                 order.status.slice(1)}
                             </Badge>
                           </div>
-                          <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                            {new Date(order.created_at).toLocaleString()} •
+                          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                            {new Date(order.created_at).toLocaleDateString()} •
                             Customer #{order.user_id}
                           </p>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <p className="text-xl font-bold text-[var(--color-primary)]">
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <p className="text-base md:text-xl font-bold text-[var(--color-primary)]">
                             ${Number(order.total).toFixed(2)}
                           </p>
-                          {/* View Detail Button */}
-                          <Link
-                            to={`/admin/orders/${order.tracking_id || order.id}`}
-                            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 rounded-full hover:bg-[var(--color-primary)]/20 transition-colors"
-                          >
-                            View Detail
-                            <svg
-                              className="w-3 h-3"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 5l7 7-7 7"
-                              />
-                            </svg>
-                          </Link>
                         </div>
                       </div>
 
-                      {/* Order Items */}
-                      <div className="border-t border-[var(--color-border)] pt-4 mb-4">
-                        <p className="text-sm text-[var(--color-text-muted)] mb-2">
-                          Items:
-                        </p>
-                        <div className="space-y-2">
-                          {order.items.map((item) => (
+                      {/* Items Summary - compact on mobile */}
+                      <div className="border-t border-[var(--color-border)] pt-2 md:pt-3 mb-2 md:mb-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-[var(--color-text-muted)]">
+                            {order.items.length} item{order.items.length > 1 ? 's' : ''}
+                          </p>
+                          <Link
+                            to={`/admin/orders/${order.tracking_id || order.id}`}
+                            className="text-xs font-medium text-[var(--color-primary)] hover:underline"
+                          >
+                            View Detail →
+                          </Link>
+                        </div>
+                        <div className="mt-1.5 space-y-1">
+                          {order.items.slice(0, 2).map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center justify-between text-sm"
+                              className="flex items-center justify-between text-xs md:text-sm"
                             >
-                              <span>
+                              <span className="truncate mr-2">
                                 {item.product_title} × {item.quantity}
                               </span>
-                              <span className="font-medium">
+                              <span className="font-medium flex-shrink-0">
                                 ${(item.price * item.quantity).toFixed(2)}
                               </span>
                             </div>
                           ))}
+                          {order.items.length > 2 && (
+                            <p className="text-[10px] text-[var(--color-text-muted)]">
+                              +{order.items.length - 2} more item{order.items.length - 2 > 1 ? 's' : ''}
+                            </p>
+                          )}
                         </div>
                       </div>
 
-                      {/* Status Actions */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t border-[var(--color-border)] gap-3">
-                        <p className="text-sm text-[var(--color-text-muted)]">
+                      {/* Status Actions - compact */}
+                      <div className="flex items-center justify-between pt-2 md:pt-3 border-t border-[var(--color-border)] gap-2">
+                        <p className="text-[10px] md:text-sm text-[var(--color-text-muted)] hidden sm:block">
                           Update Status:
                         </p>
                         <div className="flex gap-2 flex-wrap">
@@ -279,6 +273,7 @@ const OrdersPage = () => {
                                 handleStatusChange(order.id, "processing")
                               }
                               isLoading={updateStatus.isPending}
+                              className="text-xs px-2.5 py-1"
                             >
                               Mark Processing
                             </Button>
@@ -290,6 +285,7 @@ const OrdersPage = () => {
                                 handleStatusChange(order.id, "shipped")
                               }
                               isLoading={updateStatus.isPending}
+                              className="text-xs px-2.5 py-1"
                             >
                               Mark Shipped
                             </Button>
@@ -302,6 +298,7 @@ const OrdersPage = () => {
                                 handleStatusChange(order.id, "completed")
                               }
                               isLoading={updateStatus.isPending}
+                              className="text-xs px-2.5 py-1"
                             >
                               Mark Completed
                             </Button>
@@ -310,7 +307,7 @@ const OrdersPage = () => {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="text-[var(--color-error)]"
+                              className="text-[var(--color-error)] text-xs px-2.5 py-1"
                               onClick={() =>
                                 handleStatusChange(order.id, "cancelled")
                               }

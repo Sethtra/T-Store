@@ -49,10 +49,10 @@ const BrowseByCategories = () => {
           className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6"
         >
           <div className="max-w-xl">
-            <h2 className="text-4xl md:text-5xl font-medium text-[var(--color-text-primary)] tracking-tight mb-4">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-medium text-[var(--color-text-primary)] tracking-tight mb-3 md:mb-4">
               Browse by Categories
             </h2>
-            <p className="text-lg text-[var(--color-text-secondary)] font-normal leading-relaxed">
+            <p className="text-sm md:text-lg text-[var(--color-text-secondary)] font-normal leading-relaxed">
               Explore our curated collections designed for your lifestyle.
             </p>
           </div>
@@ -78,7 +78,7 @@ const BrowseByCategories = () => {
         </motion.div>
 
         {/* Modern Single-Surface Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-6 lg:h-[700px]">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-3 md:gap-6 lg:h-[700px]">
           {/* Main Card */}
           {mainDisplay?.is_active !== false && (
             <motion.div
@@ -86,23 +86,23 @@ const BrowseByCategories = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              className="lg:col-span-2 lg:row-span-2"
+              className="col-span-2 lg:col-span-2 lg:row-span-2"
             >
               <Link
                 to={mainDisplay?.link || "/products"}
                 className="group block h-full"
               >
-                <div className="relative h-full w-full bg-[var(--color-bg-surface)] rounded-[32px] overflow-hidden flex flex-col p-8 md:p-10 transition-all duration-300 hover:shadow-2xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
+                <div className="relative h-full w-full min-h-[280px] md:min-h-0 bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[32px] overflow-hidden flex flex-col p-5 md:p-8 lg:p-10 transition-all duration-300 hover:shadow-2xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
                   {/* Background Gradient Blob - Shifted to avoid text overlap */}
                   <div className="absolute top-0 right-0 w-[80%] h-[80%] bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 rounded-full blur-3xl opacity-100" />
 
                   {/* Text Top-Left - High Z-Index */}
                   <div className="relative z-20 flex flex-col items-start gap-4 max-w-[60%]">
                     <div>
-                      <span className="inline-block px-3 py-1 mb-3 text-xs font-semibold tracking-wide uppercase bg-[var(--color-bg-elevated)] rounded-full text-[var(--color-text-primary)] shadow-sm">
+                      <span className="inline-block px-2.5 py-0.5 md:px-3 md:py-1 mb-2 md:mb-3 text-[10px] md:text-xs font-semibold tracking-wide uppercase bg-[var(--color-bg-elevated)] rounded-full text-[var(--color-text-primary)] shadow-sm">
                         Premium Collection
                       </span>
-                      <h3 className="text-4xl font-bold text-[var(--color-text-primary)] leading-tight">
+                      <h3 className="text-xl md:text-4xl font-bold text-[var(--color-text-primary)] leading-tight">
                         {mainDisplay?.title || "All Products"}
                       </h3>
                       <p className="mt-2 text-sm text-[var(--color-text-muted)] font-medium leading-relaxed">
@@ -110,8 +110,8 @@ const BrowseByCategories = () => {
                       </p>
                     </div>
 
-                    {/* Redesigned Button - Clean & Sharp */}
-                    <button className="mt-4 group/btn flex items-center justify-between gap-4 px-1 py-1 pr-6 bg-[var(--color-bg-elevated)] rounded-full shadow-sm border border-[var(--color-border)] hover:shadow-md transition-all duration-300">
+                    {/* Button - hidden on very small screens */}
+                    <button className="mt-2 md:mt-4 group/btn hidden sm:flex items-center justify-between gap-4 px-1 py-1 pr-6 bg-[var(--color-bg-elevated)] rounded-full shadow-sm border border-[var(--color-border)] hover:shadow-md transition-all duration-300">
                       <div className="w-10 h-10 rounded-full bg-[var(--color-text-primary)] flex items-center justify-center text-[var(--color-bg-primary)] group-hover/btn:scale-110 transition-transform">
                         <svg
                           className="w-4 h-4"
@@ -158,29 +158,29 @@ const BrowseByCategories = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.6, ease: "easeOut" }}
-              className="lg:col-span-2 lg:row-span-1"
+              className="col-span-2 lg:col-span-2 lg:row-span-1"
             >
               <Link
                 to={featuredDisplay?.link || "/products"}
                 className="group block h-full"
               >
-                <div className="relative h-full w-full bg-[var(--color-bg-surface)] rounded-[32px] overflow-hidden flex flex-row items-center justify-between p-8 md:p-10 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
+                <div className="relative h-full w-full min-h-[140px] md:min-h-0 bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[32px] overflow-hidden flex flex-row items-center justify-between p-5 md:p-8 lg:p-10 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
                   {/* Background Gradient Blob */}
                   <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-gradient-to-bl from-cyan-400/10 to-blue-500/10 rounded-full blur-[80px]" />
 
-                  <div className="z-10 flex flex-col items-start gap-3 max-w-[50%]">
-                    <span className="text-xs font-bold tracking-wider uppercase text-[var(--color-primary)]">
+                  <div className="z-10 flex flex-col items-start gap-1 md:gap-3 max-w-[50%]">
+                    <span className="text-[10px] md:text-xs font-bold tracking-wider uppercase text-[var(--color-primary)]">
                       Top Rated
                     </span>
-                    <h3 className="text-2xl font-bold text-[var(--color-text-primary)]">
+                    <h3 className="text-base md:text-2xl font-bold text-[var(--color-text-primary)]">
                       {featuredDisplay?.title || "Displays"}
                     </h3>
-                    <p className="text-[var(--color-text-muted)] text-sm leading-relaxed font-medium mb-2">
+                    <p className="text-[var(--color-text-muted)] text-[10px] md:text-sm leading-relaxed font-medium mb-1 md:mb-2 hidden sm:block">
                       {featuredDisplay?.description || "Stunning visuals."}
                     </p>
 
                     {/* View Now Button */}
-                    <div className="flex items-center gap-2 px-5 py-2 bg-[var(--color-bg-elevated)] rounded-full shadow-sm border border-[var(--color-border)] group-hover:shadow-md transition-all">
+                    <div className="hidden sm:flex items-center gap-2 px-4 md:px-5 py-1.5 md:py-2 bg-[var(--color-bg-elevated)] rounded-full shadow-sm border border-[var(--color-border)] group-hover:shadow-md transition-all">
                       <span className="text-xs font-bold text-[var(--color-text-primary)]">
                         View Now
                       </span>
@@ -232,10 +232,10 @@ const BrowseByCategories = () => {
                 to={small1Display?.link || "/products"}
                 className="group block h-full"
               >
-                <div className="relative h-full w-full bg-[var(--color-bg-surface)] rounded-[32px] overflow-hidden flex flex-col p-8 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
+                <div className="relative h-full w-full min-h-[180px] md:min-h-0 bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[32px] overflow-hidden flex flex-col p-5 md:p-8 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-full blur-[40px]" />
 
-                  <h3 className="text-xl font-bold text-[var(--color-text-primary)] z-10 mb-1">
+                  <h3 className="text-base md:text-xl font-bold text-[var(--color-text-primary)] z-10 mb-0.5 md:mb-1">
                     {small1Display?.title || "Headphones"}
                   </h3>
                   <p className="text-xs text-[var(--color-text-muted)] font-medium z-10">
@@ -272,10 +272,10 @@ const BrowseByCategories = () => {
                 to={small2Display?.link || "/products"}
                 className="group block h-full"
               >
-                <div className="relative h-full w-full bg-[var(--color-bg-surface)] rounded-[32px] overflow-hidden flex flex-col p-8 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
+                <div className="relative h-full w-full min-h-[180px] md:min-h-0 bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[32px] overflow-hidden flex flex-col p-5 md:p-8 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
                   <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-400/10 rounded-full blur-[40px]" />
 
-                  <h3 className="text-xl font-bold text-[var(--color-text-primary)] z-10 mb-1">
+                  <h3 className="text-base md:text-xl font-bold text-[var(--color-text-primary)] z-10 mb-0.5 md:mb-1">
                     {small2Display?.title || "Phones"}
                   </h3>
                   <p className="text-xs text-[var(--color-text-muted)] font-medium z-10">
