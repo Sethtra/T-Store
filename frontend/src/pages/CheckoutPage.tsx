@@ -72,7 +72,7 @@ const StepProgress = ({ currentStep }: { currentStep: number }) => {
 
 // Payment Method Card Component
 const PaymentMethodCard = ({
-  id,
+  id: _id,
   selected,
   onSelect,
   icon,

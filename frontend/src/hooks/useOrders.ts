@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
-import { useCartStore } from '../stores/cartStore';
 
 // Types
 export interface OrderItem {
