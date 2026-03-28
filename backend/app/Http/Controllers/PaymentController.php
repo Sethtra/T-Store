@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
@@ -170,11 +171,13 @@ class PaymentController extends Controller
 
     /**
      * Handle ABA PayWay callback (push-back notification).
+     * Verifies the response signature using RSA public key.
      */
     public function paywayCallback(Request $request)
     {
         $tranId = $request->input('tran_id');
         $status = $request->input('status');
+        $signature = $request->input('hash');
 
         if (!$tranId) {
             return response()->json(['error' => 'Missing transaction ID'], 400);
@@ -186,10 +189,29 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        // Verify the hash from ABA PayWay
-        $apiKey = config('services.payway.api_key');
-        $hashStr = $tranId . $request->input('amount') . $status;
-        $expectedHash = base64_encode(hash_hmac('sha512', $hashStr, $apiKey, true));
+        // Verify RSA signature from ABA PayWay
+        $rsaPublicKey = config('services.payway.rsa_public_key');
+        if ($rsaPublicKey && $signature) {
+            $dataToVerify = $tranId . $request->input('amount') . $status;
+            $publicKeyResource = openssl_pkey_get_public($rsaPublicKey);
+            
+            if ($publicKeyResource) {
+                $isValid = openssl_verify(
+                    $dataToVerify,
+                    base64_decode($signature),
+                    $publicKeyResource,
+                    OPENSSL_ALGO_SHA256
+                );
+
+                if ($isValid !== 1) {
+                    Log::warning('PayWay callback signature verification failed', [
+                        'tran_id' => $tranId,
+                        'status' => $status,
+                    ]);
+                    return response()->json(['error' => 'Invalid signature'], 403);
+                }
+            }
+        }
 
         // Status codes: 0 = Approved, others = various failures
         if ($status == '0') {
