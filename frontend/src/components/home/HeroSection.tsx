@@ -128,10 +128,10 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
       </span>
 
       {/* Product Image - Massive & Centered */}
-      <div className="absolute inset-x-0 top-0 bottom-0 flex items-center justify-center p-0 overflow-hidden rounded-[2.5rem]">
+      <div className="absolute inset-x-0 top-0 bottom-[120px] md:bottom-0 flex items-center justify-center p-6 md:p-0 overflow-hidden md:rounded-[2.5rem]">
         <img
           src={product.product.image_url || "/placeholder.png"}
-          className="w-[110%] h-[110%] object-contain drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-105"
+          className="w-full h-full md:w-[110%] md:h-[110%] object-contain drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-105"
           alt={product.title}
         />
       </div>
@@ -159,29 +159,29 @@ const SmallProductCard = ({ product }: { product: LandingSection }) => {
   return (
     <Link
       to={`/products/${product.product.slug}`}
-      className="bg-[var(--color-bg-elevated)] rounded-xl md:rounded-[2rem] p-4 md:p-6 relative flex flex-col sm:flex-row items-stretch gap-4 md:gap-6 group hover:shadow-xl transition-all duration-300 border border-[var(--color-border)]"
+      className="bg-[var(--color-bg-elevated)] rounded-xl md:rounded-[2rem] p-3 md:p-6 relative flex flex-row items-center sm:items-stretch gap-4 md:gap-6 group hover:shadow-xl transition-all duration-300 border border-[var(--color-border)]"
     >
-      <span className="absolute top-6 left-6 bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full">
+      <span className="absolute top-6 left-6 bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full hidden sm:block">
         Featured
       </span>
 
       {/* Left Text Info */}
-      <div className="flex-1 min-w-0 py-2 flex flex-col justify-between pt-8 sm:pt-12 order-2 sm:order-1">
+      <div className="flex-1 min-w-0 py-1 flex flex-col justify-center sm:justify-between sm:pt-12 order-2 sm:order-1">
         <div>
-          <h3 className="text-xl sm:text-3xl font-bold text-[var(--color-text-primary)] truncate leading-tight">
+          <h3 className="text-base sm:text-3xl font-bold text-[var(--color-text-primary)] truncate leading-tight">
             {product.title}
           </h3>
-          <p className="text-[var(--color-text-muted)] text-sm mt-3 line-clamp-2 leading-relaxed">
+          <p className="text-[var(--color-text-muted)] text-xs md:text-sm mt-1 sm:mt-3 line-clamp-1 sm:line-clamp-2 leading-relaxed">
             {product.description}
           </p>
         </div>
-        <p className="font-bold text-xl text-[var(--color-text-primary)]">
+        <p className="font-bold text-sm sm:text-xl text-[var(--color-text-primary)] mt-1 sm:mt-0">
           USD {product.product.price}
         </p>
       </div>
 
       {/* Right Image Container */}
-      <div className="w-full sm:w-52 h-40 sm:h-52 bg-[var(--color-bg-surface)] rounded-xl md:rounded-2xl flex items-center justify-center p-4 transition-colors duration-300 order-1 sm:order-2">
+      <div className="w-20 h-20 sm:w-52 sm:h-52 bg-[var(--color-bg-surface)] rounded-xl md:rounded-2xl flex items-center justify-center p-2 sm:p-4 transition-colors duration-300 order-1 sm:order-2 shrink-0">
         <img
           src={product.product.image_url || "/placeholder.png"}
           className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-110 transition-transform duration-500"
