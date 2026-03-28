@@ -123,7 +123,7 @@ class PaymentController extends Controller
             ], 500);
         }
 
-        $tranId = 'TS-' . $order->tracking_id . '-' . Str::random(6);
+        $tranId = 'TS' . str_replace('-', '', $order->tracking_id) . Str::random(4);
         $amount = number_format($order->total, 2, '.', '');
         $firstName = $order->shipping_name ?? 'Customer';
         $lastName = '';
