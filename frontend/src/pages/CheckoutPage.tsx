@@ -10,16 +10,10 @@ import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import StripeForm from "../components/checkout/StripeForm";
 
+import api from "../lib/api";
+
 // Initialize Stripe outside component
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_placeholder");
-
-declare global {
-  interface Window {
-    AbaPayway: {
-      checkout: () => void;
-    };
-  }
-}
 
 // Step Progress Component
 const StepProgress = ({ currentStep }: { currentStep: number }) => {
@@ -174,7 +168,6 @@ const CheckoutPage = () => {
   const createOrder = useCreateOrder();
   const createStripeIntent = useCreateStripeIntent();
   const createPaywayTransaction = useCreatePaywayTransaction();
-  const paywayFormRef = useRef<HTMLFormElement>(null);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -194,8 +187,7 @@ const CheckoutPage = () => {
   // Payment Flow State
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
-  const [paywayFormData, setPaywayFormData] = useState<Record<string, string> | null>(null);
-  const [paywayCheckoutUrl, setPaywayCheckoutUrl] = useState<string>("");
+  const [paywayData, setPaywayData] = useState<{ qrImage?: string, deeplink?: string } | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -209,18 +201,23 @@ const CheckoutPage = () => {
     }
   }, [searchParams, clearCart]);
 
-  // Auto-submit PayWay form using ABA PayWay JS Plugin
+  // Polling for PayWay Status
   useEffect(() => {
-    if (paywayFormData && paywayFormRef.current) {
-      if (typeof window !== "undefined" && window.AbaPayway) {
-        // This opens a beautiful popup/bottom-sheet modal with the QR code.
-        window.AbaPayway.checkout();
-      } else {
-        // Fallback for browsers that block the script
-        paywayFormRef.current.submit();
-      }
+    let interval: ReturnType<typeof setInterval>;
+    if (currentStep === 2 && paymentMethod === "payway" && createdOrderId) {
+      interval = setInterval(async () => {
+        try {
+          const res = await api.get(`/orders/${createdOrderId}`);
+          if (res.data.payment_status === "paid") {
+             handlePaymentSuccess();
+          }
+        } catch (err) {
+          console.error("Status polling failed", err);
+        }
+      }, 5000);
     }
-  }, [paywayFormData]);
+    return () => clearInterval(interval);
+  }, [currentStep, paymentMethod, createdOrderId]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -271,11 +268,17 @@ const CheckoutPage = () => {
         setStripeClientSecret(intentRes.client_secret);
         setCurrentStep(2);
       } else if (paymentMethod === "payway") {
-        // PayWay: get checkout form data and auto-redirect
+        // PayWay: Server-to-Server created a QR Code payload
         const paywayRes = await createPaywayTransaction.mutateAsync({ order_id: orderId });
-        setPaywayCheckoutUrl(paywayRes.checkout_url);
-        setPaywayFormData(paywayRes.form_data);
-        // Form will auto-submit via useEffect
+        if (paywayRes.payway_response?.qrImage) {
+           setPaywayData({
+             qrImage: paywayRes.payway_response.qrImage,
+             deeplink: paywayRes.payway_response.abapay_deeplink
+           });
+           setCurrentStep(2);
+        } else {
+           throw new Error(paywayRes.payway_response.status?.message || "Failed to generate ABA QR Code");
+        }
       }
     } catch (error: any) {
       setPaymentError(error.response?.data?.message || "Failed to create order. Please try again.");
@@ -453,6 +456,40 @@ const CheckoutPage = () => {
                           />
                         </Elements>
                       )}
+
+                      {paymentMethod === "payway" && paywayData && (
+                        <div className="flex flex-col items-center justify-center p-4">
+                           <div className="mb-4 text-center">
+                             <img src="https://checkout.payway.com.kh/images/aba-payway-logo.svg" alt="ABA PayWay" className="h-8 mx-auto mb-2" />
+                             <p className="text-[var(--color-text-muted)] text-sm">Scan with ABA Mobile or any KHQR Bank app</p>
+                           </div>
+                           
+                           <div className="bg-white p-4 rounded-3xl shadow-md border-2 border-red-500/20 mb-6 group relative overflow-hidden">
+                             <div className="absolute inset-0 bg-gradient-to-tr from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                             <img src={paywayData.qrImage} alt="Payment QR Code" className="w-64 h-64 object-contain relative z-10 mix-blend-multiply" />
+                           </div>
+
+                           {paywayData.deeplink && (
+                             <div className="flex flex-col items-center w-full max-w-sm gap-3">
+                                <span className="text-xs text-[var(--color-text-muted)] font-medium tracking-wider uppercase">Or pay directly on mobile</span>
+                                <a 
+                                  href={paywayData.deeplink}
+                                  className="w-full flex justify-center items-center gap-2 bg-[#E21937] hover:bg-[#C1152F] text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg shadow-red-500/20"
+                                >
+                                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17,1H7A2,2,0,0,0,5,3V21a2,2,0,0,0,2,2H17a2,2,0,0,0,2-2V3A2,2,0,0,0,17,1ZM12,21a1,1,0,1,1,1-1A1,1,0,0,1,12,21ZM17,18H7V4H17Z"/>
+                                  </svg>
+                                  Pay with ABA Mobile
+                                </a>
+                             </div>
+                           )}
+                           
+                           <div className="mt-8 flex items-center justify-center gap-3 w-full">
+                              <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+                              <span className="text-sm font-medium text-[var(--color-text-muted)]">Waiting for you to scan...</span>
+                           </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </motion.div>
@@ -523,21 +560,7 @@ const CheckoutPage = () => {
         </div>
       </div>
 
-      {/* Hidden PayWay redirect form */}
-      {paywayFormData && (
-        <form
-          ref={paywayFormRef}
-          id="aba_merchant_request"
-          target="aba_webservice"
-          action={paywayCheckoutUrl}
-          method="POST"
-          style={{ display: "none" }}
-        >
-          {Object.entries(paywayFormData).map(([key, value]) => (
-            <input key={key} type="hidden" name={key} value={value} />
-          ))}
-        </form>
-      )}
+      {/* (No Hidden Form Needed Since we natively render the QR Code now!) */}
     </motion.div>
   );
 };

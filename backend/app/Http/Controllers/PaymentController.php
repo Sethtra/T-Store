@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Stripe\Stripe;
@@ -179,30 +180,35 @@ class PaymentController extends Controller
             'payment_method' => 'payway',
         ]);
 
+        // Execute S2S request to PayWay to get KHQR payload directly
+        $response = Http::asForm()->post($baseUrl . '/api/payment-gateway/v1/payments/purchase', [
+            'hash' => $hash,
+            'tran_id' => $tranId,
+            'amount' => $amount,
+            'items' => $items,
+            'shipping' => $shipping,
+            'firstname' => $firstName,
+            'lastname' => $lastName,
+            'email' => $email,
+            'phone' => $phone,
+            'type' => $type,
+            'payment_option' => $paymentOption,
+            'currency' => $currency,
+            'merchant_id' => $merchantId,
+            'req_time' => $reqTime,
+            'return_url' => $returnUrl,
+            'cancel_url' => $cancelUrl,
+            'continue_success_url' => $continueSuccessUrl,
+            'return_deeplink' => $returnDeeplink,
+            'custom_fields' => $customFields,
+            'return_params' => $returnParams,
+        ]);
+
+        $apiData = $response->json();
+
         return response()->json([
-            'checkout_url' => $baseUrl . '/api/payment-gateway/v1/payments/purchase',
-            'form_data' => [
-                'hash' => $hash,
-                'tran_id' => $tranId,
-                'amount' => $amount,
-                'items' => $items,
-                'shipping' => $shipping,
-                'firstname' => $firstName,
-                'lastname' => $lastName,
-                'email' => $email,
-                'phone' => $phone,
-                'type' => $type,
-                'payment_option' => $paymentOption,
-                'currency' => $currency,
-                'merchant_id' => $merchantId,
-                'req_time' => $reqTime,
-                'return_url' => $returnUrl,
-                'cancel_url' => $cancelUrl,
-                'continue_success_url' => $continueSuccessUrl,
-                'return_deeplink' => $returnDeeplink,
-                'custom_fields' => $customFields,
-                'return_params' => $returnParams,
-            ],
+            'order_id' => $order->id,
+            'payway_response' => $apiData
         ]);
     }
 

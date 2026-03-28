@@ -85,7 +85,10 @@ export const useCreatePaywayTransaction = () => {
   return useMutation({
     mutationFn: async (data: { order_id: number }) => {
       const response = await api.post('/payment/payway/create', data);
-      return response.data;
+      return response.data as { 
+        order_id: number, 
+        payway_response: { qrString?: string, qrImage?: string, abapay_deeplink?: string, status?: { code: string, message: string, tran_id: string } } 
+      };
     },
   });
 };
