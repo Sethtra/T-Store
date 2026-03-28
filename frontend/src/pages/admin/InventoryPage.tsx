@@ -153,9 +153,9 @@ const InventoryPage = () => {
                     >
                       <td className="px-3 lg:px-6 py-3 lg:py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-16 h-16 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border)] flex items-center justify-center overflow-hidden p-1.5 flex-shrink-0">
+                          <div className="w-12 h-12 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border)] flex items-center justify-center overflow-hidden flex-shrink-0">
                             {product.images && product.images.length > 0 ? (
-                              <img src={product.images[0]} alt={product.title} className="w-full h-full object-contain" />
+                              <img src={product.images[0]} alt={product.title} className="w-full h-full object-cover transform-gpu" />
                             ) : (
                               <span className="text-gray-400">?</span>
                             )}
@@ -245,8 +245,8 @@ const InventoryPage = () => {
               <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
                 {/* Product Info Summary */}
                 <div className="flex items-start gap-4 mb-8">
-                  <div className="w-24 h-24 bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] p-2 flex-shrink-0 shadow-sm">
-                    <img src={selectedProduct.images?.[0]} alt={selectedProduct.title} className="w-full h-full object-contain" />
+                  <div className="w-20 h-20 bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] flex-shrink-0 shadow-sm overflow-hidden">
+                    <img src={selectedProduct.images?.[0]} alt={selectedProduct.title} className="w-full h-full object-cover transform-gpu" />
                   </div>
                   <div>
                     <h4 className="font-semibold line-clamp-2">{selectedProduct.title}</h4>
