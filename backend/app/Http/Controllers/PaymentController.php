@@ -359,4 +359,32 @@ class PaymentController extends Controller
             ]);
         }
     }
+
+    public function simulatePaywayPayment(Request $request)
+    {
+        // DO NOT allow in Live Production!
+        if (config('services.payway.base_url') === 'https://checkout.payway.com.kh') {
+            abort(403, 'Simulation is strictly restricted to Sandbox environment.');
+        }
+
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+        ]);
+
+        $order = Order::findOrFail($request->order_id);
+        
+        // Mark as paid
+        $order->payment_status = 'paid';
+        $order->save();
+
+        // Increment product stock counters for this sandbox purchase
+        foreach ($order->items as $item) {
+            $product = \App\Models\Product::find($item->product_id);
+            if ($product && !empty($item->quantity)) {
+                $product->decrement('stock', $item->quantity);
+            }
+        }
+
+        return response()->json(['message' => 'Simulated successfully.']);
+    }
 }

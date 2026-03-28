@@ -75,8 +75,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Payment
     Route::post('/payment/stripe/create-intent', [PaymentController::class, 'createStripeIntent']);
+    
+    // ABA PayWay
     Route::post('/payment/payway/create', [PaymentController::class, 'createPaywayTransaction']);
     Route::get('/payment/payway/status', [PaymentController::class, 'paywayCheckStatus']);
+    Route::post('/payment/payway/simulate', [PaymentController::class, 'simulatePaywayPayment']);
 
     // Orders (Customer)
     Route::get('/orders', [OrderController::class, 'index']);

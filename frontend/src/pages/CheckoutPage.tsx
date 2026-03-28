@@ -484,9 +484,22 @@ const CheckoutPage = () => {
                              </div>
                            )}
                            
-                           <div className="mt-8 flex items-center justify-center gap-3 w-full">
-                              <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-                              <span className="text-sm font-medium text-[var(--color-text-muted)]">Waiting for you to scan...</span>
+                           <div className="mt-8 flex flex-col items-center justify-center gap-3 w-full">
+                              <div className="flex items-center gap-3">
+                                <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+                                <span className="text-sm font-medium text-[var(--color-text-muted)]">Waiting for you to scan...</span>
+                              </div>
+                              
+                              <button 
+                                onClick={async () => {
+                                  try {
+                                    await api.post('/payment/payway/simulate', { order_id: createdOrderId });
+                                  } catch (e) { console.error('Simulation failed', e); }
+                                }}
+                                className="mt-4 text-xs font-mono text-[var(--color-text-muted)] hover:text-[var(--color-primary)] underline decoration-dashed transition-colors"
+                              >
+                                [ Simulate Payment (Dev Mode) ]
+                              </button>
                            </div>
                         </div>
                       )}

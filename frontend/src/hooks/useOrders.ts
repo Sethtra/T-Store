@@ -103,6 +103,16 @@ export const useCheckPaywayStatus = () => {
   });
 };
 
+// Payment: Simulate PayWay Payment (Dev Mode)
+export const useSimulatePaywayPayment = () => {
+  return useMutation({
+    mutationFn: async (data: { order_id: number }) => {
+      const response = await api.post('/payment/payway/simulate', data);
+      return response.data;
+    },
+  });
+};
+
 // Admin: Fetch all orders with filters
 export interface AdminOrderFilters {
   status?: string;
