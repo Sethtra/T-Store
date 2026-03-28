@@ -181,7 +181,7 @@ const DashboardPage = () => {
         </div>
 
         {/* Dashboard Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-6">
           {dashboardStats.map((stat, index) => (
             <motion.div
               key={stat.title}
@@ -213,7 +213,7 @@ const DashboardPage = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 mb-8">
           {/* Revenue Overview - visual improvements */}
           <div className="lg:col-span-1">
             <Card className="h-[400px]">
@@ -288,7 +288,7 @@ const DashboardPage = () => {
           {/* Recent Orders - Table Layout */}
 
           {/* Recent Orders - Theme-aware Style */}
-          <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-lg shadow-sm overflow-hidden col-span-2 h-[520px] flex flex-col">
+          <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-lg shadow-sm overflow-hidden lg:col-span-2 h-auto lg:h-[520px] flex flex-col">
             <div className="p-4 flex items-center justify-between border-b border-[var(--color-border)]">
               {/* Title */}
               <h2 className="text-lg font-bold text-[var(--color-text-primary)]">
@@ -296,9 +296,9 @@ const DashboardPage = () => {
               </h2>
 
               {/* Search and Filters - Right Side */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3 flex-wrap">
                 {/* Search Input - Compact */}
-                <div className="relative w-[160px]">
+                <div className="relative w-[120px] md:w-[160px]">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]"
@@ -440,22 +440,22 @@ const DashboardPage = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                       Order Info
                     </th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">
                       Date
                     </th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                       Amount
                     </th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider w-[200px]">
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider w-[200px] hidden md:table-cell">
                       Progress
                     </th>
-                    <th className="px-6 py-4 text-right text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-right text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">
                       Actions
                     </th>
                   </tr>
@@ -505,32 +505,32 @@ const DashboardPage = () => {
                           key={order.id}
                           className="hover:bg-[var(--color-bg-surface)]/50 transition-colors group"
                         >
-                          <td className="px-6 py-4">
+                          <td className="px-3 md:px-6 py-3 md:py-4">
                             <div>
                               <div className="text-sm font-bold text-[var(--color-text-primary)]">
                                 Order #{order.tracking_id || order.id}
                               </div>
-                              <div className="text-xs text-[var(--color-text-muted)]">
+                              <div className="text-xs text-[var(--color-text-muted)] truncate max-w-[120px] md:max-w-none">
                                 {order.shipping_email || "No email"}
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-3 md:px-6 py-3 md:py-4 hidden sm:table-cell">
                             <span className="px-3 py-1 rounded bg-[var(--color-bg-surface)] border border-[var(--color-border)] text-xs font-semibold text-[var(--color-text-secondary)]">
                               {new Date(order.created_at).toLocaleDateString()}
                             </span>
                           </td>
-                          <td className="px-6 py-4 font-bold text-[var(--color-text-primary)]">
-                            ${Number(order.total).toFixed(2)} USD
+                          <td className="px-3 md:px-6 py-3 md:py-4 font-bold text-[var(--color-text-primary)] text-sm">
+                            ${Number(order.total).toFixed(2)}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-3 md:px-6 py-3 md:py-4">
                             <span
                               className={`px-3 py-1 rounded-sm text-[11px] font-bold uppercase tracking-wider ${statusColor}`}
                             >
                               {order.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-3 md:px-6 py-3 md:py-4 hidden md:table-cell">
                             <div className="flex items-center gap-3">
                               <div className="flex-1 h-2 bg-[var(--color-bg-surface)] rounded-full overflow-hidden">
                                 <div
@@ -543,7 +543,7 @@ const DashboardPage = () => {
                               </span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-3 md:px-6 py-3 md:py-4 text-right hidden sm:table-cell">
                             <div className="flex items-center justify-end gap-1">
                               {/* Advance Status Button */}
                               {getNextStatus(order.status) && (

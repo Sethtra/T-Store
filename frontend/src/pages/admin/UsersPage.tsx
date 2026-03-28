@@ -153,7 +153,7 @@ const UsersPage = () => {
           </select>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
           {/* Users Table */}
           <div className="xl:col-span-2">
             <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-lg shadow-sm overflow-hidden">
@@ -161,25 +161,25 @@ const UsersPage = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-[var(--color-border)]">
-                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                         User
                       </th>
-                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                         Role
                       </th>
-                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">
                         Status
                       </th>
-                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden md:table-cell">
                         Orders
                       </th>
-                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden md:table-cell">
                         Spent
                       </th>
-                      <th className="px-5 py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-left text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden lg:table-cell">
                         Joined
                       </th>
-                      <th className="px-5 py-4 text-right text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
+                      <th className="px-3 md:px-5 py-3 md:py-4 text-right text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">
                         Actions
                       </th>
                     </tr>
@@ -251,20 +251,20 @@ const UsersPage = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-5 py-4">{roleBadge(user.role)}</td>
-                          <td className="px-5 py-4">
+                          <td className="px-3 md:px-5 py-3 md:py-4">{roleBadge(user.role)}</td>
+                          <td className="px-3 md:px-5 py-3 md:py-4 hidden sm:table-cell">
                             {statusBadge(user.status)}
                           </td>
-                          <td className="px-5 py-4 text-sm font-semibold text-[var(--color-text-primary)]">
+                          <td className="px-3 md:px-5 py-3 md:py-4 text-sm font-semibold text-[var(--color-text-primary)] hidden md:table-cell">
                             {user.orders_count}
                           </td>
-                          <td className="px-5 py-4 text-sm font-semibold text-[var(--color-text-primary)]">
+                          <td className="px-3 md:px-5 py-3 md:py-4 text-sm font-semibold text-[var(--color-text-primary)] hidden md:table-cell">
                             ${user.total_spent.toLocaleString()}
                           </td>
-                          <td className="px-5 py-4 text-xs text-[var(--color-text-muted)]">
+                          <td className="px-3 md:px-5 py-3 md:py-4 text-xs text-[var(--color-text-muted)] hidden lg:table-cell">
                             {new Date(user.created_at).toLocaleDateString()}
                           </td>
-                          <td className="px-5 py-4 text-right">
+                          <td className="px-3 md:px-5 py-3 md:py-4 text-right hidden sm:table-cell">
                             <div
                               className="flex items-center justify-end gap-1"
                               onClick={(e) => e.stopPropagation()}
@@ -435,17 +435,19 @@ const UsersPage = () => {
           </div>
 
           {/* User Detail Panel */}
-          <div className="xl:col-span-1">
-            <AnimatePresence mode="wait">
-              {selectedUserId ? (
-                <motion.div
-                  key={selectedUserId}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card className="border border-[var(--color-border)] shadow-sm sticky top-28">
+          <AnimatePresence mode="wait">
+            {selectedUserId && (
+              <motion.div
+                key={selectedUserId}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-50 xl:relative xl:inset-auto xl:z-auto xl:col-span-1 bg-black/50 xl:bg-transparent flex items-end xl:items-stretch"
+                onClick={(e) => { if (e.target === e.currentTarget) setSelectedUserId(null); }}
+              >
+                <div className="w-full xl:w-auto max-h-[85vh] xl:max-h-none overflow-y-auto rounded-t-2xl xl:rounded-xl">
+                  <Card className="border border-[var(--color-border)] shadow-sm xl:sticky xl:top-28 rounded-t-2xl xl:rounded-xl">
                     <Card.Body className="p-6">
                       {isLoadingDetail ? (
                         <div className="flex items-center justify-center py-12">
@@ -587,33 +589,10 @@ const UsersPage = () => {
                       ) : null}
                     </Card.Body>
                   </Card>
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center py-20 text-center"
-                >
-                  <svg
-                    className="w-12 h-12 text-[var(--color-text-muted)] mb-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  <p className="text-sm text-[var(--color-text-muted)]">
-                    Select a user to view details
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </AdminLayout>

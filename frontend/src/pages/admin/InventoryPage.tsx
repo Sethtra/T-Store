@@ -116,7 +116,7 @@ const InventoryPage = () => {
           </select>
         </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
         {/* Products Table (Spans 2 cols on XL) */}
         <div className={`bg-[var(--color-bg-elevated)] rounded-xl border border-[var(--color-border)] overflow-hidden ${selectedProduct ? 'xl:col-span-2' : 'xl:col-span-3'}`}>
           <div className="overflow-x-auto">
@@ -126,7 +126,7 @@ const InventoryPage = () => {
                   <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm">Product</th>
                   <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm hidden sm:table-cell">Price</th>
                   <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm text-center">Stock</th>
-                  <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm">Status</th>
+                  <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm hidden sm:table-cell">Status</th>
                   <th className="px-3 lg:px-6 py-3 lg:py-4 font-semibold text-sm text-right hidden md:table-cell">Actions</th>
                 </tr>
               </thead>
@@ -172,7 +172,7 @@ const InventoryPage = () => {
                       <td className="px-3 lg:px-6 py-3 lg:py-4 text-center">
                         <span className="font-mono font-medium text-lg">{product.stock}</span>
                       </td>
-                      <td className="px-3 lg:px-6 py-3 lg:py-4">
+                      <td className="px-3 lg:px-6 py-3 lg:py-4 hidden sm:table-cell">
                         {getStockStatusBadge(product.stock)}
                       </td>
                       <td className="px-3 lg:px-6 py-3 lg:py-4 text-right hidden md:table-cell">
@@ -228,8 +228,10 @@ const InventoryPage = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
-              className="bg-[var(--color-bg-elevated)] rounded-xl border border-[var(--color-border)] flex flex-col h-[calc(100vh-140px)] sticky top-24"
+              className="fixed inset-0 z-50 xl:relative xl:inset-auto xl:z-auto bg-black/50 xl:bg-transparent flex items-end xl:items-stretch"
+              onClick={(e) => { if (e.target === e.currentTarget) setSelectedProduct(null); }}
             >
+              <div className="w-full xl:w-auto bg-[var(--color-bg-elevated)] rounded-t-2xl xl:rounded-xl border border-[var(--color-border)] flex flex-col max-h-[85vh] xl:max-h-none xl:h-[calc(100vh-140px)] xl:sticky xl:top-24">
               <div className="p-4 border-b border-[var(--color-border)] flex items-center justify-between">
                 <h3 className="font-bold text-lg">Stock Details</h3>
                 <button
@@ -353,6 +355,7 @@ const InventoryPage = () => {
                   )}
                 </div>
               </div>
+            </div>
             </motion.div>
           )}
         </AnimatePresence>

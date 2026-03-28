@@ -20,10 +20,10 @@ const HeroSection = () => {
   }
 
   return (
-    <section className="bg-[var(--color-bg-primary)] transition-colors duration-300 px-4 md:px-8 font-sans pb-12 flex flex-col items-center relative min-h-screen pt-[140px]">
-      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 flex-1 w-full">
+    <section className="bg-[var(--color-bg-primary)] transition-colors duration-300 px-4 md:px-8 font-sans pb-8 md:pb-12 flex flex-col items-center relative min-h-screen pt-24 md:pt-[140px]">
+      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 flex-1 w-full">
         {/* Left Column - Single Grey Container */}
-        <div className="bg-[var(--color-bg-surface)] rounded-[3rem] p-10 md:p-14 flex flex-col justify-between relative overflow-hidden transition-colors duration-300 border border-[var(--color-border)]">
+        <div className="bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[3rem] p-6 md:p-14 flex flex-col justify-between relative overflow-hidden transition-colors duration-300 border border-[var(--color-border)]">
           {/* Top Content: Headings & Buttons */}
           <div className="space-y-8 z-10 pt-4">
             <motion.div
@@ -32,10 +32,10 @@ const HeroSection = () => {
               transition={{ duration: 0.6 }}
             >
               <h1 className="text-[var(--color-text-primary)] leading-[1.1] tracking-tight">
-                <span className="block text-4xl md:text-5xl lg:text-6xl font-medium mb-2">
+                <span className="block text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mb-2">
                   Elevate your lifestyle
                 </span>
-                <span className="block text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-text-secondary)]">
+                <span className="block text-xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-text-secondary)]">
                   with premium essentials.
                 </span>
               </h1>
@@ -120,7 +120,7 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
   return (
     <Link
       to={`/products/${product.product.slug}`}
-      className="bg-[var(--color-bg-surface)] rounded-[2.5rem] relative h-full min-h-[600px] group block overflow-hidden transition-colors duration-300 border border-[var(--color-border)]"
+      className="bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[2.5rem] relative h-full min-h-[350px] md:min-h-[600px] group block overflow-hidden transition-colors duration-300 border border-[var(--color-border)]"
     >
       {/* Featured Badge */}
       <span className="absolute top-8 left-8 z-20 bg-[var(--color-bg-elevated)] backdrop-blur-md text-[var(--color-text-primary)] text-[11px] uppercase font-bold tracking-wider px-4 py-2 rounded-full shadow-sm border border-[var(--color-border)]">
@@ -137,16 +137,16 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
       </div>
 
       {/* Bottom Info - Glass Effect */}
-      <div className="absolute bottom-0 left-0 right-0 p-10 bg-[var(--color-bg-elevated)]/60 backdrop-blur-md border-t border-[var(--color-border)] flex items-end justify-between transition-colors duration-300">
+      <div className="absolute bottom-0 left-0 right-0 p-5 md:p-10 bg-[var(--color-bg-elevated)]/60 backdrop-blur-md border-t border-[var(--color-border)] flex flex-col sm:flex-row sm:items-end justify-between gap-2 transition-colors duration-300">
         <div className="relative z-10">
-          <h3 className="text-3xl font-semibold text-[var(--color-text-primary)] tracking-tight">
+          <h3 className="text-xl md:text-3xl font-semibold text-[var(--color-text-primary)] tracking-tight">
             {product.title}
           </h3>
-          <p className="text-[var(--color-text-muted)] text-sm mt-3 max-w-sm leading-relaxed line-clamp-2">
+          <p className="text-[var(--color-text-muted)] text-xs md:text-sm mt-1 md:mt-3 max-w-sm leading-relaxed line-clamp-2">
             {product.description}
           </p>
         </div>
-        <p className="relative z-10 font-bold text-2xl text-[var(--color-text-primary)]">
+        <p className="relative z-10 font-bold text-lg md:text-2xl text-[var(--color-text-primary)]">
           USD {product.product.price}
         </p>
       </div>
@@ -159,16 +159,16 @@ const SmallProductCard = ({ product }: { product: LandingSection }) => {
   return (
     <Link
       to={`/products/${product.product.slug}`}
-      className="bg-[var(--color-bg-elevated)] rounded-[2rem] p-6 relative flex items-stretch gap-6 group hover:shadow-xl transition-all duration-300 border border-[var(--color-border)]"
+      className="bg-[var(--color-bg-elevated)] rounded-xl md:rounded-[2rem] p-4 md:p-6 relative flex flex-col sm:flex-row items-stretch gap-4 md:gap-6 group hover:shadow-xl transition-all duration-300 border border-[var(--color-border)]"
     >
       <span className="absolute top-6 left-6 bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full">
         Featured
       </span>
 
       {/* Left Text Info */}
-      <div className="flex-1 min-w-0 py-2 flex flex-col justify-between pt-12">
+      <div className="flex-1 min-w-0 py-2 flex flex-col justify-between pt-8 sm:pt-12 order-2 sm:order-1">
         <div>
-          <h3 className="text-3xl font-bold text-[var(--color-text-primary)] truncate leading-tight">
+          <h3 className="text-xl sm:text-3xl font-bold text-[var(--color-text-primary)] truncate leading-tight">
             {product.title}
           </h3>
           <p className="text-[var(--color-text-muted)] text-sm mt-3 line-clamp-2 leading-relaxed">
@@ -181,7 +181,7 @@ const SmallProductCard = ({ product }: { product: LandingSection }) => {
       </div>
 
       {/* Right Image Container */}
-      <div className="w-52 h-52 bg-[var(--color-bg-surface)] rounded-2xl flex items-center justify-center p-4 transition-colors duration-300">
+      <div className="w-full sm:w-52 h-40 sm:h-52 bg-[var(--color-bg-surface)] rounded-xl md:rounded-2xl flex items-center justify-center p-4 transition-colors duration-300 order-1 sm:order-2">
         <img
           src={product.product.image_url || "/placeholder.png"}
           className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-110 transition-transform duration-500"
