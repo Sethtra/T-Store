@@ -197,11 +197,11 @@ const OrdersPage = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <Card className="overflow-hidden max-w-full">
-                    <div className="p-3 md:p-4 lg:p-6 w-full max-w-full overflow-hidden">
-                      {/* Order Header */}
-                      <div className="flex flex-row justify-between items-start mb-3 gap-2 max-w-full overflow-hidden">
-                        <div className="min-w-0 flex-1">
+                  <Card>
+                    <div className="p-3 md:p-4 lg:p-6 w-full max-w-full">
+                      {/* Order Header - Grid Layout */}
+                      <div className="grid grid-cols-[1fr_auto] gap-3 items-start mb-3">
+                        <div className="min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h3 className="text-sm md:text-lg font-bold text-[var(--color-text-primary)] truncate">
                               {order.tracking_id || `#${order.id}`}
@@ -213,12 +213,12 @@ const OrdersPage = () => {
                                 order.status.slice(1)}
                             </Badge>
                           </div>
-                          <p className="text-[10px] md:text-xs text-[var(--color-text-muted)] font-medium">
+                          <p className="text-[10px] md:text-xs text-[var(--color-text-muted)] font-medium truncate">
                             {new Date(order.created_at).toLocaleDateString()} •
                             Customer #{order.user_id}
                           </p>
                         </div>
-                        <div className="text-right shrink-0">
+                        <div className="text-right">
                           <p className="text-sm md:text-lg font-bold text-[var(--color-primary)] whitespace-nowrap">
                             ${Number(order.total).toFixed(2)}
                           </p>
@@ -226,14 +226,14 @@ const OrdersPage = () => {
                       </div>
 
                       {/* Items Summary - compact on mobile */}
-                      <div className="border-t border-[var(--color-border)] pt-2 md:pt-3 mb-2 md:mb-3 max-w-full">
-                        <div className="flex items-center justify-between mt-1 mb-2 max-w-full overflow-hidden">
-                          <p className="text-[10px] md:text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider shrink-0">
+                      <div className="border-t border-[var(--color-border)] pt-2 md:pt-3 mb-2 md:mb-3">
+                        <div className="grid grid-cols-[auto_auto] justify-between items-center mt-1 mb-2">
+                          <p className="text-[10px] md:text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
                             {order.items.length} item{order.items.length > 1 ? 's' : ''}
                           </p>
                           <Link
                             to={`/admin/orders/${order.tracking_id || order.id}`}
-                            className="text-[10px] md:text-xs font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1 bg-[var(--color-primary)]/10 px-2 py-1 rounded-md transition-colors hover:bg-[var(--color-primary)]/20 shrink-0 ml-2 whitespace-nowrap"
+                            className="text-[10px] md:text-xs font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1 bg-[var(--color-primary)]/10 px-2 py-1 rounded-md transition-colors hover:bg-[var(--color-primary)]/20 whitespace-nowrap"
                           >
                             View Detail
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -245,12 +245,12 @@ const OrdersPage = () => {
                           {order.items.slice(0, 2).map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-start justify-between text-[11px] md:text-sm gap-2"
+                              className="grid grid-cols-[1fr_auto] items-start text-[11px] md:text-sm gap-2"
                             >
-                              <span className="truncate flex-1 text-[var(--color-text-primary)] font-medium">
+                              <span className="truncate text-[var(--color-text-primary)] font-medium">
                                 {item.product_title} <span className="text-[var(--color-text-muted)] ml-1">× {item.quantity}</span>
                               </span>
-                              <span className="font-semibold text-[var(--color-text-primary)] flex-shrink-0 whitespace-nowrap">
+                              <span className="font-semibold text-right text-[var(--color-text-primary)] whitespace-nowrap">
                                 ${(item.price * item.quantity).toFixed(2)}
                               </span>
                             </div>
@@ -264,11 +264,11 @@ const OrdersPage = () => {
                       </div>
 
                       {/* Status Actions - compact */}
-                      <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-[var(--color-border)] gap-2 max-w-full">
+                      <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-center pt-3 md:pt-4 border-t border-[var(--color-border)] gap-2 mt-2">
                         <p className="text-[10px] md:text-sm font-semibold text-[var(--color-text-muted)] hidden sm:block uppercase tracking-wider">
                           Update Status
                         </p>
-                        <div className="flex flex-row gap-2 flex-wrap ml-auto justify-end">
+                        <div className="flex flex-wrap gap-2 justify-end">
                           {order.status === "pending" && (
                             <Button
                               size="sm"
