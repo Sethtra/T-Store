@@ -48,11 +48,15 @@ class AdminOrderController extends Controller
      */
     public function show(string $id)
     {
-        // Try to find by tracking_id first, then by id
-        $order = Order::with(['items.product', 'user'])
-            ->where('tracking_id', $id)
-            ->orWhere('id', $id)
-            ->firstOrFail();
+        $query = Order::with(['items.product', 'user']);
+        
+        if (is_numeric($id)) {
+            $query->where('id', $id);
+        } else {
+            $query->where('tracking_id', $id);
+        }
+
+        $order = $query->firstOrFail();
 
         return response()->json([
             'id' => $order->id,

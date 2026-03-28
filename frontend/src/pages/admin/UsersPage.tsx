@@ -60,6 +60,7 @@ const UsersPage = () => {
   };
 
   const roleBadge = (role: string) => {
+    const displayRole = role === "user" ? "customer" : role;
     const styles =
       role === "admin"
         ? "text-violet-400 bg-violet-500/10"
@@ -68,7 +69,7 @@ const UsersPage = () => {
       <span
         className={`px-2.5 py-1 rounded text-[11px] font-bold uppercase tracking-wider ${styles}`}
       >
-        {role}
+        {displayRole}
       </span>
     );
   };
@@ -133,7 +134,7 @@ const UsersPage = () => {
             className="px-3 py-2 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
           >
             <option value="">All Roles</option>
-            <option value="user">User</option>
+            <option value="user">Customer</option>
             <option value="admin">Admin</option>
           </select>
 

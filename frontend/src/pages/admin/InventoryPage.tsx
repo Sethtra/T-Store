@@ -153,9 +153,9 @@ const InventoryPage = () => {
                     >
                       <td className="px-3 lg:px-6 py-3 lg:py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-white rounded-lg border border-[var(--color-border)] flex items-center justify-center overflow-hidden p-1 flex-shrink-0">
+                          <div className="w-10 h-10 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border)] flex items-center justify-center overflow-hidden p-1 flex-shrink-0">
                             {product.images && product.images.length > 0 ? (
-                              <img src={product.images[0]} alt={product.title} className="w-full h-full object-contain mix-blend-multiply" />
+                              <img src={product.images[0]} alt={product.title} className="w-full h-full object-contain" />
                             ) : (
                               <span className="text-gray-400">?</span>
                             )}
@@ -245,8 +245,8 @@ const InventoryPage = () => {
               <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
                 {/* Product Info Summary */}
                 <div className="flex items-start gap-4 mb-8">
-                  <div className="w-16 h-16 bg-white rounded-lg border border-[var(--color-border)] p-1 flex-shrink-0">
-                    <img src={selectedProduct.images?.[0]} alt={selectedProduct.title} className="w-full h-full object-contain mix-blend-multiply" />
+                  <div className="w-16 h-16 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border)] p-1 flex-shrink-0">
+                    <img src={selectedProduct.images?.[0]} alt={selectedProduct.title} className="w-full h-full object-contain" />
                   </div>
                   <div>
                     <h4 className="font-semibold line-clamp-2">{selectedProduct.title}</h4>
