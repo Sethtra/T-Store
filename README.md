@@ -84,6 +84,12 @@ The application adheres to the REST architectural pattern with total decoupling 
 - **Backend API:** `https://t-store-yl92.onrender.com`
 - **Database:** Supabase PostgreSQL (Singapore `ap-southeast-1`)
 
+### ⏱️ Server Keep-Alive (Free Tier)
+Render's free web services spin down after 15 minutes of inactivity. To keep the API responsive and prevent cold starts:
+1. Register for a free monitor on [cron-job.org](https://cron-job.org/) or [UptimeRobot](https://uptimerobot.com/).
+2. Setup an HTTP(S) monitor to `GET` the following health-check endpoint every **10 minutes**:
+   👉 `https://t-store-yl92.onrender.com/api/ping`
+
 ---
 
 ## 🔧 Environment Setup
