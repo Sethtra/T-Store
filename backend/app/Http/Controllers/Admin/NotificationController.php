@@ -25,7 +25,7 @@ class NotificationController extends Controller
                 'title' => $product->title,
                 'message' => 'Out of stock',
                 'product_id' => $product->id,
-                'created_at' => $product->updated_at?->toISOString() ?? now()->toISOString(),
+                'created_at' => $product->updated_at ? Carbon::parse($product->updated_at)->toIso8601String() : now()->toIso8601String(),
             ];
         }
 
@@ -40,7 +40,7 @@ class NotificationController extends Controller
                 'title' => $product->title,
                 'message' => "Only {$product->stock} left in stock",
                 'product_id' => $product->id,
-                'created_at' => $product->updated_at?->toISOString() ?? now()->toISOString(),
+                'created_at' => $product->updated_at ? Carbon::parse($product->updated_at)->toIso8601String() : now()->toIso8601String(),
             ];
         }
 
@@ -56,15 +56,17 @@ class NotificationController extends Controller
                 'id' => 'order_' . $order->id,
                 'type' => 'new_order',
                 'title' => "Order #{$order->id}",
-                'message' => '$' . number_format($order->total, 2) . " from {$customerName}",
+                'message' => '$' . number_format((float) $order->total, 2) . " from {$customerName}",
                 'order_id' => $order->id,
-                'created_at' => $order->created_at?->toISOString() ?? now()->toISOString(),
+                'created_at' => $order->created_at ? Carbon::parse($order->created_at)->toIso8601String() : now()->toIso8601String(),
             ];
         }
 
         // Sort by created_at descending
         usort($notifications, function ($a, $b) {
-            return strtotime($b['created_at']) - strtotime($a['created_at']);
+            $timeA = strtotime($a['created_at']) ?: 0;
+            $timeB = strtotime($b['created_at']) ?: 0;
+            return $timeB <=> $timeA;
         });
 
         return response()->json([
