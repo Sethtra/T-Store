@@ -63,6 +63,11 @@ Route::post('/auth/google/verify', [GoogleAuthController::class, 'verify']);
 // Visitor Routes
 Route::post('/visit', [\App\Http\Controllers\VisitController::class, 'store']);
 
+// Health Check / Keep-Alive Route (For UptimeRobot, cron-job.org, etc.)
+Route::get('/ping', function () {
+    return response()->json(['status' => 'ok', 'message' => 'pong'], 200);
+});
+
 // Stripe Webhook (public, no auth - Stripe signs these)
 Route::post('/webhooks/stripe', [PaymentController::class, 'stripeWebhook']);
 Route::post('/payment/payway/callback', [PaymentController::class, 'paywayCallback']);
