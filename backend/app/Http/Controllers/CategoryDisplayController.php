@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CategoryDisplay;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryDisplayController extends Controller
 {
@@ -11,10 +12,12 @@ class CategoryDisplayController extends Controller
      */
     public function index()
     {
-        $displays = CategoryDisplay::with('category')
-            ->active()
-            ->ordered()
-            ->get();
+        $displays = Cache::remember('category_displays_index', 3600, function () {
+            return CategoryDisplay::with('category')
+                ->active()
+                ->ordered()
+                ->get();
+        });
 
         return response()->json($displays);
     }

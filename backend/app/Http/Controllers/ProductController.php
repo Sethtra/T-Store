@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
@@ -12,7 +13,13 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $params = $request->all();
+        ksort($params);
+        $queryString = http_build_query($params);
+        $cacheKey = 'products_index_' . md5($queryString);
+
+        $response = Cache::remember($cacheKey, 3600, function () use ($request) {
+            $query = Product::with('category');
 
         // Search (Full-Text or LIKE)
         if ($request->filled('search')) {
@@ -84,7 +91,7 @@ class ProductController extends Controller
         $perPage = min($request->limit ?? 12, 50); // Max 50 items per page
         $products = $query->paginate($perPage);
 
-        return response()->json([
+        return [
             'data' => $products->items(),
             'meta' => [
                 'current_page' => $products->currentPage(),
@@ -92,19 +99,24 @@ class ProductController extends Controller
                 'per_page' => $products->perPage(),
                 'total' => $products->total(),
             ],
-        ]);
-    }
+        ];
+    });
+
+    return response()->json($response);
+}
 
     /**
      * Get featured products.
      */
     public function featured()
     {
-        $products = Product::with('category')
-            ->where('stock', '>', 0)
-            ->orderBy('created_at', 'desc')
-            ->take(8)
-            ->get();
+        $products = Cache::remember('products_featured', 3600, function () {
+            return Product::with('category')
+                ->where('stock', '>', 0)
+                ->orderBy('created_at', 'desc')
+                ->take(8)
+                ->get();
+        });
 
         return response()->json($products);
     }
@@ -114,9 +126,13 @@ class ProductController extends Controller
      */
     public function show(string $slug)
     {
-        $product = Product::with('category')
-            ->where('slug', $slug)
-            ->firstOrFail();
+        $cacheKey = 'product_show_' . $slug;
+
+        $product = Cache::remember($cacheKey, 3600, function () use ($slug) {
+            return Product::with('category')
+                ->where('slug', $slug)
+                ->firstOrFail();
+        });
 
         return response()->json($product);
     }
