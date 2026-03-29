@@ -112,7 +112,7 @@ const Navbar = () => {
                   {categories?.map((cat) => (
                     <div key={cat.id} className="space-y-3">
                       <Link
-                        to={`/products?category=${cat.slug}`}
+                        to={`/products?category=${cat?.slug}`}
                         className="block font-bold text-[var(--color-text-primary)] hover:text-[var(--color-primary)] transition-colors text-lg"
                       >
                         {cat.name}
@@ -122,7 +122,7 @@ const Navbar = () => {
                           {cat.children.map((child) => (
                             <li key={child.id}>
                               <Link
-                                to={`/products?category=${child.slug}`}
+                                to={`/products?category=${child?.slug}`}
                                 className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors block"
                               >
                                 {child.name}
@@ -493,7 +493,7 @@ const Navbar = () => {
                 {categories?.map((cat) => (
                   <div key={cat.id} className="pl-4">
                     <Link
-                      to={`/products?category=${cat.slug}`}
+                      to={`/products?category=${cat?.slug}`}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="block px-4 py-2 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     >

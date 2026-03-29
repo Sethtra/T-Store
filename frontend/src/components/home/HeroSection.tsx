@@ -119,7 +119,7 @@ const HeroSection = () => {
 const MainProductCard = ({ product }: { product: LandingSection }) => {
   return (
     <Link
-      to={`/products/${product.product.slug}`}
+      to={`/products/${product?.product?.slug}`}
       className="bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[2.5rem] relative h-full min-h-[350px] md:min-h-[600px] group block overflow-hidden transition-colors duration-300 border border-[var(--color-border)]"
     >
       {/* Featured Badge */}
@@ -158,7 +158,7 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
 const SmallProductCard = ({ product }: { product: LandingSection }) => {
   return (
     <Link
-      to={`/products/${product.product.slug}`}
+      to={`/products/${product?.product?.slug}`}
       className="bg-[var(--color-bg-elevated)] rounded-xl md:rounded-[2rem] p-3 md:p-6 relative flex flex-row items-center sm:items-stretch gap-4 md:gap-6 group hover:shadow-xl transition-all duration-300 border border-[var(--color-border)]"
     >
       <span className="absolute top-6 left-6 bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full hidden sm:block">

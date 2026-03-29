@@ -28,9 +28,9 @@ const CategoryItem = ({
   const hasChildren = category.children && category.children.length > 0;
 
   // Check if this category or any child is active
-  const isActive = currentCategory === category.slug;
+  const isActive = currentCategory === category?.slug;
   const isChildActive = category.children?.some(
-    (c) => c.slug === currentCategory,
+    (c) => c?.slug === currentCategory,
   );
 
   // Auto-expand if child is active
@@ -49,7 +49,7 @@ const CategoryItem = ({
             : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]"
         }`}
         style={{ paddingLeft: `${depth * 12 + 12}px` }}
-        onClick={() => onSelect(category.slug)}
+        onClick={() => onSelect(category?.slug)}
       >
         <span>{category.name}</span>
         {hasChildren && (
@@ -439,10 +439,10 @@ const ProductsPage = () => {
                   <ProductCard
                     key={product.id}
                     id={product.id}
-                    slug={product.slug}
+                    slug={product?.slug}
                     title={product.title}
                     price={product.price}
-                    image={product.images[0] || "/placeholder.jpg"}
+                    image={product?.images?.[0] || "/placeholder.jpg"}
                     category={product.category?.name}
                     stock={product.stock}
                     description={product.description}

@@ -46,7 +46,7 @@ const ProductDetailPage = () => {
 
       addItem({
         id: product.id,
-        slug: product.slug,
+        slug: product?.slug,
         title: product.title,
         price: product.price,
         image: product.images[0] || "/placeholder.jpg",

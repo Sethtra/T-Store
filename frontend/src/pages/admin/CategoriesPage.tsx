@@ -98,14 +98,14 @@ const CategoriesPage = () => {
 
   // Filter ONLY main categories (which is what useAdminCategories returns by default at top level)
   const filteredParents = useMemo(() => {
-    const parentCats = categories || [];
-    if (!searchQuery) return parentCats;
+    if (!searchQuery) return categories || [];
     const query = searchQuery.toLowerCase();
-    return parentCats.filter(
-      (cat) =>
-        cat.name.toLowerCase().includes(query) ||
-        cat.slug.toLowerCase().includes(query),
-    );
+    return (categories || []).filter((cat) => {
+      return (
+        cat?.name?.toLowerCase().includes(query) ||
+        cat?.slug?.toLowerCase().includes(query)
+      );
+    });
   }, [categories, searchQuery]);
 
   if (isLoading) {
@@ -242,7 +242,7 @@ const CategoriesPage = () => {
                           </td>
                           <td className="px-3 md:px-5 py-3 md:py-4 hidden md:table-cell">
                             <code className="px-2 py-1 rounded bg-[var(--color-bg-surface)] text-xs font-mono text-[var(--color-text-secondary)]">
-                              {category.slug}
+                              {category?.slug}
                             </code>
                           </td>
                           <td className="px-3 md:px-5 py-3 md:py-4">
@@ -324,7 +324,9 @@ const CategoriesPage = () => {
                             {selectedCategory.name}
                           </h3>
                           <p className="text-sm font-mono text-[var(--color-text-muted)] mt-1">
-                            /{selectedCategory.slug}
+                            <span className="text-[var(--color-text-muted)]">
+                              /{selectedCategory?.slug}
+                            </span>
                           </p>
                         </div>
 
@@ -381,7 +383,9 @@ const CategoriesPage = () => {
                                       {sub.name}
                                     </div>
                                     <div className="text-[10px] font-mono text-[var(--color-text-muted)] truncate mt-0.5">
-                                      /{sub.slug}
+                                      <span className="text-[var(--color-text-muted)]">
+                                        /{sub?.slug}
+                                      </span>
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-1 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity">
