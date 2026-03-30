@@ -29,6 +29,20 @@ class Product extends Model
     ];
 
     /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        static::saved(function ($product) {
+            \Illuminate\Support\Facades\Cache::forget('landing_sections_index');
+        });
+
+        static::deleted(function ($product) {
+            \Illuminate\Support\Facades\Cache::forget('landing_sections_index');
+        });
+    }
+
+    /**
      * Get the category that owns the product.
      */
     public function category(): BelongsTo

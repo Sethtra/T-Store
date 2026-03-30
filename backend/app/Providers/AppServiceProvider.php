@@ -22,5 +22,8 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        // Register Observers for automatic cache clearing
+        \App\Models\LandingSection::observe(\App\Observers\LandingSectionObserver::class);
     }
 }
