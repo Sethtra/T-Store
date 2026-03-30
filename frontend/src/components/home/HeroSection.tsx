@@ -8,8 +8,8 @@ import {
 const HeroSection = () => {
   const { data: sections, isLoading } = useLandingSections();
 
-  const mainProduct = sections?.find((s) => s.section_type === "hero_main");
-  const smallProduct = sections?.find((s) => s.section_type === "hero_small");
+  const mainProduct = sections?.find((s) => s.section_type === "hero_main" && s.product);
+  const smallProduct = sections?.find((s) => s.section_type === "hero_small" && s.product);
 
   if (isLoading) {
     return (
@@ -119,7 +119,7 @@ const HeroSection = () => {
 const MainProductCard = ({ product }: { product: LandingSection }) => {
   return (
     <Link
-      to={`/products/${product?.product?.slug}`}
+      to={`/products/${product?.product?.slug || ""}`}
       className="bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[2.5rem] relative h-full min-h-[350px] md:min-h-[600px] group block overflow-hidden transition-colors duration-300 border border-[var(--color-border)]"
     >
       {/* Featured Badge */}
@@ -130,7 +130,7 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
       {/* Product Image - Massive & Centered */}
       <div className="absolute inset-x-0 top-0 bottom-[120px] md:bottom-0 flex items-center justify-center p-6 md:p-0 overflow-hidden md:rounded-[2.5rem]">
         <img
-          src={product.product.image_url || "/placeholder.png"}
+          src={product?.product?.image_url || "/placeholder.png"}
           className="w-full h-full md:w-[110%] md:h-[110%] object-contain drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-105"
           alt={product.title}
         />
@@ -147,7 +147,7 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
           </p>
         </div>
         <p className="relative z-10 font-bold text-lg md:text-2xl text-[var(--color-text-primary)]">
-          USD {product.product.price}
+          USD {product?.product?.price ?? "0.00"}
         </p>
       </div>
     </Link>
@@ -158,7 +158,7 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
 const SmallProductCard = ({ product }: { product: LandingSection }) => {
   return (
     <Link
-      to={`/products/${product?.product?.slug}`}
+      to={`/products/${product?.product?.slug || ""}`}
       className="bg-[var(--color-bg-elevated)] rounded-xl md:rounded-[2rem] p-3 md:p-6 relative flex flex-row items-center sm:items-stretch gap-4 md:gap-6 group hover:shadow-xl transition-all duration-300 border border-[var(--color-border)]"
     >
       <span className="absolute top-6 left-6 bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full hidden sm:block">
@@ -176,14 +176,14 @@ const SmallProductCard = ({ product }: { product: LandingSection }) => {
           </p>
         </div>
         <p className="font-bold text-sm sm:text-xl text-[var(--color-text-primary)] mt-1 sm:mt-0">
-          USD {product.product.price}
+          USD {product?.product?.price ?? "0.00"}
         </p>
       </div>
 
       {/* Right Image Container */}
       <div className="w-20 h-20 sm:w-52 sm:h-52 bg-[var(--color-bg-surface)] rounded-xl md:rounded-2xl flex items-center justify-center p-2 sm:p-4 transition-colors duration-300 order-1 sm:order-2 shrink-0">
         <img
-          src={product.product.image_url || "/placeholder.png"}
+          src={product?.product?.image_url || "/placeholder.png"}
           className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-110 transition-transform duration-500"
           alt={product.title}
         />
