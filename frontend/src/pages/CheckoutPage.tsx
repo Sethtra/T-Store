@@ -402,13 +402,47 @@ const CheckoutPage = () => {
               )}
               {paymentMethod === "payway" && paywayData && (
                 <div className="flex flex-col items-center justify-center p-4">
-                  <p className="text-[var(--color-text-muted)] text-sm mb-4">Scan with ABA Mobile or any KHQR Bank app</p>
-                  <div className="bg-white p-4 rounded-3xl shadow-md border-2 border-red-500/20 mb-6">
-                    <img src={paywayData.qrImage} alt="Payment QR Code" className="w-64 h-64 object-contain mix-blend-multiply" />
+                  <div className="mb-4 text-center">
+                    <img src="https://checkout.payway.com.kh/images/aba-payway-logo.svg" alt="ABA PayWay" className="h-8 mx-auto mb-2" />
+                    <p className="text-[var(--color-text-muted)] text-sm">Scan with ABA Mobile or any KHQR Bank app</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-                    <span className="text-sm font-medium text-[var(--color-text-muted)]">Waiting for you to scan...</span>
+                  
+                  <div className="bg-white p-4 rounded-3xl shadow-md border-2 border-red-500/20 mb-6 group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <img src={paywayData.qrImage} alt="Payment QR Code" className="w-64 h-64 object-contain relative z-10 mix-blend-multiply" />
+                  </div>
+
+                  {paywayData.deeplink && (
+                    <div className="flex flex-col items-center w-full max-w-sm gap-3">
+                      <span className="text-xs text-[var(--color-text-muted)] font-medium tracking-wider uppercase">Or pay directly on mobile</span>
+                      <a 
+                        href={paywayData.deeplink}
+                        className="w-full flex justify-center items-center gap-2 bg-[#E21937] hover:bg-[#C1152F] text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg shadow-red-500/20"
+                      >
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17,1H7A2,2,0,0,0,5,3V21a2,2,0,0,0,2,2H17a2,2,0,0,0,2-2V3A2,2,0,0,0,17,1ZM12,21a1,1,0,1,1,1-1A1,1,0,0,1,12,21ZM17,18H7V4H17Z"/>
+                        </svg>
+                        Pay with ABA Mobile
+                      </a>
+                    </div>
+                  )}
+                  
+                  <div className="mt-8 flex flex-col items-center justify-center gap-3 w-full">
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+                      <span className="text-sm font-medium text-[var(--color-text-muted)]">Waiting for you to scan...</span>
+                    </div>
+                    
+                    <button 
+                      onClick={async () => {
+                        try {
+                          await api.post('/payment/payway/simulate', { order_id: createdOrderId });
+                        } catch (e) { console.error('Simulation failed', e); }
+                      }}
+                      className="mt-4 text-xs font-mono text-[var(--color-text-muted)] hover:text-[var(--color-primary)] underline decoration-dashed transition-colors"
+                    >
+                      [ Simulate Payment (Dev Mode) ]
+                    </button>
                   </div>
                 </div>
               )}
