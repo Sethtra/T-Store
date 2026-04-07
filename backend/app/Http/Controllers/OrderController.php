@@ -11,12 +11,13 @@ use Illuminate\Support\Facades\DB;
 class OrderController extends Controller
 {
     /**
-     * Get user's orders.
+     * Get user's orders (only those with completed or failed payment, not pending).
      */
     public function index(Request $request)
     {
         $orders = Order::with('items.product')
             ->where('user_id', $request->user()->id)
+            ->where('payment_status', '!=', 'pending')
             ->orderBy('created_at', 'desc')
             ->get();
 
