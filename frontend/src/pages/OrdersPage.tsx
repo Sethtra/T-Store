@@ -143,6 +143,7 @@ const OrdersPage = () => {
                   <th className="px-6 py-5">Tracking ID</th>
                   <th className="px-6 py-5">Date</th>
                   <th className="px-6 py-5">Status</th>
+                  <th className="px-6 py-5">Time Left</th>
                   <th className="px-6 py-5">Delivery</th>
                   <th className="px-6 py-5">Total</th>
                   <th className="px-6 py-5 text-right">Action</th>
@@ -166,26 +167,9 @@ const OrdersPage = () => {
                     </td>
                     <td className="px-6 py-5">
                       {order.payment_status === "pending" ? (
-                        <div className="space-y-1.5">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                            ⏳ Payment Pending
-                          </span>
-                          {getCountdown(order.created_at) ? (
-                            <div className="flex items-center gap-1.5">
-                              <svg className="w-3.5 h-3.5 text-[var(--color-error)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span className="text-[11px] font-semibold text-[var(--color-error)]">
-                                {getCountdown(order.created_at)} left
-                              </span>
-                            </div>
-                          ) : (
-                            <p className="text-[11px] text-[var(--color-error)] font-medium">Expired</p>
-                          )}
-                          <p className="text-[10px] text-[var(--color-text-muted)] leading-tight">
-                            Complete payment within 24h or the order will be cancelled.
-                          </p>
-                        </div>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                          Payment Pending
+                        </span>
                       ) : order.payment_status === "failed" ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
                           ✕ Payment Failed
@@ -209,6 +193,21 @@ const OrdersPage = () => {
                         >
                           {order.status}
                         </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-5">
+                      {order.payment_status === "pending" ? (
+                        getCountdown(order.created_at) ? (
+                          <span className="text-sm font-semibold text-[var(--color-error)]">
+                            {getCountdown(order.created_at)}
+                          </span>
+                        ) : (
+                          <span className="text-sm font-semibold text-[var(--color-error)]">
+                            Expired
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-sm text-[var(--color-text-muted)]">—</span>
                       )}
                     </td>
                     <td className="px-6 py-5 text-[var(--color-text-secondary)]">
