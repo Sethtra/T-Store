@@ -23,18 +23,36 @@ const OrdersPage = () => {
     setInvoiceOpen(true);
   };
 
-  const filteredOrders = orders?.filter((order) =>
-    filterStatus === "All" ? true : order.status === filterStatus.toLowerCase()
-  );
-
   const tabs = [
     "All",
-    "Pending",
+    "Unpaid",
     "Processing",
     "Shipped",
     "Completed",
     "Cancelled",
   ];
+
+  const filteredOrders = orders?.filter((order) => {
+    if (filterStatus === "All") return true;
+    
+    if (filterStatus === "Unpaid") {
+      return order.payment_status === "pending" || order.payment_status === "failed";
+    }
+    
+    // For all other tabs, don't show unpaid orders (they belong in Unpaid)
+    if (order.payment_status === "pending" || order.payment_status === "failed") {
+      return false;
+    }
+
+    if (filterStatus === "Processing") {
+      return order.status === "pending" || order.status === "processing";
+    }
+    if (filterStatus === "Shipped") return order.status === "shipped";
+    if (filterStatus === "Completed") return order.status === "completed";
+    if (filterStatus === "Cancelled") return order.status === "cancelled";
+    
+    return order.status === filterStatus.toLowerCase();
+  });
 
   if (isLoading) {
     return (
