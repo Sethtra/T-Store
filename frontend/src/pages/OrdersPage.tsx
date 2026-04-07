@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useOrders, type Order } from "../hooks/useOrders";
 import Button from "../components/ui/Button";
@@ -12,6 +12,24 @@ const OrdersPage = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("All");
+  const [, setTick] = useState(0);
+
+  // Re-render every minute to update countdowns
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Calculate remaining time for 24hr payment window
+  const getCountdown = (createdAt: string) => {
+    const deadline = new Date(createdAt).getTime() + 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const remaining = deadline - now;
+    if (remaining <= 0) return null;
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m`;
+  };
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
@@ -148,9 +166,26 @@ const OrdersPage = () => {
                     </td>
                     <td className="px-6 py-5">
                       {order.payment_status === "pending" ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                          ⏳ Payment Pending
-                        </span>
+                        <div className="space-y-1.5">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                            ⏳ Payment Pending
+                          </span>
+                          {getCountdown(order.created_at) ? (
+                            <div className="flex items-center gap-1.5">
+                              <svg className="w-3.5 h-3.5 text-[var(--color-error)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span className="text-[11px] font-semibold text-[var(--color-error)]">
+                                {getCountdown(order.created_at)} left
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-[11px] text-[var(--color-error)] font-medium">Expired</p>
+                          )}
+                          <p className="text-[10px] text-[var(--color-text-muted)] leading-tight">
+                            Complete payment within 24h or the order will be cancelled.
+                          </p>
+                        </div>
                       ) : order.payment_status === "failed" ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
                           ✕ Payment Failed
@@ -200,17 +235,17 @@ const OrdersPage = () => {
                           <Button
                             size="sm"
                             onClick={() => navigate(`/checkout?retry_order=${order.id}`)}
-                            className="bg-orange-500 hover:bg-orange-600 text-white border-none shadow-sm"
+                            className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white border-none shadow-lg shadow-[var(--color-primary)]/20"
                           >
-                            Retry Payment
+                            Pay Now
                           </Button>
                         ) : (
                           <>
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
                               onClick={() => handleViewInvoice(order)}
-                              className="hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200 text-gray-600"
+                              className="border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] hover:border-[var(--color-text-muted)]"
                             >
                               Invoice
                             </Button>
