@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CategoryDisplay;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AdminCategoryDisplayController extends Controller
 {
@@ -47,6 +48,9 @@ class AdminCategoryDisplayController extends Controller
 
         $categoryDisplay->update($validated);
 
+        // Clear the public cache so frontend picks up changes immediately
+        Cache::forget('category_displays_index');
+
         return response()->json($categoryDisplay->load('category'));
     }
 
@@ -70,6 +74,9 @@ class AdminCategoryDisplayController extends Controller
 
         $categoryDisplay->update(['image_url' => $imageUrl]);
 
+        // Clear the public cache so frontend picks up changes immediately
+        Cache::forget('category_displays_index');
+
         return response()->json([
             'image_url' => $imageUrl,
             'display' => $categoryDisplay->load('category'),
@@ -87,6 +94,9 @@ class AdminCategoryDisplayController extends Controller
         }
 
         $categoryDisplay->update(['image_url' => null]);
+
+        // Clear the public cache so frontend picks up changes immediately
+        Cache::forget('category_displays_index');
 
         return response()->json($categoryDisplay->load('category'));
     }

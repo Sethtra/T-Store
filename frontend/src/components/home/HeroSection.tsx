@@ -103,11 +103,7 @@ const HeroSection = () => {
           {mainProduct ? (
             <MainProductCard product={mainProduct} />
           ) : (
-            <div className="bg-[var(--color-bg-surface)] rounded-[2.5rem] p-12 h-full min-h-[600px] flex items-center justify-center transition-colors duration-300 border border-[var(--color-border)]">
-              <p className="text-[var(--color-text-muted)]">
-                No featured product selected
-              </p>
-            </div>
+            <div className="bg-[var(--color-bg-surface)] rounded-[2.5rem] p-12 h-full min-h-[600px] flex items-center justify-center transition-colors duration-300 border border-[var(--color-border)]" />
           )}
         </motion.div>
       </div>
@@ -128,13 +124,15 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
       </span>
 
       {/* Product Image - Massive & Centered */}
-      <div className="absolute inset-x-0 top-0 bottom-[120px] md:bottom-0 flex items-center justify-center p-6 md:p-0 overflow-hidden md:rounded-[2.5rem]">
-        <img
-          src={product?.product?.image_url || "/placeholder.png"}
-          className="w-full h-full md:w-[110%] md:h-[110%] object-contain drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-105"
-          alt={product.title}
-        />
-      </div>
+      {product?.product?.image_url && (
+        <div className="absolute inset-x-0 top-0 bottom-[120px] md:bottom-0 flex items-center justify-center p-6 md:p-0 overflow-hidden md:rounded-[2.5rem]">
+          <img
+            src={product.product.image_url}
+            className="w-full h-full md:w-[110%] md:h-[110%] object-contain drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-105"
+            alt={product.title}
+          />
+        </div>
+      )}
 
       {/* Bottom Info - Glass Effect */}
       <div className="absolute bottom-0 left-0 right-0 p-5 md:p-10 bg-[var(--color-bg-elevated)]/60 backdrop-blur-md border-t border-[var(--color-border)] flex flex-col sm:flex-row sm:items-end justify-between gap-2 transition-colors duration-300">
@@ -182,11 +180,13 @@ const SmallProductCard = ({ product }: { product: LandingSection }) => {
 
       {/* Right Image Container */}
       <div className="w-20 h-20 sm:w-52 sm:h-52 bg-[var(--color-bg-surface)] rounded-xl md:rounded-2xl flex items-center justify-center p-2 sm:p-4 transition-colors duration-300 order-1 sm:order-2 shrink-0">
-        <img
-          src={product?.product?.image_url || "/placeholder.png"}
-          className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-110 transition-transform duration-500"
-          alt={product.title}
-        />
+        {product?.product?.image_url && (
+          <img
+            src={product.product.image_url}
+            className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-110 transition-transform duration-500"
+            alt={product.title}
+          />
+        )}
       </div>
     </Link>
   );

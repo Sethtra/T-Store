@@ -17,16 +17,6 @@ const BrowseByCategories = () => {
   const small1Display = getDisplay("small_1");
   const small2Display = getDisplay("small_2");
 
-  const defaultImages: Record<string, string> = {
-    main: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&q=80",
-    featured:
-      "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&q=80",
-    small_1:
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=80",
-    small_2:
-      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&q=80",
-  };
-
   if (isLoading) {
     return (
       <section className="py-24 bg-white dark:bg-black">
@@ -133,19 +123,21 @@ const BrowseByCategories = () => {
                     </button>
                   </div>
 
-                  {/* Image - Bottom Right (Better Fit) */}
-                  <motion.div
-                    className="absolute right-[-10%] bottom-[-10%] w-[80%] h-[80%] flex items-center justify-center"
-                    whileHover={{ scale: 1.05, rotate: -3 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                  >
-                    <div className="absolute w-[80%] h-[80%] bg-gradient-to-tr from-orange-400/20 to-amber-300/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                    <img
-                      src={mainDisplay?.image_url || defaultImages.main}
-                      alt={mainDisplay?.title}
-                      className="relative z-10 w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-2xl"
-                    />
-                  </motion.div>
+                  {/* Image - Bottom Right (only when image_url exists) */}
+                  {mainDisplay?.image_url && (
+                    <motion.div
+                      className="absolute right-[-10%] bottom-[-10%] w-[80%] h-[80%] flex items-center justify-center"
+                      whileHover={{ scale: 1.05, rotate: -3 }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                    >
+                      <div className="absolute w-[80%] h-[80%] bg-gradient-to-tr from-orange-400/20 to-amber-300/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                      <img
+                        src={mainDisplay.image_url}
+                        alt={mainDisplay?.title}
+                        className="relative z-10 w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-2xl"
+                      />
+                    </motion.div>
+                  )}
                 </div>
               </Link>
             </motion.div>
@@ -202,18 +194,20 @@ const BrowseByCategories = () => {
                     </div>
                   </div>
 
-                  <motion.div
-                    className="absolute right-[-20px] top-0 bottom-0 w-[55%] flex items-center justify-center p-4"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  >
-                    <div className="absolute w-[70%] h-[70%] bg-blue-400/20 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <img
-                      src={featuredDisplay?.image_url || defaultImages.featured}
-                      alt={featuredDisplay?.title}
-                      className="relative z-10 w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-xl"
-                    />
-                  </motion.div>
+                  {featuredDisplay?.image_url && (
+                    <motion.div
+                      className="absolute right-[-20px] top-0 bottom-0 w-[55%] flex items-center justify-center p-4"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    >
+                      <div className="absolute w-[70%] h-[70%] bg-blue-400/20 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <img
+                        src={featuredDisplay.image_url}
+                        alt={featuredDisplay?.title}
+                        className="relative z-10 w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-xl"
+                      />
+                    </motion.div>
+                  )}
                 </div>
               </Link>
             </motion.div>
@@ -242,18 +236,20 @@ const BrowseByCategories = () => {
                     New Arrival
                   </p>
 
-                  <motion.div
-                    className="absolute inset-0 flex items-center justify-center pt-8"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  >
-                    <div className="absolute w-[60%] h-[60%] bg-yellow-300/20 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <img
-                      src={small1Display?.image_url || defaultImages.small_1}
-                      alt={small1Display?.title}
-                      className="relative z-10 w-[80%] h-[80%] object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-lg"
-                    />
-                  </motion.div>
+                  {small1Display?.image_url && (
+                    <motion.div
+                      className="absolute inset-0 flex items-center justify-center pt-8"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    >
+                      <div className="absolute w-[60%] h-[60%] bg-yellow-300/20 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <img
+                        src={small1Display.image_url}
+                        alt={small1Display?.title}
+                        className="relative z-10 w-[80%] h-[80%] object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-lg"
+                      />
+                    </motion.div>
+                  )}
                 </div>
               </Link>
             </motion.div>
@@ -282,18 +278,20 @@ const BrowseByCategories = () => {
                     Best Sellers
                   </p>
 
-                  <motion.div
-                    className="absolute inset-0 flex items-center justify-center pt-8"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  >
-                    <div className="absolute w-[60%] h-[60%] bg-green-300/20 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <img
-                      src={small2Display?.image_url || defaultImages.small_2}
-                      alt={small2Display?.title}
-                      className="relative z-10 w-[80%] h-[80%] object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-lg"
-                    />
-                  </motion.div>
+                  {small2Display?.image_url && (
+                    <motion.div
+                      className="absolute inset-0 flex items-center justify-center pt-8"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    >
+                      <div className="absolute w-[60%] h-[60%] bg-green-300/20 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <img
+                        src={small2Display.image_url}
+                        alt={small2Display?.title}
+                        className="relative z-10 w-[80%] h-[80%] object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-lg"
+                      />
+                    </motion.div>
+                  )}
                 </div>
               </Link>
             </motion.div>
