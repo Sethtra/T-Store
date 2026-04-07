@@ -56,14 +56,6 @@ class OrderController extends Controller
         ]);
 
         return DB::transaction(function () use ($request) {
-            // Auto-cancel any old pending orders from this user to prevent duplicates
-            Order::where('user_id', $request->user()->id)
-                ->where('payment_status', 'pending')
-                ->update([
-                    'payment_status' => 'cancelled',
-                    'status' => 'cancelled',
-                ]);
-
             $total = 0;
             $orderItems = [];
 
@@ -136,5 +128,30 @@ class OrderController extends Controller
                 'order' => $order->load('items'),
             ], 201);
         });
+    }
+
+    /**
+     * Retry payment for an existing pending order.
+     */
+    public function retryPayment(Request $request, int $id)
+    {
+        $request->validate([
+            'payment_method' => 'required|in:stripe,payway',
+        ]);
+
+        $order = Order::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->where('payment_status', 'pending')
+            ->firstOrFail();
+
+        // Update payment method if changed
+        $order->update([
+            'payment_method' => $request->payment_method,
+        ]);
+
+        return response()->json([
+            'message' => 'Ready to retry payment',
+            'order' => $order->load('items'),
+        ]);
     }
 }

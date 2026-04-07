@@ -90,6 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::post('/orders', [OrderController::class, 'store']);
+    Route::post('/orders/{id}/retry-payment', [OrderController::class, 'retryPayment']);
 
     // Admin Routes
     Route::middleware('admin')->prefix('admin')->group(function () {

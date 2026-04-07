@@ -186,11 +186,28 @@ const CheckoutPage = () => {
   
   // Payment Flow State
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+  const [retryOrder, setRetryOrder] = useState<any>(null);
+  const [isRetryMode, setIsRetryMode] = useState(false);
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
   const [paywayData, setPaywayData] = useState<{ qrImage?: string, deeplink?: string } | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  // Handle retry order from URL param
+  useEffect(() => {
+    const retryOrderId = searchParams.get("retry_order");
+    if (retryOrderId) {
+      setIsRetryMode(true);
+      setCreatedOrderId(Number(retryOrderId));
+      // Load order details
+      api.get(`/orders/${retryOrderId}`).then((res) => {
+        setRetryOrder(res.data);
+      }).catch(() => {
+        setPaymentError("Could not load order. It may have already been paid.");
+      });
+    }
+  }, [searchParams]);
 
   // Check if returning from PayWay payment
   useEffect(() => {
@@ -262,6 +279,9 @@ const CheckoutPage = () => {
       const orderId = res.order.id;
       setCreatedOrderId(orderId);
 
+      // Clear cart immediately after order is created
+      clearCart();
+
       if (paymentMethod === "stripe") {
         // Stripe: get client secret and show card form
         const intentRes = await createStripeIntent.mutateAsync({ order_id: orderId });
@@ -290,7 +310,6 @@ const CheckoutPage = () => {
 
   // Step 2: Handle Successful Payment
   const handlePaymentSuccess = () => {
-    clearCart();
     setOrderSuccess(true);
   };
 
@@ -299,7 +318,7 @@ const CheckoutPage = () => {
   const tax = subtotal * 0.1;
   const total = subtotal + shipping + tax;
 
-  if (items.length === 0 && !orderSuccess) {
+  if (items.length === 0 && !orderSuccess && !isRetryMode) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-[70vh] flex flex-col items-center justify-center">
         <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
@@ -323,6 +342,153 @@ const CheckoutPage = () => {
         <div className="flex gap-4">
           <Link to="/orders"><Button variant="outline" size="lg">View Orders</Button></Link>
           <Link to="/products"><Button size="lg">Continue Shopping</Button></Link>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Retry Payment Mode: show payment method selection and pay button
+  if (isRetryMode && retryOrder && !orderSuccess) {
+    const handleRetryPay = async () => {
+      if (!createdOrderId) return;
+      setPaymentError(null);
+      setIsCreatingOrder(true);
+
+      try {
+        // Update payment method on backend
+        await api.post(`/orders/${createdOrderId}/retry-payment`, {
+          payment_method: paymentMethod,
+        });
+
+        if (paymentMethod === "stripe") {
+          const intentRes = await createStripeIntent.mutateAsync({ order_id: createdOrderId });
+          setStripeClientSecret(intentRes.client_secret);
+          setCurrentStep(2);
+        } else if (paymentMethod === "payway") {
+          const paywayRes = await createPaywayTransaction.mutateAsync({ order_id: createdOrderId });
+          if (paywayRes.payway_response?.qrImage) {
+            setPaywayData({
+              qrImage: paywayRes.payway_response.qrImage,
+              deeplink: paywayRes.payway_response.abapay_deeplink,
+            });
+            setCurrentStep(2);
+          } else {
+            throw new Error(paywayRes.payway_response.status?.message || "Failed to generate QR Code");
+          }
+        }
+      } catch (error: any) {
+        setPaymentError(error.response?.data?.message || "Failed to process payment. Please try again.");
+      } finally {
+        setIsCreatingOrder(false);
+      }
+    };
+
+    // If already moved to step 2 (payment form), show that instead
+    if (currentStep === 2) {
+      return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-12 md:pb-16" style={{ paddingTop: "140px" }}>
+          <div className="container lg:px-8 max-w-2xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-bold">Complete Payment</h1>
+              <button onClick={() => setCurrentStep(1)} className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)]">
+                ← Change Method
+              </button>
+            </div>
+            <div className="bg-[var(--color-bg-elevated)] p-6 rounded-2xl border border-[var(--color-border)] shadow-sm">
+              {paymentMethod === "stripe" && stripeClientSecret && (
+                <Elements stripe={stripePromise} options={{ clientSecret: stripeClientSecret, appearance: { theme: 'stripe' } }}>
+                  <StripeForm clientSecret={stripeClientSecret} onSuccess={handlePaymentSuccess} onError={setPaymentError} />
+                </Elements>
+              )}
+              {paymentMethod === "payway" && paywayData && (
+                <div className="flex flex-col items-center justify-center p-4">
+                  <p className="text-[var(--color-text-muted)] text-sm mb-4">Scan with ABA Mobile or any KHQR Bank app</p>
+                  <div className="bg-white p-4 rounded-3xl shadow-md border-2 border-red-500/20 mb-6">
+                    <img src={paywayData.qrImage} alt="Payment QR Code" className="w-64 h-64 object-contain mix-blend-multiply" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm font-medium text-[var(--color-text-muted)]">Waiting for you to scan...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-12 md:pb-16" style={{ paddingTop: "140px" }}>
+        <div className="container lg:px-8 max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold mb-2">Retry Payment</h1>
+          <p className="text-[var(--color-text-muted)] mb-8">
+            Order #{retryOrder.tracking_id || retryOrder.id} · Total: <span className="font-bold text-[var(--color-text-primary)]">${Number(retryOrder.total).toFixed(2)}</span>
+          </p>
+
+          {paymentError && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl mb-6">
+              {paymentError}
+            </div>
+          )}
+
+          {/* Order Items */}
+          <div className="bg-[var(--color-bg-elevated)]/50 backdrop-blur-xl p-6 rounded-2xl border border-[var(--color-border)]/50 mb-8">
+            <h3 className="font-bold mb-4">Order Items</h3>
+            <div className="space-y-3">
+              {retryOrder.items?.map((item: any) => (
+                <div key={item.id} className="flex justify-between items-center text-sm">
+                  <span>{item.product_title} × {item.quantity}</span>
+                  <span className="font-medium">${Number(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Payment Method Selection */}
+          <div className="space-y-4 mb-8">
+            <h3 className="font-bold">Choose Payment Method</h3>
+            <PaymentMethodCard
+              id="stripe"
+              selected={paymentMethod === "stripe"}
+              onSelect={() => setPaymentMethod("stripe")}
+              accentColor="#635BFF"
+              title="Credit / Debit Card"
+              description="Pay securely with Visa, Mastercard, or American Express via Stripe"
+              icon={
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              }
+            />
+            <PaymentMethodCard
+              id="payway"
+              selected={paymentMethod === "payway"}
+              onSelect={() => setPaymentMethod("payway")}
+              accentColor="#E21937"
+              title="ABA PayWay"
+              description="Pay with ABA Mobile, KHQR, or local bank cards via ABA PayWay"
+              icon={
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              }
+            />
+          </div>
+
+          <Button
+            size="lg"
+            fullWidth
+            isLoading={isCreatingOrder}
+            onClick={handleRetryPay}
+            className="py-4 text-base rounded-xl bg-[var(--color-primary)] text-white border-none shadow-lg shadow-blue-500/20"
+          >
+            {paymentMethod === "stripe" ? "Pay with Card" : "Pay with ABA PayWay"}
+          </Button>
+
+          <Link to="/orders" className="block text-center mt-4 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)]">
+            ← Back to My Orders
+          </Link>
         </div>
       </motion.div>
     );

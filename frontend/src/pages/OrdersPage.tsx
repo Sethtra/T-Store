@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useOrders, type Order } from "../hooks/useOrders";
 import Button from "../components/ui/Button";
 import OrderDetailsModal from "../components/orders/OrderDetailsModal";
 import InvoiceModal from "../components/orders/InvoiceModal";
 
 const OrdersPage = () => {
+  const navigate = useNavigate();
   const { data: orders, isLoading, error } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -192,21 +193,33 @@ const OrdersPage = () => {
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewInvoice(order)}
-                          className="hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200 text-gray-600"
-                        >
-                          Invoice
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewDetails(order)}
-                        >
-                          Details
-                        </Button>
+                        {order.payment_status === "pending" ? (
+                          <Button
+                            size="sm"
+                            onClick={() => navigate(`/checkout?retry_order=${order.id}`)}
+                            className="bg-orange-500 hover:bg-orange-600 text-white border-none shadow-sm"
+                          >
+                            Retry Payment
+                          </Button>
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewInvoice(order)}
+                              className="hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200 text-gray-600"
+                            >
+                              Invoice
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewDetails(order)}
+                            >
+                              Details
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -17,6 +17,16 @@ class AdminOrderController extends Controller
     {
         $query = Order::with('items')->orderBy('created_at', 'desc');
 
+        // By default, hide orders that haven't been paid yet (pending payment)
+        // Admin can explicitly request them with ?payment_status=pending or ?payment_status=all
+        if ($request->filled('payment_status')) {
+            if ($request->payment_status !== 'all') {
+                $query->where('payment_status', $request->payment_status);
+            }
+        } else {
+            $query->where('payment_status', '!=', 'pending');
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
