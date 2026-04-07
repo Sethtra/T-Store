@@ -539,6 +539,12 @@ const CheckoutPage = () => {
                   <span className="text-[var(--color-text-muted)]">Shipping</span>
                   <span className="font-medium">${shipping.toFixed(2)}</span>
                 </div>
+                {tax > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[var(--color-text-muted)]">Tax (10%)</span>
+                    <span className="font-medium">${tax.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-lg font-bold pt-2">
                   <span>Total</span>
                   <span>${total.toFixed(2)}</span>
