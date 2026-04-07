@@ -23,12 +23,15 @@ const OrdersPage = () => {
     setInvoiceOpen(true);
   };
 
-  const filteredOrders = orders?.filter((order) =>
-    filterStatus === "All" ? true : order.status === filterStatus.toLowerCase()
-  );
+  const filteredOrders = orders?.filter((order) => {
+    if (filterStatus === "All") return true;
+    if (filterStatus === "Payment Pending") return order.payment_status === "pending";
+    return order.status === filterStatus.toLowerCase();
+  });
 
   const tabs = [
     "All",
+    "Payment Pending",
     "Pending",
     "Processing",
     "Shipped",
