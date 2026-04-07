@@ -318,7 +318,7 @@ const CheckoutPage = () => {
   const tax = subtotal * 0.1;
   const total = subtotal + shipping + tax;
 
-  if (items.length === 0 && !orderSuccess && !isRetryMode) {
+  if (items.length === 0 && !orderSuccess && !isRetryMode && !createdOrderId) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-[70vh] flex flex-col items-center justify-center">
         <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
