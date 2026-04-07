@@ -97,6 +97,10 @@ class OrderController extends Controller
                 $shippingAddress = 'Self Pick Up';
             }
 
+            // Apply 10% tax
+            $tax = $total * 0.10;
+            $total = $total + $tax;
+
             // Create order with pending payment status
             $order = Order::create([
                 'user_id' => $request->user()->id,

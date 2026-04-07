@@ -19,8 +19,8 @@ const ProductDetailPage = () => {
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useCartStore((state) => state.openCart);
 
-  const handleAddToCart = () => {
-    if (!product) return;
+  const handleAddToCart = (): boolean => {
+    if (!product) return false;
 
     // Optional: Validate selection if attributes exist
     // For now we allow adding without selection if user doesn't pick,
@@ -30,11 +30,11 @@ const ProductDetailPage = () => {
 
     if (colors.length > 0 && !selectedColor) {
       alert("Please select a color");
-      return;
+      return false;
     }
     if (sizes.length > 0 && !selectedSize) {
       alert("Please select a size");
-      return;
+      return false;
     }
 
     for (let i = 0; i < quantity; i++) {
@@ -54,11 +54,14 @@ const ProductDetailPage = () => {
       });
     }
     openCart();
+    return true;
   };
 
   const handleBuyNow = () => {
-    handleAddToCart();
-    navigate("/checkout"); // Assuming checkout route exists, otherwise just open cart
+    const added = handleAddToCart();
+    if (added) {
+      navigate("/checkout");
+    }
   };
 
   // Helper to safely get attribute values as array
