@@ -168,7 +168,7 @@ const Footer = () => {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3 opacity-70 grayscale hover:grayscale-0 transition-all duration-300">
               {/* Simple Credit Card Icons placeholder */}
-              {["Visa", "Mastercard", "Amex", "PayPal"].map((card) => (
+              {["Visa", "Mastercard", "Amex"].map((card) => (
                 <div
                   key={card}
                   className="h-6 px-2 bg-white rounded border border-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-800"

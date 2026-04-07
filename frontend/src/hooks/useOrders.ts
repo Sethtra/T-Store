@@ -110,29 +110,6 @@ export const useSimulatePaywayPayment = () => {
       const response = await api.post('/payment/payway/simulate', data);
       return response.data;
     },
-  });
-};
-
-// Payment: Create PayPal Order
-export const useCreatePaypalOrder = () => {
-  return useMutation({
-    mutationFn: async (data: { order_id: number }) => {
-      const response = await api.post('/payment/paypal/create-order', data);
-      return response.data as { paypal_order_id: string; [key: string]: any };
-    },
-  });
-};
-
-// Payment: Capture PayPal Order
-export const useCapturePaypalOrder = () => {
-  return useMutation({
-    mutationFn: async (data: { order_id: number; paypal_order_id: string }) => {
-      const response = await api.post('/payment/paypal/capture-order', data);
-      return response.data;
-    },
-  });
-};
-
 // Admin: Fetch all orders with filters
 export interface AdminOrderFilters {
   status?: string;
