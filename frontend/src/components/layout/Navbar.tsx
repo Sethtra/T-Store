@@ -270,8 +270,8 @@ const Navbar = () => {
 
             {/* Orders Shortcut (Only shows if authenticated) */}
             {isAuthenticated && (
-              <Link
-                to="/orders"
+              <button
+                onClick={() => navigate("/orders")}
                 className="relative p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] transition-all active:scale-95"
                 aria-label="My Orders"
                 title="My Orders"
@@ -299,7 +299,7 @@ const Navbar = () => {
                     {unpaidCount > 9 ? "9+" : unpaidCount}
                   </motion.span>
                 )}
-              </Link>
+              </button>
             )}
 
             {/* Cart Button */}
