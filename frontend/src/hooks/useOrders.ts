@@ -20,6 +20,7 @@ export interface Order {
   user_id: number;
   tracking_id?: string;
   status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled';
+  payment_status?: 'pending' | 'paid' | 'failed' | 'cancelled';
   total: number;
   payment_intent?: string;
   items: OrderItem[];

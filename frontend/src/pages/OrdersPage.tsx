@@ -143,8 +143,21 @@ const OrdersPage = () => {
                       })}
                     </td>
                     <td className="px-6 py-5">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize
+                      {order.payment_status === "pending" ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                          ⏳ Payment Pending
+                        </span>
+                      ) : order.payment_status === "failed" ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          ✕ Payment Failed
+                        </span>
+                      ) : order.payment_status === "cancelled" ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                          Cancelled
+                        </span>
+                      ) : (
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize
                         ${
                           order.status === "completed"
                             ? "bg-green-100 text-green-700"
@@ -154,9 +167,10 @@ const OrdersPage = () => {
                             ? "bg-red-100 text-red-700"
                             : "bg-blue-100 text-blue-700"
                         }`}
-                      >
-                        {order.status}
-                      </span>
+                        >
+                          {order.status}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-5 text-[var(--color-text-secondary)]">
                       {
