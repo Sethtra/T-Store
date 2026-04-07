@@ -110,6 +110,9 @@ export const useSimulatePaywayPayment = () => {
       const response = await api.post('/payment/payway/simulate', data);
       return response.data;
     },
+  });
+};
+
 // Admin: Fetch all orders with filters
 export interface AdminOrderFilters {
   status?: string;
