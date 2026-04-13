@@ -17,7 +17,7 @@ class ProductController extends Controller
         ksort($params);
         $queryString = http_build_query($params);
         
-        $cacheVersion = \Illuminate\Support\Facades\Cache::get('products_cache_version', 1);
+        $cacheVersion = Cache::get('products_cache_version', 1);
         $cacheKey = 'products_index_' . $cacheVersion . '_' . md5($queryString);
 
         $response = Cache::remember($cacheKey, 3600, function () use ($request) {
