@@ -22,7 +22,8 @@ T-Store is an enterprise-grade, full-stack e-commerce solution architected for h
 ## ✨ System Features
 
 ### 🛍️ Client Storefront
-- **Advanced Product Discovery:** Real-time filtering by category, price range, and full-text search.
+- **Product Discovery & Associations:** Real-time filtering by category, full-text search, and an intelligent "Related Products" recommendation system.
+- **Dynamic Homepage:** Live-preview Hero section configuration directly tied to client-side storage for instant visual feedback.
 - **Persistent Cart Management:** Seamless cart state preservation across sessions using Zustand.
 - **Frictionless Checkout:** Multi-gateway payment processing supporting both **Stripe** (Credit/Debit) and **PayPal** SDKs.
 - **User Authentication:** Secure token-based authentication via Laravel Sanctum, featuring Google OAuth (Socialite) integration.
@@ -30,7 +31,7 @@ T-Store is an enterprise-grade, full-stack e-commerce solution architected for h
 
 ### 🎛️ Administrative Back-Office
 - **Comprehensive Analytics:** Real-time BI dashboard visualizing revenue streams, sales velocity, and top-performing SKUs.
-- **Product Management:** Robust CRUD workflows with multi-image gallery management via Supabase Storage.
+- **Product Management:** Robust CRUD workflows featuring multi-image gallery uploads and intelligent orphaned image cleanup via Supabase Storage REST APIs.
 - **Inventory Tracking:** Automated stock ledger (`stock_movements`) with order lifecycle transitions.
 - **Order Pipeline:** Status-driven workflow management (Pending → Processing → Shipped) with notification dispatch.
 - **Data Export:** On-the-fly CSV report generation for Orders, Products, and User data.
