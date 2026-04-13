@@ -92,16 +92,22 @@ class AdminOrderController extends Controller
                 'email' => $order->user->email,
             ],
             // Order Items
-            'items' => $order->items->map(fn($item) => [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'product_name' => $item->product?->title ?? 'Unknown Product',
-                'product_image' => $item->product?->images[0] ?? null,
-                'quantity' => $item->quantity,
-                'price' => $item->price,
-                'attributes' => $item->attributes,
-                'subtotal' => $item->quantity * $item->price,
-            ]),
+            'items' => $order->items->map(function($item) {
+                // Defensive check for images array
+                $productImages = $item->product ? $item->product->images : [];
+                $firstImage = (is_array($productImages) && count($productImages) > 0) ? $productImages[0] : null;
+
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product?->title ?? 'Unknown Product',
+                    'product_image' => $firstImage,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'attributes' => $item->attributes,
+                    'subtotal' => $item->quantity * $item->price,
+                ];
+            }),
         ]);
     }
 

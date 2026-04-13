@@ -18,7 +18,8 @@ class AdminProductController extends Controller
         $query = Product::with('category')->orderBy('created_at', 'desc');
 
         if ($request->filled('search')) {
-            $query->where('title', 'ilike', "%{$request->search}%");
+            // Use 'like' instead of 'ilike' to support MySQL/SQLite. Case insensitivity is default in MySQL.
+            $query->where('title', 'like', "%{$request->search}%");
         }
 
         $perPage = min($request->limit ?? 10, 50);
@@ -75,7 +76,7 @@ class AdminProductController extends Controller
             $inputImages = $request->input('images');
             if (is_array($inputImages)) {
                 $imageUrls = array_filter($inputImages, function($img) {
-                    return is_string($img) && filter_var($img, FILTER_VALIDATE_URL);
+                    return is_string($img) && !empty(trim($img));
                 });
             }
         }
@@ -172,9 +173,9 @@ class AdminProductController extends Controller
             $existingImages = is_string($dbImages) ? (json_decode($dbImages, true) ?? []) : ($dbImages ?? []);
         }
 
-        // Filter out any invalid entries from existing images
+        // Filter out any invalid entries from existing images (allow local paths or full URLs)
         $existingImages = array_values(array_filter($existingImages, function ($img) {
-            return is_string($img) && !empty($img) && filter_var($img, FILTER_VALIDATE_URL);
+            return is_string($img) && !empty(trim($img));
         }));
 
         $newImages = [];
@@ -223,6 +224,23 @@ class AdminProductController extends Controller
     public function destroy(int $id)
     {
         $product = Product::findOrFail($id);
+
+        // Delete associated files from Supabase if they exist
+        if (is_array($product->images)) {
+            $supabase = app(SupabaseStorageService::class);
+            foreach ($product->images as $image) {
+                // Only delete if it's a full URL (likely Supabase)
+                if (is_string($image) && str_starts_with($image, 'http')) {
+                    try {
+                        $supabase->delete($image);
+                    } catch (\Exception $e) {
+                        // Log error but don't stop the product deletion
+                        \Illuminate\Support\Facades\Log::error("Failed to delete product image from Supabase: " . $e->getMessage());
+                    }
+                }
+            }
+        }
+
         $product->delete();
 
         return response()->json([

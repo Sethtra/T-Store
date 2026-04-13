@@ -35,10 +35,12 @@ class Product extends Model
     {
         static::saved(function ($product) {
             \Illuminate\Support\Facades\Cache::forget('landing_sections_index');
+            \Illuminate\Support\Facades\Cache::forget('categories_index'); // Refresh category product counts
         });
 
         static::deleted(function ($product) {
             \Illuminate\Support\Facades\Cache::forget('landing_sections_index');
+            \Illuminate\Support\Facades\Cache::forget('categories_index'); // Refresh category product counts
         });
     }
 
@@ -60,15 +62,15 @@ class Product extends Model
     public function getImagesAttribute($value): array
     {
         // Decode if string (shouldn't be needed with cast, but safety check)
-        $images = is_string($value) ? json_decode($value, true) : $value;
+        $images = is_string($value) ? (json_decode($value, true) ?? []) : $value;
 
         if (!is_array($images)) {
             return [];
         }
 
-        // Filter to only keep valid string URLs
+        // Filter to only keep valid strings (can be full URL or local path)
         return array_values(array_filter($images, function ($img) {
-            return is_string($img) && !empty($img) && filter_var($img, FILTER_VALIDATE_URL);
+            return is_string($img) && !empty(trim($img));
         }));
     }
 }
