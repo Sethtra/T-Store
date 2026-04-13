@@ -9,6 +9,7 @@ import {
   type Category,
 } from "../../hooks/useProducts";
 import { useAdminCategories } from "../../hooks/useCategories";
+import imageCompression from "browser-image-compression";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -229,6 +230,7 @@ const ProductsPage = () => {
   // Form State
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -973,21 +975,55 @@ const ProductsPage = () => {
                         />
                       </svg>
                       <span className="text-xs text-[var(--color-text-muted)]">
-                        Add Image
+                        {isCompressing ? "Processing..." : "Add Image"}
                       </span>
                       <input
                         type="file"
                         multiple
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => {
+                        disabled={isCompressing}
+                        onChange={async (e) => {
                           const files = e.target.files;
                           if (files && files.length > 0) {
-                            const newFiles = Array.from(files);
-                            setSelectedImages((prev) => [
-                              ...prev,
-                              ...newFiles,
-                            ]);
+                            setIsCompressing(true);
+                            try {
+                              const options = {
+                                maxSizeMB: 0.8,
+                                maxWidthOrHeight: 2000,
+                                useWebWorker: true,
+                                fileType: "image/webp" as const,
+                                initialQuality: 0.85,
+                              };
+
+                              const compressedFiles = await Promise.all(
+                                Array.from(files).map(async (file) => {
+                                  try {
+                                    // Compress file and convert to WebP
+                                    const compressedFile = await imageCompression(file, options);
+                                    
+                                    // Create a new File object with .webp extension
+                                    const baseName = file.name.split('.').slice(0, -1).join('.') || 'image';
+                                    return new File([compressedFile], `${baseName}.webp`, {
+                                      type: "image/webp",
+                                      lastModified: Date.now(),
+                                    });
+                                  } catch (error) {
+                                    console.error("Compression failed for", file.name, error);
+                                    return file; // Fallback to original
+                                  }
+                                })
+                              );
+
+                              setSelectedImages((prev) => [
+                                ...prev,
+                                ...compressedFiles,
+                              ]);
+                            } catch (error) {
+                              console.error("Image processing error:", error);
+                            } finally {
+                              setIsCompressing(false);
+                            }
                           }
                           // Reset after capturing so re-selecting same file works
                           e.target.value = "";

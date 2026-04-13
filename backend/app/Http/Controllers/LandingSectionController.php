@@ -28,7 +28,7 @@ class LandingSectionController extends Controller
                     return [
                         'id' => $section->id,
                         'section_type' => $section->section_type,
-                        'title' => $section->title ?? $section->product->title,
+                        'title' => $section->title ?? $section->product?->title,
                         'description' => $section->description ?? $section->product?->description,
                         'order' => $section->order,
                         'product' => $section->product ? [
