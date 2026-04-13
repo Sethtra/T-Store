@@ -37,6 +37,10 @@ const ProductCard = ({
               alt={title}
               loading="lazy"
               className="w-full h-full object-contain p-4 will-change-transform transition-transform duration-500 ease-out group-hover:scale-110"
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder.jpg";
+                e.currentTarget.onerror = null;
+              }}
             />
 
             {/* Category Badge */}

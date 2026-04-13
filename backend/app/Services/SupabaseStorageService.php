@@ -35,14 +35,22 @@ class SupabaseStorageService
         $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
         $path = $folder ? "{$folder}/{$filename}" : $filename;
 
+        // Determine MIME type: prefer client-reported type for image formats
+        // PHP's finfo/getMimeType() can fail to detect webp on servers with older libmagic
+        $mimeType = $file->getMimeType();
+        $clientMime = $file->getClientMimeType();
+        if ($clientMime && str_starts_with($clientMime, 'image/') && ($mimeType === 'application/octet-stream' || !$mimeType)) {
+            $mimeType = $clientMime;
+        }
+
         // Upload via Supabase Storage REST API
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->key,
             'apikey' => $this->key,
-            'Content-Type' => $file->getMimeType(),
+            'Content-Type' => $mimeType,
         ])->withBody(
             file_get_contents($file->getRealPath()),
-            $file->getMimeType()
+            $mimeType
         )->post("{$this->url}/storage/v1/object/{$this->bucket}/{$path}");
 
         if ($response->failed()) {
@@ -50,11 +58,11 @@ class SupabaseStorageService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->key,
                 'apikey' => $this->key,
-                'Content-Type' => $file->getMimeType(),
+                'Content-Type' => $mimeType,
                 'x-upsert' => 'true',
             ])->withBody(
                 file_get_contents($file->getRealPath()),
-                $file->getMimeType()
+                $mimeType
             )->post("{$this->url}/storage/v1/object/{$this->bucket}/{$path}");
 
             if ($response->failed()) {
@@ -84,12 +92,22 @@ class SupabaseStorageService
 
         $path = substr($publicUrl, strlen($prefix));
 
+        // Supabase Storage REST API uses POST to /object/remove/{bucket}
+        // with a JSON body containing the "prefixes" array of file paths
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->key,
             'apikey' => $this->key,
-        ])->delete("{$this->url}/storage/v1/object/{$this->bucket}", [
+            'Content-Type' => 'application/json',
+        ])->post("{$this->url}/storage/v1/object/remove/{$this->bucket}", [
             'prefixes' => [$path],
         ]);
+
+        if ($response->failed()) {
+            \Illuminate\Support\Facades\Log::warning("Supabase delete failed for path: {$path}", [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+        }
 
         return $response->successful();
     }
