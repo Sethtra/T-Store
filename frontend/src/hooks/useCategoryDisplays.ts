@@ -65,9 +65,7 @@ export const useUploadCategoryDisplayImage = () => {
     mutationFn: async ({ id, file }: { id: number; file: File }) => {
       const formData = new FormData();
       formData.append('image', file);
-      const response = await api.post(`/admin/category-displays/${id}/image`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await api.post(`/admin/category-displays/${id}/image`, formData);
       return response.data;
     },
     onSuccess: () => {

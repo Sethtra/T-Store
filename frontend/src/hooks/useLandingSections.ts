@@ -57,9 +57,7 @@ export const useCreateLandingSection = () => {
 
   return useMutation({
     mutationFn: async (formData: FormData) => {
-      const { data } = await api.post("/admin/landing-sections", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const { data } = await api.post("/admin/landing-sections", formData);
       return data;
     },
     onSuccess: () => {
@@ -76,9 +74,7 @@ export const useUpdateLandingSection = () => {
     mutationFn: async ({ id, formData }: { id: number; formData: FormData }) => {
       // Need to use POST with _method for FormData in Laravel
       formData.append("_method", "PUT");
-      const { data } = await api.post(`/admin/landing-sections/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const { data } = await api.post(`/admin/landing-sections/${id}`, formData);
       return data;
     },
     onSuccess: () => {

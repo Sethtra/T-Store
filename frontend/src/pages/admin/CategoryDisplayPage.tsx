@@ -13,6 +13,7 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
+import imageCompression from "browser-image-compression";
 
 const CategoryDisplayPage = () => {
   const { data: displays, isLoading } = useAdminCategoryDisplays();
@@ -58,7 +59,23 @@ const CategoryDisplayPage = () => {
   };
 
   const handleImageUpload = async (id: number, file: File) => {
-    await uploadImage.mutateAsync({ id, file });
+    try {
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+        fileType: "image/webp",
+      };
+      const compressedFile = await imageCompression(file, options);
+      // Convert back to File object to maintain consistency
+      const newFile = new File([compressedFile], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+        type: "image/webp",
+      });
+      await uploadImage.mutateAsync({ id, file: newFile });
+    } catch (error) {
+      console.error("Error compressing image:", error);
+      alert("Failed to compress image. Please try another one.");
+    }
   };
 
   const handleImageDelete = async (id: number) => {

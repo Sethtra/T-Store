@@ -11,6 +11,7 @@ import {
   type LandingSectionFormData,
 } from "../../hooks/useLandingSections";
 import { useProducts, type Product } from "../../hooks/useProducts";
+import imageCompression from "browser-image-compression";
 
 const LandingSectionPage = () => {
   const { data: sections, isLoading } = useAdminLandingSections();
@@ -494,11 +495,27 @@ const LandingSectionPage = () => {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            setSelectedImage(file);
-                            setImagePreview(URL.createObjectURL(file));
+                            try {
+                              const options = {
+                                maxSizeMB: 1,
+                                maxWidthOrHeight: 1200,
+                                useWebWorker: true,
+                                fileType: "image/webp",
+                              };
+                              const compressedFile = await imageCompression(file, options);
+                              // Convert back to File object to maintain consistency
+                              const newFile = new File([compressedFile], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                                type: "image/webp",
+                              });
+                              setSelectedImage(newFile);
+                              setImagePreview(URL.createObjectURL(newFile));
+                            } catch (error) {
+                              console.error("Error compressing image:", error);
+                              alert("Failed to compress image. Please try another one.");
+                            }
                           }
                         }}
                         className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-primary)] file:text-white hover:file:bg-[var(--color-primary-dark)]"

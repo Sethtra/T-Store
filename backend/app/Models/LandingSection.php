@@ -48,4 +48,18 @@ class LandingSection extends Model
     {
         return $query->orderBy('order', 'asc');
     }
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('landing_sections_index');
+        });
+
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('landing_sections_index');
+        });
+    }
 }
