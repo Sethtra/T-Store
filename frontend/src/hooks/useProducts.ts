@@ -132,10 +132,8 @@ export const useCreateProduct = () => {
   
   return useMutation({
     mutationFn: async (product: Partial<Product> | FormData) => {
-      const isFormData = product instanceof FormData;
-      const response = await api.post('/admin/products', product, {
-        headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
-      });
+      // Axios automatically sets the correct Content-Type with boundary for FormData
+      const response = await api.post('/admin/products', product);
       return response.data;
     },
     onSuccess: () => {
@@ -156,9 +154,7 @@ export const useUpdateProduct = () => {
       // because native PUT requests cannot parse multipart/form-data in PHP
       const isFormData = data instanceof FormData;
       const response = isFormData 
-        ? await api.post(`/admin/products/${id}`, data, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          })
+        ? await api.post(`/admin/products/${id}`, data)
         : await api.put(`/admin/products/${id}`, data);
       return response.data;
     },

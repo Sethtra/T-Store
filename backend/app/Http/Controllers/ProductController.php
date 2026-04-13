@@ -16,7 +16,9 @@ class ProductController extends Controller
         $params = $request->all();
         ksort($params);
         $queryString = http_build_query($params);
-        $cacheKey = 'products_index_' . md5($queryString);
+        
+        $cacheVersion = \Illuminate\Support\Facades\Cache::get('products_cache_version', 1);
+        $cacheKey = 'products_index_' . $cacheVersion . '_' . md5($queryString);
 
         $response = Cache::remember($cacheKey, 3600, function () use ($request) {
             $query = Product::with('category');
@@ -32,21 +34,6 @@ class ProductController extends Controller
         // Category filter (Recursive: Parent -> Children)
         if ($request->filled('category')) {
             $slug = $request->category;
-            $query->whereHas('category', function ($q) use ($slug) {
-                // Find the category by slug
-                $q->where('slug', $slug)
-                    ->orWhereHas('parent', function ($subQ) use ($slug) {
-                        // Or where the parent has this slug (1 level deep)
-                        $subQ->where('slug', $slug);
-                    });
-            });
-
-            // Note: For deeper nesting, we might need a more robust approach:
-            // 1. Fetch Category ID by Slug
-            // 2. Get all children IDs (recursive)
-            // 3. Filter whereIn('category_id', [ids])
-
-            // Let's implement the robust approach:
             $category = \App\Models\Category::where('slug', $slug)->first();
             if ($category) {
                 // Get this category ID and all children IDs
@@ -54,9 +41,6 @@ class ProductController extends Controller
                 if ($category->children()->exists()) {
                     $categoryIds = array_merge($categoryIds, $category->children()->pluck('id')->toArray());
                 }
-
-                // Overwrite the previous simple whereHas with specific ID check
-                // We restart the query constraint for category
                 $query->whereIn('category_id', $categoryIds);
             }
         }
