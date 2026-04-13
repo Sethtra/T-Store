@@ -179,8 +179,30 @@ class AdminProductController extends Controller
             return is_string($img) && !empty(trim($img));
         }));
 
+        // Identify orphaned images that need to be deleted from Supabase
+        if ($request->has('existing_images')) {
+            $dbImages = $product->getRawOriginal('images');
+            $oldImages = is_string($dbImages) ? (json_decode($dbImages, true) ?? []) : ($dbImages ?? []);
+            
+            $orphanedImages = array_diff($oldImages, $existingImages);
+            
+            if (!empty($orphanedImages)) {
+                $supabase = app(SupabaseStorageService::class);
+                foreach ($orphanedImages as $orphan) {
+                    if (is_string($orphan) && str_starts_with($orphan, 'http')) {
+                        try {
+                            $supabase->delete($orphan);
+                        } catch (\Exception $e) {
+                            Log::error("Failed to delete orphaned product image from Supabase: " . $e->getMessage());
+                        }
+                    }
+                }
+            }
+        }
+
         $newImages = [];
-        $supabase = app(SupabaseStorageService::class);
+        // Ensure Supabase is instantiated if it hasn't been already
+        $supabase = isset($supabase) ? $supabase : app(SupabaseStorageService::class);
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
                 $newImages[] = $supabase->upload($file, 'products');
