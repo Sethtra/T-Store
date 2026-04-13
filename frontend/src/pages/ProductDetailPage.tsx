@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useProduct } from "../hooks/useProducts";
 import { useCartStore } from "../stores/cartStore";
 import Button from "../components/ui/Button";
+import { getImageUrl } from "../utils/image";
 
 const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -180,7 +181,7 @@ const ProductDetailPage = () => {
                   }`}
                 >
                   <img
-                    src={img}
+                    src={getImageUrl(img)}
                     alt={`${product.title} ${index + 1}`}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -198,7 +199,7 @@ const ProductDetailPage = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
-              src={product.images[selectedImage] || "/placeholder.jpg"}
+              src={getImageUrl(product.images[selectedImage])}
               alt={product.title}
               className="w-full h-full object-contain p-4 lg:p-8"
               onError={(e) => {

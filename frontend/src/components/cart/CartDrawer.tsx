@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCartStore, type CartItem } from "../../stores/cartStore";
 import { Link } from "react-router-dom";
 import Button from "../ui/Button";
+import { getImageUrl } from "../../utils/image";
 
 const CartDrawer = () => {
   const { items, isOpen, closeCart, removeItem, updateQuantity, totalPrice } =
@@ -141,7 +142,7 @@ const CartItemCard = ({
       {/* Image */}
       <div className="w-20 h-20 rounded-lg overflow-hidden bg-white/20 dark:bg-white/10 p-1 flex-shrink-0 flex items-center justify-center">
         <img
-          src={item.image}
+          src={getImageUrl(item.image)}
           alt={item.title}
           className="w-full h-full object-contain"
         />

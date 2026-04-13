@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { getImageUrl } from "../../utils/image";
 
 interface ProductCardProps {
   id: number;
@@ -32,7 +33,7 @@ const ProductCard = ({
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
 
             <img
-              src={image}
+              src={getImageUrl(image)}
               alt={title}
               loading="lazy"
               className="w-full h-full object-contain p-4 will-change-transform transition-transform duration-500 ease-out group-hover:scale-110"
