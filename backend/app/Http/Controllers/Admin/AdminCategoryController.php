@@ -26,8 +26,8 @@ class AdminCategoryController extends Controller
 
         // Add children product counts to the parent product count
         $categories->each(function ($category) {
-            $childrenCount = $category->children->sum('products_count');
-            $category->products_count += $childrenCount;
+            $childrenCount = $category->children ? $category->children->sum('products_count') : 0;
+            $category->products_count = (int)($category->products_count ?? 0) + (int)$childrenCount;
         });
 
         return response()->json($categories);
@@ -45,9 +45,8 @@ class AdminCategoryController extends Controller
         ])->withCount('products')->get();
 
         $categories->each(function ($category) {
-            if ($category->children) {
-                $category->products_count += $category->children->sum('products_count');
-            }
+            $childrenCount = $category->children ? $category->children->sum('products_count') : 0;
+            $category->products_count = (int)($category->products_count ?? 0) + (int)$childrenCount;
         });
 
         return response()->json($categories);
