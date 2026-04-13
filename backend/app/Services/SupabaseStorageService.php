@@ -92,14 +92,14 @@ class SupabaseStorageService
 
         $path = substr($publicUrl, strlen($prefix));
 
-        // Supabase Storage REST API uses POST to /object/remove/{bucket}
+        // Supabase Storage REST API uses DELETE to /object/{bucket}
         // with a JSON body containing the "prefixes" array of file paths
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->key,
             'apikey' => $this->key,
             'Content-Type' => 'application/json',
-        ])->post("{$this->url}/storage/v1/object/remove/{$this->bucket}", [
-            'prefixes' => [$path],
+        ])->send('DELETE', "{$this->url}/storage/v1/object/{$this->bucket}", [
+            'body' => json_encode(['prefixes' => [$path]])
         ]);
 
         if ($response->failed()) {
