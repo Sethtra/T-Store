@@ -47,7 +47,7 @@ export interface PaginatedResponse<T> {
   };
 }
 
-// Fetch products with filters and pagination
+// Fetch products with filters and pagination (PUBLIC - customer facing)
 export const useProducts = (filters: ProductFilters = {}) => {
   return useQuery({
     queryKey: ['products', filters],
@@ -67,6 +67,25 @@ export const useProducts = (filters: ProductFilters = {}) => {
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     placeholderData: keepPreviousData, // Keep old data visible while loading new page
+  });
+};
+
+// Fetch products for ADMIN panel (uses admin endpoint - always fresh, no backend cache)
+export const useAdminProducts = (filters: ProductFilters = {}) => {
+  return useQuery({
+    queryKey: ['admin-products', filters],
+    queryFn: async (): Promise<PaginatedResponse<Product>> => {
+      const params = new URLSearchParams();
+      
+      if (filters.search) params.append('search', filters.search);
+      if (filters.page) params.append('page', String(filters.page));
+      if (filters.limit) params.append('limit', String(filters.limit));
+
+      const response = await api.get(`/admin/products?${params.toString()}`);
+      return response.data;
+    },
+    staleTime: 0, // Always fetch fresh data in admin
+    placeholderData: keepPreviousData,
   });
 };
 
@@ -120,6 +139,8 @@ export const useCreateProduct = () => {
       return response.data;
     },
     onSuccess: () => {
+      // Invalidate both admin and public product caches
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
@@ -141,9 +162,14 @@ export const useUpdateProduct = () => {
         : await api.put(`/admin/products/${id}`, data);
       return response.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (updatedProduct) => {
+      // Invalidate all products queries (admin + public)
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['product', variables.id] });
+      // Also invalidate the specific product page by slug if we have it
+      if (updatedProduct?.product?.slug) {
+        queryClient.invalidateQueries({ queryKey: ['product', updatedProduct.product.slug] });
+      }
     },
   });
 };
@@ -157,6 +183,8 @@ export const useDeleteProduct = () => {
       await api.delete(`/admin/products/${id}`);
     },
     onSuccess: () => {
+      // Immediately wipe admin and public caches so deletion is instant
+      queryClient.removeQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });

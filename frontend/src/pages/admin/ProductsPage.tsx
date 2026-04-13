@@ -1,7 +1,7 @@
 import { useState, useMemo, memo, useCallback, useEffect } from "react";
 import { useDebounce } from "../../hooks/useDebounce";
 import {
-  useProducts,
+  useAdminProducts,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
@@ -213,7 +213,7 @@ const ProductsPage = () => {
   const debouncedSearch = useDebounce(searchQuery, 500);
 
   // Fetch data — search is now server-side via debounced query
-  const { data: productsData, isLoading } = useProducts({ page, limit: 12, search: debouncedSearch || undefined });
+  const { data: productsData, isLoading } = useAdminProducts({ page, limit: 12, search: debouncedSearch || undefined });
   const { data: categories } = useAdminCategories();
 
   const createProduct = useCreateProduct();
@@ -368,6 +368,10 @@ const ProductsPage = () => {
         if (existingImages.length > 0) {
           data.append("existing_images", JSON.stringify(existingImages));
         } else if (editingProduct) {
+          if (selectedImages.length === 0) {
+            const confirmDelete = window.confirm("You have removed all images. Are you sure you want to save this product without any images?");
+            if (!confirmDelete) return;
+          }
           data.append("existing_images", JSON.stringify([]));
         }
 
