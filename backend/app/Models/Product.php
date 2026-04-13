@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class Product extends Model
 {
@@ -48,20 +49,20 @@ class Product extends Model
     private static function clearProductCaches($product): void
     {
         // Clear landing sections and categories
-        \Illuminate\Support\Facades\Cache::forget('landing_sections_index');
-        \Illuminate\Support\Facades\Cache::forget('categories_index');
+        Cache::forget('landing_sections_index');
+        Cache::forget('categories_index');
 
         // Clear featured products cache
-        \Illuminate\Support\Facades\Cache::forget('products_featured');
+        Cache::forget('products_featured');
 
         // Clear the specific product detail cache by slug
         if ($product->slug) {
-            \Illuminate\Support\Facades\Cache::forget('product_show_' . $product->slug);
+            Cache::forget('product_show_' . $product->slug);
         }
 
         // Increment the product cache version to bust all listing caches
         // The ProductController reads this version and includes it in cache keys
-        \Illuminate\Support\Facades\Cache::increment('products_cache_version');
+        Cache::increment('products_cache_version');
     }
 
     /**

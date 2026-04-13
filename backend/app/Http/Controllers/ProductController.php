@@ -23,71 +23,71 @@ class ProductController extends Controller
         $response = Cache::remember($cacheKey, 3600, function () use ($request) {
             $query = Product::with('category');
 
-        // Search (Full-Text or LIKE)
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'ilike', "%{$search}%");
-            });
-        }
-
-        // Category filter (Recursive: Parent -> Children)
-        if ($request->filled('category')) {
-            $slug = $request->category;
-            $category = \App\Models\Category::where('slug', $slug)->first();
-            if ($category) {
-                // Get this category ID and all children IDs
-                $categoryIds = [$category->id];
-                if ($category->children()->exists()) {
-                    $categoryIds = array_merge($categoryIds, $category->children()->pluck('id')->toArray());
-                }
-                $query->whereIn('category_id', $categoryIds);
+            // Search (Full-Text or LIKE)
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%");
+                });
             }
-        }
 
-        // Price range filter
-        if ($request->filled('min_price')) {
-            $query->where('price', '>=', $request->min_price);
-        }
-        if ($request->filled('max_price')) {
-            $query->where('price', '<=', $request->max_price);
-        }
+            // Category filter (Recursive: Parent -> Children)
+            if ($request->filled('category')) {
+                $slug = $request->category;
+                $category = \App\Models\Category::where('slug', $slug)->first();
+                if ($category) {
+                    // Get this category ID and all children IDs
+                    $categoryIds = [$category->id];
+                    if ($category->children()->exists()) {
+                        $categoryIds = array_merge($categoryIds, $category->children()->pluck('id')->toArray());
+                    }
+                    $query->whereIn('category_id', $categoryIds);
+                }
+            }
 
-        // Sorting
-        switch ($request->sort) {
-            case 'price_asc':
-                $query->orderBy('price', 'asc');
-                break;
-            case 'price_desc':
-                $query->orderBy('price', 'desc');
-                break;
-            case 'newest':
-                $query->orderBy('created_at', 'desc');
-                break;
-            case 'popular':
-                // Could be based on order count in future
-                $query->orderBy('stock', 'desc');
-                break;
-            default:
-                $query->orderBy('created_at', 'desc');
-        }
+            // Price range filter
+            if ($request->filled('min_price')) {
+                $query->where('price', '>=', $request->min_price);
+            }
+            if ($request->filled('max_price')) {
+                $query->where('price', '<=', $request->max_price);
+            }
 
-        $perPage = min($request->limit ?? 12, 50); // Max 50 items per page
-        $products = $query->paginate($perPage);
+            // Sorting
+            switch ($request->sort) {
+                case 'price_asc':
+                    $query->orderBy('price', 'asc');
+                    break;
+                case 'price_desc':
+                    $query->orderBy('price', 'desc');
+                    break;
+                case 'newest':
+                    $query->orderBy('created_at', 'desc');
+                    break;
+                case 'popular':
+                    // Could be based on order count in future
+                    $query->orderBy('stock', 'desc');
+                    break;
+                default:
+                    $query->orderBy('created_at', 'desc');
+            }
 
-        return [
-            'data' => $products->items(),
-            'meta' => [
-                'current_page' => $products->currentPage(),
-                'last_page' => $products->lastPage(),
-                'per_page' => $products->perPage(),
-                'total' => $products->total(),
-            ],
-        ];
-    });
+            $perPage = min($request->limit ?? 12, 50); // Max 50 items per page
+            $products = $query->paginate($perPage);
 
-    return response()->json($response);
-}
+            return [
+                'data' => $products->items(),
+                'meta' => [
+                    'current_page' => $products->currentPage(),
+                    'last_page' => $products->lastPage(),
+                    'per_page' => $products->perPage(),
+                    'total' => $products->total(),
+                ],
+            ];
+        });
+
+        return response()->json($response);
+    }
 
     /**
      * Get featured products.

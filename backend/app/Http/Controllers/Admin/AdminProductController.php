@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AdminProductController extends Controller
@@ -235,7 +236,7 @@ class AdminProductController extends Controller
                         $supabase->delete($image);
                     } catch (\Exception $e) {
                         // Log error but don't stop the product deletion
-                        \Illuminate\Support\Facades\Log::error("Failed to delete product image from Supabase: " . $e->getMessage());
+                        Log::error("Failed to delete product image from Supabase: " . $e->getMessage());
                     }
                 }
             }

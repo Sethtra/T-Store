@@ -536,10 +536,24 @@ const Navbar = () => {
                     <Link
                       to={`/products?category=${cat?.slug}`}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-4 py-2 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                      className="block px-4 py-2 rounded-xl font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     >
                       {cat.name}
                     </Link>
+                    {cat.children && cat.children.length > 0 && (
+                      <div className="pl-4">
+                        {cat.children.map((child) => (
+                          <Link
+                            key={child.id}
+                            to={`/products?category=${child?.slug}`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="block px-4 py-1.5 rounded-xl text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
+                          >
+                            {child.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

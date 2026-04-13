@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class LandingSection extends Model
 {
@@ -55,11 +56,11 @@ class LandingSection extends Model
     protected static function booted(): void
     {
         static::saved(function () {
-            \Illuminate\Support\Facades\Cache::forget('landing_sections_index');
+            Cache::forget('landing_sections_index');
         });
 
         static::deleted(function () {
-            \Illuminate\Support\Facades\Cache::forget('landing_sections_index');
+            Cache::forget('landing_sections_index');
         });
     }
 }

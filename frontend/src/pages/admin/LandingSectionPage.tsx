@@ -167,7 +167,8 @@ const LandingSectionPage = () => {
               </label>
               <input
                 type="text"
-                defaultValue="Elevate your lifestyle"
+                defaultValue={localStorage.getItem("hero_title") || "Elevate your lifestyle"}
+                id="hero-title-input"
                 className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
                 placeholder="Enter main title..."
               />
@@ -178,7 +179,8 @@ const LandingSectionPage = () => {
               </label>
               <input
                 type="text"
-                defaultValue="with premium essentials."
+                defaultValue={localStorage.getItem("hero_subtitle") || "with premium essentials."}
+                id="hero-subtitle-input"
                 className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
                 placeholder="Enter subtitle..."
               />
@@ -188,18 +190,34 @@ const LandingSectionPage = () => {
                 Description
               </label>
               <textarea
-                defaultValue="Elevate your routine with premium goods and curated essentials, combining quality and style to enhance comfort, convenience, and sophistication in every moment of your day."
+                defaultValue={localStorage.getItem("hero_description") || "Elevate your routine with premium goods and curated essentials, combining quality and style to enhance comfort, convenience, and sophistication in every moment of your day."}
+                id="hero-description-input"
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
                 placeholder="Enter description..."
               />
             </div>
           </div>
-          <p className="text-xs text-[var(--color-text-muted)] mt-3">
-            Note: To save these changes, hero text settings will be stored in
-            browser. For permanent storage, contact developer to add database
-            support.
-          </p>
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-xs text-[var(--color-text-muted)]">
+              Changes are saved to your browser and apply to the homepage
+              instantly.
+            </p>
+            <Button
+              size="sm"
+              onClick={() => {
+                const title = (document.getElementById("hero-title-input") as HTMLInputElement)?.value;
+                const subtitle = (document.getElementById("hero-subtitle-input") as HTMLInputElement)?.value;
+                const description = (document.getElementById("hero-description-input") as HTMLTextAreaElement)?.value;
+                if (title) localStorage.setItem("hero_title", title);
+                if (subtitle) localStorage.setItem("hero_subtitle", subtitle);
+                if (description) localStorage.setItem("hero_description", description);
+                alert("Hero text saved! Visit the homepage to see changes.");
+              }}
+            >
+              Save Hero Text
+            </Button>
+          </div>
         </div>
 
         {/* Section Cards */}

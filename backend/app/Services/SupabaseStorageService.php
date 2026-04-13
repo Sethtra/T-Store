@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -87,23 +88,27 @@ class SupabaseStorageService
         // Extract the path from the public URL
         $prefix = "{$this->url}/storage/v1/object/public/{$this->bucket}/";
         if (!str_starts_with($publicUrl, $prefix)) {
+            Log::info("Supabase delete skipped — URL does not match bucket prefix", [
+                'url' => $publicUrl,
+                'expected_prefix' => $prefix,
+            ]);
             return false; // Not a Supabase URL, skip
         }
 
         $path = substr($publicUrl, strlen($prefix));
 
-        // Supabase Storage REST API uses DELETE to /object/{bucket}
-        // with a JSON body containing the "prefixes" array of file paths
+        // Supabase Storage REST API: DELETE /storage/v1/object/{bucket}
+        // with JSON body containing "prefixes" array of file paths
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->key,
             'apikey' => $this->key,
-            'Content-Type' => 'application/json',
-        ])->send('DELETE', "{$this->url}/storage/v1/object/{$this->bucket}", [
-            'body' => json_encode(['prefixes' => [$path]])
-        ]);
+        ])->withBody(
+            json_encode(['prefixes' => [$path]]),
+            'application/json'
+        )->delete("{$this->url}/storage/v1/object/{$this->bucket}");
 
         if ($response->failed()) {
-            \Illuminate\Support\Facades\Log::warning("Supabase delete failed for path: {$path}", [
+            Log::warning("Supabase delete failed for path: {$path}", [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);

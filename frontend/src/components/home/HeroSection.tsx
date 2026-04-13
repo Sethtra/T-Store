@@ -11,6 +11,11 @@ const HeroSection = () => {
   const mainProduct = sections?.find((s) => s.section_type === "hero_main" && s.product);
   const smallProduct = sections?.find((s) => s.section_type === "hero_small" && s.product);
 
+  // Read hero text from localStorage (set by admin LandingSectionPage)
+  const heroTitle = localStorage.getItem("hero_title") || "Elevate your lifestyle";
+  const heroSubtitle = localStorage.getItem("hero_subtitle") || "with premium essentials.";
+  const heroDescription = localStorage.getItem("hero_description") || "Elevate your routine with premium goods and curated essentials, combining quality and style to enhance comfort, convenience, and sophistication in every moment of your day.";
+
   if (isLoading) {
     return (
       <section className="bg-white dark:bg-gray-950 transition-colors duration-300 p-10 min-h-screen font-sans flex items-center justify-center">
@@ -33,16 +38,14 @@ const HeroSection = () => {
             >
               <h1 className="text-[var(--color-text-primary)] leading-[1.1] tracking-tight">
                 <span className="block text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mb-2">
-                  Elevate your lifestyle
+                  {heroTitle}
                 </span>
                 <span className="block text-xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-text-secondary)]">
-                  with premium essentials.
+                  {heroSubtitle}
                 </span>
               </h1>
               <p className="text-[var(--color-text-muted)] text-sm md:text-base leading-relaxed max-w-md mt-6 font-light">
-                Elevate your routine with premium goods and curated essentials,
-                combining quality and style to enhance comfort, convenience, and
-                sophistication in every moment of your day.
+                {heroDescription}
               </p>
             </motion.div>
 

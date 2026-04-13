@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useProduct } from "../hooks/useProducts";
+import { useProduct, useProducts } from "../hooks/useProducts";
 import { useCartStore } from "../stores/cartStore";
 import Button from "../components/ui/Button";
+import ProductCard from "../components/product/ProductCard";
 import { getImageUrl } from "../utils/image";
 
 const ProductDetailPage = () => {
@@ -162,7 +163,6 @@ const ProductDetailPage = () => {
         </span>
       </nav>
 
-      {/* Layout Grid */}
       {/* Layout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
         {/* Image Gallery - Span 8 (Left) */}
@@ -481,7 +481,59 @@ const ProductDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Related Products */}
+      {product.category && (
+        <RelatedProducts
+          categorySlug={product.category.slug}
+          currentProductId={product.id}
+        />
+      )}
     </div>
+  );
+};
+
+// Related Products Component
+const RelatedProducts = ({
+  categorySlug,
+  currentProductId,
+}: {
+  categorySlug: string;
+  currentProductId: number;
+}) => {
+  const { data } = useProducts({ category: categorySlug, limit: 5 });
+
+  const related = (data?.data || []).filter((p) => p.id !== currentProductId).slice(0, 4);
+
+  if (related.length === 0) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.3 }}
+      className="mt-16 pt-12 border-t border-[var(--color-border)]"
+    >
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
+          You Might Also Like
+        </h2>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        {related.map((product) => (
+          <ProductCard
+            key={product.id}
+            id={product.id}
+            slug={product.slug}
+            title={product.title}
+            price={product.price}
+            image={product.images?.[0] || ""}
+            category={product.category?.name}
+            stock={product.stock}
+          />
+        ))}
+      </div>
+    </motion.div>
   );
 };
 
