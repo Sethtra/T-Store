@@ -139,11 +139,11 @@ const CartItemCard = ({
       className="flex gap-4 p-3 bg-[var(--color-bg-elevated)] rounded-xl"
     >
       {/* Image */}
-      <div className="w-20 h-20 rounded-lg overflow-hidden bg-[var(--color-bg-surface)] flex-shrink-0">
+      <div className="w-20 h-20 rounded-lg overflow-hidden bg-white/20 dark:bg-white/10 p-1 flex-shrink-0 flex items-center justify-center">
         <img
           src={item.image}
           alt={item.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
         />
       </div>
 

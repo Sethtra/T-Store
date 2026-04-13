@@ -112,10 +112,10 @@ const OrdersPage = () => {
           <button
             key={tab}
             onClick={() => setFilterStatus(tab)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
               filterStatus === tab
                 ? "bg-[var(--color-primary)] text-white shadow-lg shadow-blue-500/20"
-                : "bg-white text-[var(--color-text-muted)] hover:bg-gray-50 border border-transparent hover:border-gray-200"
+                : "bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] border border-[var(--color-border)] hover:border-[var(--color-text-muted)]"
             }`}
           >
             {tab}
@@ -124,8 +124,8 @@ const OrdersPage = () => {
       </div>
 
       {!orders || orders.length === 0 ? (
-        <div className="min-h-[40vh] flex flex-col items-center justify-center bg-white rounded-3xl border border-[var(--color-border)] p-12 text-center">
-          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+        <div className="min-h-[40vh] flex flex-col items-center justify-center bg-[var(--color-bg-elevated)] rounded-3xl border border-[var(--color-border)] px-4 py-12 text-center overflow-hidden">
+          <div className="w-20 h-20 bg-[var(--color-bg-surface)] rounded-full flex items-center justify-center mb-6 border border-[var(--color-border)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-10 w-10 text-[var(--color-text-muted)]"
@@ -157,9 +157,9 @@ const OrdersPage = () => {
                 <tr className="bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] text-xs uppercase text-[var(--color-text-muted)] font-semibold tracking-wider">
                   <th className="px-6 py-5">Tracking ID</th>
                   <th className="px-6 py-5">Date</th>
-                  <th className="px-6 py-5">Status</th>
-                  <th className="px-6 py-5">Time Left</th>
-                  <th className="px-6 py-5">Delivery</th>
+                  <th className="px-6 py-5 hidden md:table-cell">Status</th>
+                  <th className="px-6 py-5 hidden sm:table-cell">Time Left</th>
+                  <th className="px-6 py-5 hidden lg:table-cell">Delivery</th>
                   <th className="px-6 py-5">Total</th>
                   <th className="px-6 py-5 text-right">Action</th>
                 </tr>
@@ -173,14 +173,14 @@ const OrdersPage = () => {
                     <td className="px-6 py-5 font-medium text-[var(--color-primary)]">
                       #{order.tracking_id || order.id}
                     </td>
-                    <td className="px-6 py-5 text-[var(--color-text-secondary)]">
+                    <td className="px-6 py-5 text-[var(--color-text-secondary)] whitespace-nowrap">
                       {new Date(order.created_at).toLocaleDateString("en-US", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
                       })}
                     </td>
-                    <td className="px-6 py-5">
+                    <td className="px-6 py-5 hidden md:table-cell">
                       {order.payment_status === "pending" ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
                           Payment Pending
@@ -210,7 +210,7 @@ const OrdersPage = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-5">
+                    <td className="px-6 py-5 hidden sm:table-cell">
                       {order.payment_status === "pending" ? (
                         getCountdown(order.created_at) ? (
                           <span className="text-sm font-semibold text-[var(--color-error)]">
@@ -225,7 +225,7 @@ const OrdersPage = () => {
                         <span className="text-sm text-[var(--color-text-muted)]">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-5 text-[var(--color-text-secondary)]">
+                    <td className="px-6 py-5 text-[var(--color-text-secondary)] hidden lg:table-cell">
                       {
                         /* Calculate delivery fee: Total - (Items * Price) - Tax(10%) roughly, or just display "Free" if >50? 
                            For now, let's display "Free" if total matches item sum, else show diff.
