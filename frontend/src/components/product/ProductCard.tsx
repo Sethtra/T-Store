@@ -35,7 +35,7 @@ const ProductCard = ({
               src={image}
               alt={title}
               loading="lazy"
-              className="w-full h-full object-cover will-change-transform transition-transform duration-500 ease-out group-hover:scale-110"
+              className="w-full h-full object-contain p-4 will-change-transform transition-transform duration-500 ease-out group-hover:scale-110"
             />
 
             {/* Category Badge */}
