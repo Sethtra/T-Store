@@ -81,15 +81,13 @@ The application adheres to the REST architectural pattern with total decoupling 
 ```
 
 ### Production URLs
-- **Frontend:** `https://t-store-rosy.vercel.app`
-- **Backend API:** `https://t-store-yl92.onrender.com`
+- **Frontend:** `https://t-store-5a2qpzq45-lufiis-projects.vercel.app`
+- **Backend API:** `https://api.t-store.site`
 - **Database:** Supabase PostgreSQL (Singapore `ap-southeast-1`)
 
-### ⏱️ Server Keep-Alive (Free Tier)
-Render's free web services spin down after 15 minutes of inactivity. To keep the API responsive and prevent cold starts:
-1. Register for a free monitor on [cron-job.org](https://cron-job.org/) or [UptimeRobot](https://uptimerobot.com/).
-2. Setup an HTTP(S) monitor to `GET` the following health-check endpoint every **10 minutes**:
-   👉 `https://t-store-yl92.onrender.com/api/ping`
+### ⏱️ Server Keep-Alive
+AWS EC2 instances do not spin down like Render's free tier, so keep-alive monitors are no longer strictly required, but still recommended for uptime tracking:
+👉 `https://api.t-store.site/api/ping`
 
 ---
 
@@ -146,7 +144,7 @@ FRONTEND_URL=https://t-store-rosy.vercel.app
 # Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_REDIRECT_URI=https://your-backend-url/api/auth/google/callback
+GOOGLE_REDIRECT_URI=https://api.t-store.site/api/auth/google/callback
 
 # Stripe
 STRIPE_KEY=pk_test_...
