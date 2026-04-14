@@ -9,6 +9,7 @@ import {
 } from "../../hooks/useUsers";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Card from "../../components/ui/Card";
+import { TableRowSkeleton } from "../../components/admin/AdminSkeletons";
 
 const UsersPage = () => {
   const [search, setSearch] = useState("");
@@ -186,14 +187,9 @@ const UsersPage = () => {
                   </thead>
                   <tbody className="divide-y divide-[var(--color-border)]">
                     {isLoading ? (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="px-5 py-12 text-center text-[var(--color-text-muted)]"
-                        >
-                          <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto"></div>
-                        </td>
-                      </tr>
+                      Array.from({ length: 10 }).map((_, i) => (
+                        <TableRowSkeleton key={i} columns={7} />
+                      ))
                     ) : users.length === 0 ? (
                       <tr>
                         <td

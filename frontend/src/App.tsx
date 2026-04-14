@@ -88,10 +88,22 @@ const ProtectedRoute = ({
   return <Outlet />;
 };
 
-// Loading component
+// Universal Premium Page Skeleton
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-[50vh]">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-primary)]"></div>
+  <div className="p-8 max-w-7xl mx-auto space-y-8 animate-pulse">
+    <div className="flex justify-between items-center">
+      <div className="space-y-3">
+        <div className="h-8 w-48 bg-[var(--color-bg-surface)] rounded-xl" />
+        <div className="h-4 w-32 bg-[var(--color-bg-surface)] rounded-lg opacity-60" />
+      </div>
+      <div className="h-10 w-32 bg-[var(--color-bg-surface)] rounded-full" />
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="h-40 bg-[var(--color-bg-surface)] rounded-2xl" />
+      <div className="h-40 bg-[var(--color-bg-surface)] rounded-2xl" />
+      <div className="h-40 bg-[var(--color-bg-surface)] rounded-2xl" />
+    </div>
+    <div className="h-96 bg-[var(--color-bg-surface)] rounded-3xl" />
   </div>
 );
 

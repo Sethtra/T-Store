@@ -5,6 +5,7 @@ import api from "../../lib/api";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Card from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
+import Skeleton from "../../components/ui/Skeleton";
 
 interface OrderDetail {
   id: number;
@@ -80,8 +81,22 @@ const OrderDetailPage = () => {
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-primary)]"></div>
+        <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+          <div className="flex items-center gap-4 mb-8">
+            <Skeleton variant="rounded" width="40px" height="40px" />
+            <div>
+              <Skeleton variant="text" width="200px" height="32px" />
+              <Skeleton variant="text" width="150px" height="20px" className="mt-2" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <Skeleton variant="rounded" className="w-full h-[300px]" />
+            </div>
+            <div className="lg:col-span-1">
+              <Skeleton variant="rounded" className="w-full h-[400px]" />
+            </div>
+          </div>
         </div>
       </AdminLayout>
     );

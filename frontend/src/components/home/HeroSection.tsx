@@ -18,8 +18,24 @@ const HeroSection = () => {
 
   if (isLoading) {
     return (
-      <section className="bg-white dark:bg-gray-950 transition-colors duration-300 p-10 min-h-screen font-sans flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900 dark:border-white"></div>
+      <section className="bg-[var(--color-bg-primary)] px-4 md:px-8 pt-24 md:pt-[140px] min-h-screen">
+        <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {/* Left Column Skeleton */}
+          <div className="bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[3rem] p-6 md:p-14 border border-[var(--color-border)] space-y-8">
+            <div className="space-y-4">
+              <div className="h-12 md:h-16 w-3/4 bg-[var(--color-bg-elevated)] rounded-xl animate-pulse" />
+              <div className="h-8 md:h-12 w-1/2 bg-[var(--color-bg-elevated)] rounded-xl opacity-60 animate-pulse" />
+              <div className="h-20 w-full bg-[var(--color-bg-elevated)] rounded-xl opacity-40 animate-pulse" />
+            </div>
+            <div className="flex gap-4">
+              <div className="h-12 w-40 bg-[var(--color-bg-elevated)] rounded-full animate-pulse" />
+              <div className="h-12 w-12 bg-[var(--color-bg-elevated)] rounded-full animate-pulse" />
+            </div>
+            <div className="mt-12 h-32 w-full bg-[var(--color-bg-elevated)] rounded-[2rem] animate-pulse" />
+          </div>
+          {/* Right Column Skeleton */}
+          <div className="bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[2.5rem] h-[400px] md:h-full border border-[var(--color-border)] animate-pulse" />
+        </div>
       </section>
     );
   }

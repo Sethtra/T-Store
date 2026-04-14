@@ -120,44 +120,45 @@ const CategoryDisplayPage = () => {
 
   return (
     <AdminLayout>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            Category Display Manager
-          </h1>
-          <p className="text-[var(--color-text-muted)]">
-            Customize the "Browse by Categories" section on your homepage
-          </p>
+      <div className="w-full px-4 lg:px-8 py-4 lg:py-6 max-w-7xl mx-auto space-y-6 lg:space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+              Category Display Manager
+            </h1>
+            <p className="text-[var(--color-text-muted)] mt-1">
+              Customize the "Browse by Categories" section on your homepage
+            </p>
+          </div>
+          <Link to="/" target="_blank">
+            <Button variant="outline" size="sm" className="hidden sm:flex">
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+              Preview
+            </Button>
+          </Link>
         </div>
-        <Link to="/" target="_blank">
-          <Button variant="outline" size="sm">
-            <svg
-              className="w-4 h-4 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              />
-            </svg>
-            Preview
-          </Button>
-        </Link>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto">
+        {/* Content */}
+        <div>
         {/* Live Preview */}
         <Card className="mb-8 overflow-hidden">
           <Card.Header className="bg-gradient-to-r from-[var(--color-primary)]/10 to-transparent">
@@ -478,6 +479,7 @@ const CategoryDisplayPage = () => {
               </Card>
             </motion.div>
           ))}
+        </div>
         </div>
       </div>
     </AdminLayout>

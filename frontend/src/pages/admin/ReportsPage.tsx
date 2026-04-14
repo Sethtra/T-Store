@@ -22,6 +22,7 @@ import {
 } from '../../hooks/useReports';
 import Button from '../../components/ui/Button';
 import AdminLayout from '../../components/admin/AdminLayout';
+import Skeleton from '../../components/ui/Skeleton';
 
 // Utility for positive/negative change class logic
 const getChangeClass = (change: number) => {
@@ -132,7 +133,7 @@ const ReportsPage = () => {
             
             <div className="mt-4 flex items-baseline gap-4">
               {isLoading ? (
-                <div className="h-8 w-24 bg-[var(--color-border)] animate-pulse rounded"></div>
+                <Skeleton variant="text" width="100px" height="32px" />
               ) : (
                 <>
                   <p className="text-3xl font-bold">{stat.value}</p>
@@ -153,9 +154,7 @@ const ReportsPage = () => {
           <h3 className="font-bold text-lg mb-6">Revenue Overview</h3>
           <div className="h-[400px] w-full">
             {isLoading ? (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-t-[var(--color-primary)] border-[var(--color-border)] rounded-full animate-spin"></div>
-              </div>
+              <Skeleton variant="rounded" className="w-full h-full" />
             ) : revenueData && revenueData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={revenueData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -241,9 +240,7 @@ const ReportsPage = () => {
           <h3 className="font-bold text-lg mb-6">Top Selling Products</h3>
           <div className="h-[400px] w-full">
             {isLoading ? (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-t-[var(--color-primary)] border-[var(--color-border)] rounded-full animate-spin"></div>
-              </div>
+              <Skeleton variant="rounded" className="w-full h-full" />
             ) : topProductsData && topProductsData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topProductsData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>

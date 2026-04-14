@@ -58,7 +58,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
             <NotificationItem
               key={order.id}
               order={order}
-              onClick={() => handleItemClick(order.id)}
+              onClick={() => handleItemClick()}
             />
           ))
         )}

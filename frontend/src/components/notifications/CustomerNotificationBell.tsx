@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useOrders } from "../../hooks/useOrders";
 import { useAuthStore } from "../../stores/authStore";

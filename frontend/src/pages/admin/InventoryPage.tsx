@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { useAdminInventory, useStockHistory, useAdjustStock } from '../../hooks/useInventory';
 import Button from '../../components/ui/Button';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { TableRowSkeleton } from '../../components/admin/AdminSkeletons';
 
 const InventoryPage = () => {
   const [page, setPage] = useState(1);
@@ -132,12 +133,9 @@ const InventoryPage = () => {
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
                 {isLoading ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-[var(--color-text-muted)]">
-                      <div className="w-8 h-8 border-4 border-t-[var(--color-primary)] border-[var(--color-border)] rounded-full animate-spin mx-auto mb-4"></div>
-                      Loading inventory...
-                    </td>
-                  </tr>
+                  Array.from({ length: 10 }).map((_, i) => (
+                    <TableRowSkeleton key={i} columns={5} />
+                  ))
                 ) : inventoryData?.data.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-[var(--color-text-muted)]">

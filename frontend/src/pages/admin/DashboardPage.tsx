@@ -8,6 +8,7 @@ import {
 } from "../../hooks/useOrders";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Card from "../../components/ui/Card";
+import { StatsCardSkeleton, TableSkeleton } from "../../components/admin/AdminSkeletons";
 
 const DashboardPage = () => {
   const { data: stats, isLoading: isLoadingStats } = useDashboardStats();
@@ -182,7 +183,10 @@ const DashboardPage = () => {
 
         {/* Dashboard Stats Grid */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-6">
-          {dashboardStats.map((stat, index) => (
+          {isLoadingStats ? (
+            Array.from({ length: 4 }).map((_, i) => <StatsCardSkeleton key={i} />)
+          ) : (
+            dashboardStats.map((stat, index) => (
             <motion.div
               key={stat.title}
               initial={{ opacity: 0, y: 20 }}
@@ -210,7 +214,8 @@ const DashboardPage = () => {
                 </Card.Body>
               </Card>
             </motion.div>
-          ))}
+          ))
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 mb-8">
@@ -460,27 +465,21 @@ const DashboardPage = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--color-border)]">
-                  {isLoading ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-8 text-center text-[var(--color-text-muted)]"
-                      >
-                        <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto"></div>
-                      </td>
-                    </tr>
-                  ) : !paginatedOrders.length ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-8 text-center text-[var(--color-text-muted)]"
-                      >
-                        No orders found.
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedOrders.map((order) => {
+                {isLoading ? (
+                  <TableSkeleton columns={6} rows={4} />
+                ) : (
+                  <tbody className="divide-y divide-[var(--color-border)]">
+                    {!paginatedOrders.length ? (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="px-6 py-8 text-center text-[var(--color-text-muted)]"
+                        >
+                          No orders found.
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedOrders.map((order) => {
                       // Mock visuals for Duralux style
                       const progress =
                         order.status === "completed"
@@ -605,6 +604,7 @@ const DashboardPage = () => {
                     })
                   )}
                 </tbody>
+              )}
               </table>
             </div>
 

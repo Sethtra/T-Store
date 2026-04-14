@@ -13,6 +13,7 @@ import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Badge from "../../components/ui/Badge";
+import { TableRowSkeleton } from "../../components/admin/AdminSkeletons";
 
 const CategoriesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -108,16 +109,7 @@ const CategoriesPage = () => {
     });
   }, [categories, searchQuery]);
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <div className="w-full px-4 lg:px-8 py-4 lg:py-6 flex items-center justify-center min-h-[50vh]">
-          <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      </AdminLayout>
-    );
-  }
-
+  // Loader removed to allow skeletal rendering
   return (
     <AdminLayout>
       <div className="w-full px-4 lg:px-8 py-4 lg:py-6 space-y-4 lg:space-y-6">
@@ -208,7 +200,11 @@ const CategoriesPage = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--color-border)]">
-                    {filteredParents.length === 0 ? (
+                    {isLoading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <TableRowSkeleton key={i} columns={5} />
+                      ))
+                    ) : filteredParents.length === 0 ? (
                       <tr>
                         <td
                           colSpan={5}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Button from "../../components/ui/Button";
+import Skeleton from "../../components/ui/Skeleton";
 import {
   useAdminLandingSections,
   useCreateLandingSection,
@@ -136,254 +137,226 @@ const LandingSectionPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg-primary)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-primary)]"></div>
-      </div>
+      <AdminLayout>
+        <div className="w-full px-4 lg:px-8 py-4 lg:py-6 space-y-6">
+          <div>
+            <Skeleton variant="text" width="300px" height="32px" />
+            <Skeleton variant="text" width="400px" height="20px" className="mt-2" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <Skeleton variant="rounded" className="w-full h-[500px]" />
+            <Skeleton variant="rounded" className="w-full h-[500px]" />
+          </div>
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full px-4 lg:px-8 py-4 lg:py-6 max-w-7xl mx-auto space-y-6 lg:space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            Landing Section
-          </h1>
-          <p className="text-[var(--color-text-muted)]">
-            Manage featured products displayed on the homepage hero section
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="p-2 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-lg">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </span>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+              Landing Section
+            </h1>
+          </div>
+          <p className="text-[var(--color-text-secondary)] max-w-2xl">
+            Customize your storefront's hero experience. Update text, featured products, and banners to capture your customers' attention.
           </p>
         </div>
 
         {/* Hero Title Configuration */}
-        <div className="bg-[var(--color-bg-elevated)] rounded-2xl border border-[var(--color-border)] p-6 mb-6">
-          <h3 className="font-semibold text-[var(--color-text-primary)] mb-4">
-            Hero Section Text
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                Main Title
-              </label>
-              <input
-                type="text"
-                defaultValue={localStorage.getItem("hero_title") || "Elevate your lifestyle"}
-                id="hero-title-input"
-                className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
-                placeholder="Enter main title..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                Subtitle
-              </label>
-              <input
-                type="text"
-                defaultValue={localStorage.getItem("hero_subtitle") || "with premium essentials."}
-                id="hero-subtitle-input"
-                className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
-                placeholder="Enter subtitle..."
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                Description
-              </label>
-              <textarea
-                defaultValue={localStorage.getItem("hero_description") || "Elevate your routine with premium goods and curated essentials, combining quality and style to enhance comfort, convenience, and sophistication in every moment of your day."}
-                id="hero-description-input"
-                rows={3}
-                className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
-                placeholder="Enter description..."
-              />
-            </div>
+        <div className="bg-[var(--color-bg-secondary)] rounded-3xl border border-[var(--color-border)] shadow-sm overflow-hidden mb-10">
+          <div className="p-6 md:p-8 bg-gradient-to-r from-[var(--color-primary)]/5 to-transparent border-b border-[var(--color-border)]">
+            <h3 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
+              <svg className="w-5 h-5 text-[var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Hero Section Messaging
+            </h3>
           </div>
-          <div className="flex items-center justify-between mt-4">
-            <p className="text-xs text-[var(--color-text-muted)]">
-              Changes are saved to your browser and apply to the homepage
-              instantly.
-            </p>
-            <Button
-              size="sm"
-              onClick={() => {
-                const title = (document.getElementById("hero-title-input") as HTMLInputElement)?.value;
-                const subtitle = (document.getElementById("hero-subtitle-input") as HTMLInputElement)?.value;
-                const description = (document.getElementById("hero-description-input") as HTMLTextAreaElement)?.value;
-                if (title) localStorage.setItem("hero_title", title);
-                if (subtitle) localStorage.setItem("hero_subtitle", subtitle);
-                if (description) localStorage.setItem("hero_description", description);
-                alert("Hero text saved! Visit the homepage to see changes.");
-              }}
-            >
-              Save Hero Text
-            </Button>
+          <div className="p-6 md:p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-2">Main Title</label>
+                  <input
+                    type="text"
+                    defaultValue={localStorage.getItem("hero_title") || "Elevate your lifestyle"}
+                    id="hero-title-input"
+                    className="w-full px-4 py-3.5 rounded-2xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
+                    placeholder="e.g. Next-Gen Electronics"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-2">Subtitle</label>
+                  <input
+                    type="text"
+                    defaultValue={localStorage.getItem("hero_subtitle") || "with premium essentials."}
+                    id="hero-subtitle-input"
+                    className="w-full px-4 py-3.5 rounded-2xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
+                    placeholder="e.g. Discover the future today"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-2">Captivating Description</label>
+                <textarea
+                  defaultValue={localStorage.getItem("hero_description") || "Elevate your routine with premium goods and curated essentials..."}
+                  id="hero-description-input"
+                  rows={5}
+                  className="w-full px-4 py-3.5 rounded-2xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all resize-none"
+                  placeholder="Tell your story..."
+                />
+              </div>
+            </div>
+            
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[var(--color-bg-primary)] rounded-2xl border border-[var(--color-border)]">
+              <div className="flex items-center gap-3 text-[var(--color-text-secondary)]">
+                <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-xs font-medium">Changes apply instantly to the storefront homepage.</span>
+              </div>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  const title = (document.getElementById("hero-title-input") as HTMLInputElement)?.value;
+                  const subtitle = (document.getElementById("hero-subtitle-input") as HTMLInputElement)?.value;
+                  const description = (document.getElementById("hero-description-input") as HTMLTextAreaElement)?.value;
+                  if (title) localStorage.setItem("hero_title", title);
+                  if (subtitle) localStorage.setItem("hero_subtitle", subtitle);
+                  if (description) localStorage.setItem("hero_description", description);
+                  alert("✨ Hero text updated successfully!");
+                }}
+                className="w-full sm:w-auto px-8"
+              >
+                Save Messaging
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Section Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Main Featured Product */}
-          <div className="bg-[var(--color-bg-elevated)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
-            <div className="p-4 border-b border-[var(--color-border)]">
-              <h3 className="font-semibold text-[var(--color-text-primary)]">
-                {sectionTypeLabels.hero_main.title}
-              </h3>
-              <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                {sectionTypeLabels.hero_main.description}
-              </p>
+        {/* Section Cards - Bento Style Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Main Featured Product Card */}
+          <div className="group bg-[var(--color-bg-secondary)] rounded-3xl border border-[var(--color-border)] shadow-sm hover:shadow-md transition-all overflow-hidden">
+            <div className="p-6 border-b border-[var(--color-border)] flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-[var(--color-text-primary)] text-lg">
+                  {sectionTypeLabels.hero_main.title}
+                </h3>
+                <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                  {sectionTypeLabels.hero_main.description}
+                </p>
+              </div>
+              <span className="px-2.5 py-1 bg-indigo-500/10 text-indigo-500 text-[10px] font-bold uppercase tracking-wider rounded-full">
+                Primary Card
+              </span>
             </div>
-            <div className="p-4">
+            
+            <div className="p-6">
               {getSectionByType("hero_main") ? (
-                <div className="space-y-4">
-                  <div className="bg-gray-100 rounded-xl p-4 flex gap-4">
-                    <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center p-2 flex-shrink-0">
-                      <img
-                        src={
-                          getSectionByType("hero_main")?.product?.image_url ||
-                          "/placeholder.png"
-                        }
-                        alt={getSectionByType("hero_main")?.title}
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 truncate">
-                        {getSectionByType("hero_main")?.title}
-                      </h4>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                        {getSectionByType("hero_main")?.description}
-                      </p>
-                      <p className="text-lg font-bold text-gray-900 mt-2">
-                        ${getSectionByType("hero_main")?.product?.price}
-                      </p>
+                <div className="space-y-6">
+                  <div className="relative aspect-video rounded-2xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] overflow-hidden flex items-center justify-center group-hover:bg-[var(--color-bg-surface)] transition-colors">
+                    <img
+                      src={getSectionByType("hero_main")?.product?.image_url || "/placeholder.png"}
+                      alt={getSectionByType("hero_main")?.title}
+                      className="max-h-[80%] w-auto object-contain drop-shadow-lg transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute bottom-4 left-4 right-4 p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white uppercase opacity-80 mb-0.5">Currently Featured</p>
+                        <h4 className="font-bold text-white truncate">{getSectionByType("hero_main")?.title}</h4>
+                      </div>
+                      <p className="font-black text-white text-lg">${getSectionByType("hero_main")?.product?.price}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <Button
                       onClick={() => openCreateModal("hero_main")}
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 border-dashed hover:border-solid"
                     >
-                      Edit
+                      Change Product
                     </Button>
-                    <Button
-                      onClick={() =>
-                        handleDelete(getSectionByType("hero_main")!.id)
-                      }
-                      variant="outline"
-                      className="text-red-500"
+                    <button
+                      onClick={() => handleDelete(getSectionByType("hero_main")!.id)}
+                      className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100"
+                      title="Remove from Hero"
                     >
-                      Remove
-                    </Button>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => openCreateModal("hero_main")}
-                  className="w-full py-12 border-2 border-dashed border-[var(--color-border)] rounded-xl flex flex-col items-center justify-center hover:border-[var(--color-primary)] transition-colors cursor-pointer"
-                >
-                  <div className="w-12 h-12 rounded-full bg-[var(--color-bg-surface)] flex items-center justify-center mb-3">
-                    <svg
-                      className="w-6 h-6 text-[var(--color-text-muted)]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-sm font-medium text-[var(--color-text-muted)]">
-                    Click to add a featured product
-                  </p>
-                </button>
+                <EmptyProductSlot onAdd={() => openCreateModal("hero_main")} />
               )}
             </div>
           </div>
 
-          {/* Small Featured Product */}
-          <div className="bg-[var(--color-bg-elevated)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
-            <div className="p-4 border-b border-[var(--color-border)]">
-              <h3 className="font-semibold text-[var(--color-text-primary)]">
-                {sectionTypeLabels.hero_small.title}
-              </h3>
-              <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                {sectionTypeLabels.hero_small.description}
-              </p>
+          {/* Small Featured Product Card */}
+          <div className="group bg-[var(--color-bg-secondary)] rounded-3xl border border-[var(--color-border)] shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-[var(--color-border)] flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-[var(--color-text-primary)] text-lg">
+                  {sectionTypeLabels.hero_small.title}
+                </h3>
+                <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                  {sectionTypeLabels.hero_small.description}
+                </p>
+              </div>
+              <span className="px-2.5 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase tracking-wider rounded-full">
+                Secondary Row
+              </span>
             </div>
-            <div className="p-4">
+            
+            <div className="p-6 flex-1 flex flex-col justify-center">
               {getSectionByType("hero_small") ? (
-                <div className="space-y-4">
-                  <div className="bg-gray-100 rounded-xl p-4 flex gap-4">
-                    <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center p-2 flex-shrink-0">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-6 p-4 rounded-2xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] group-hover:bg-[var(--color-bg-surface)] transition-colors">
+                    <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center p-2 shadow-sm shrink-0">
                       <img
-                        src={
-                          getSectionByType("hero_small")?.product?.image_url ||
-                          "/placeholder.png"
-                        }
+                        src={getSectionByType("hero_small")?.product?.image_url || "/placeholder.png"}
                         alt={getSectionByType("hero_small")?.title}
                         className="max-w-full max-h-full object-contain"
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 truncate">
-                        {getSectionByType("hero_small")?.title}
-                      </h4>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                        {getSectionByType("hero_small")?.description}
-                      </p>
-                      <p className="text-lg font-bold text-gray-900 mt-2">
-                        ${getSectionByType("hero_small")?.product?.price}
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-[var(--color-text-primary)] truncate">{getSectionByType("hero_small")?.title}</h4>
+                      <p className="text-sm text-[var(--color-text-muted)] line-clamp-2 mt-1">{getSectionByType("hero_small")?.description}</p>
+                      <p className="text-xl font-black text-[var(--color-primary)] mt-2">${getSectionByType("hero_small")?.product?.price}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <Button
                       onClick={() => openCreateModal("hero_small")}
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 border-dashed hover:border-solid"
                     >
-                      Edit
+                      Change Product
                     </Button>
-                    <Button
-                      onClick={() =>
-                        handleDelete(getSectionByType("hero_small")!.id)
-                      }
-                      variant="outline"
-                      className="text-red-500"
+                    <button
+                      onClick={() => handleDelete(getSectionByType("hero_small")!.id)}
+                      className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
                     >
-                      Remove
-                    </Button>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => openCreateModal("hero_small")}
-                  className="w-full py-12 border-2 border-dashed border-[var(--color-border)] rounded-xl flex flex-col items-center justify-center hover:border-[var(--color-primary)] transition-colors cursor-pointer"
-                >
-                  <div className="w-12 h-12 rounded-full bg-[var(--color-bg-surface)] flex items-center justify-center mb-3">
-                    <svg
-                      className="w-6 h-6 text-[var(--color-text-muted)]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-sm font-medium text-[var(--color-text-muted)]">
-                    Click to add a featured product
-                  </p>
-                </button>
+                <EmptyProductSlot onAdd={() => openCreateModal("hero_small")} />
               )}
             </div>
           </div>
@@ -585,5 +558,22 @@ const LandingSectionPage = () => {
     </AdminLayout>
   );
 };
+
+const EmptyProductSlot = ({ onAdd }: { onAdd: () => void }) => (
+  <button
+    onClick={onAdd}
+    className="w-full h-full min-h-[300px] border-2 border-dashed border-[var(--color-border)] rounded-2xl flex flex-col items-center justify-center hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all duration-300 cursor-pointer group"
+  >
+    <div className="w-16 h-16 rounded-full bg-[var(--color-bg-primary)] shadow-sm border border-[var(--color-border)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+      <svg className="w-8 h-8 text-[var(--color-primary)] opacity-80 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+      </svg>
+    </div>
+    <h4 className="text-[var(--color-text-primary)] font-bold text-lg mb-1">Feature a Product</h4>
+    <p className="text-sm font-medium text-[var(--color-text-muted)] group-hover:text-[var(--color-primary)] transition-colors">
+      Click to browse catalog
+    </p>
+  </button>
+);
 
 export default LandingSectionPage;

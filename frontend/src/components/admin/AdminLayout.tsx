@@ -145,7 +145,7 @@ const navItems = [
     ),
   },
   {
-    label: "Storefront",
+    label: "Custom Page",
     icon: (
       <svg
         className="w-5 h-5"
@@ -381,7 +381,7 @@ const NotificationBell = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-12 w-80 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-xl shadow-2xl shadow-black/20 z-50 overflow-hidden"
+            className="absolute -right-2 sm:right-0 top-12 w-[85vw] sm:w-80 max-w-[360px] bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-xl shadow-2xl shadow-black/20 z-50 overflow-hidden"
           >
             {/* Header */}
             <div className="px-4 py-3 border-b border-[var(--color-border)]">
@@ -642,22 +642,22 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                               <Link
                                 key={child.label}
                                 to={child.href}
-                                className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                                className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 min-w-0 ${
                                   active
                                     ? "text-white bg-[var(--color-primary)]"
                                     : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)]"
                                 }`}
                               >
                                 <span
-                                  className={
+                                  className={`flex-shrink-0 ${
                                     active
                                       ? "text-white"
                                       : "text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)]"
-                                  }
+                                  }`}
                                 >
                                   {child.icon}
                                 </span>
-                                {child.label}
+                                <span className="truncate leading-tight mt-0.5">{child.label}</span>
                               </Link>
                             );
                           })}
@@ -691,6 +691,21 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               )}
             </div>
           ))}
+
+          {/* Back to Store Action */}
+          <div className="mt-8 mb-2">
+            <Link
+              to="/"
+              className="flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)]"
+            >
+              <span className="text-[var(--color-text-muted)]">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+              </span>
+              <span>Back to Store</span>
+            </Link>
+          </div>
         </nav>
 
         {/* User Profile */}
