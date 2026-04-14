@@ -14,6 +14,8 @@ return [
 
     'allowed_origins' => [
         'http://localhost:3000',
+        'https://t-store.site',
+        'https://www.t-store.site',
         env('FRONTEND_URL'),
     ],
 
