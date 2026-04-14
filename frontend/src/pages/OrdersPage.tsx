@@ -256,7 +256,7 @@ const OrdersPage = () => {
                         {order.payment_status === "pending" ? (
                           <Button
                             size="sm"
-                            onClick={(e) => { e.stopPropagation(); navigate(`/checkout?retry_order=${order.id}`); }}
+                            onClick={(e) => { e?.stopPropagation(); navigate(`/checkout?retry_order=${order.id}`); }}
                             className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white border-none shadow-lg shadow-[var(--color-primary)]/20"
                           >
                             Pay Now
@@ -266,7 +266,7 @@ const OrdersPage = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={(e) => { e.stopPropagation(); handleViewInvoice(order); }}
+                              onClick={(e) => { e?.stopPropagation(); handleViewInvoice(order); }}
                               className="border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] hover:border-[var(--color-text-muted)]"
                             >
                               Invoice
@@ -274,7 +274,7 @@ const OrdersPage = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={(e) => { e.stopPropagation(); handleViewDetails(order); }}
+                              onClick={(e) => { e?.stopPropagation(); handleViewDetails(order); }}
                             >
                               Details
                             </Button>
