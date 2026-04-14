@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           await api.post('/logout');
-        } catch (error) {
+        } catch {
           // Ignore failures on logout (e.g. 401)
         } finally {
           localStorage.removeItem('auth_token');

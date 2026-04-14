@@ -5,6 +5,7 @@ import { useThemeStore } from "../../stores/themeStore";
 import { useAdminNotifications } from "../../hooks/useNotifications";
 import { AnimatePresence, motion } from "framer-motion";
 import Button from "../../components/ui/Button";
+import { timeAgo } from "../../utils/time";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -231,20 +232,6 @@ const navItems = [
     ),
   },
 ];
-
-// Time ago helper
-const timeAgo = (dateStr: string) => {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-};
 
 // Notification type config
 const notificationConfig = {
@@ -513,8 +500,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   // Auto-close sidebar on route change (mobile)
   useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [location.pathname]);
+    if (isSidebarOpen) {
+      setIsSidebarOpen(false);
+    }
+  }, [location.pathname, isSidebarOpen]);
 
   const handleLogout = () => {
     logout();

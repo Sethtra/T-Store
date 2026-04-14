@@ -92,7 +92,7 @@ const CategoriesPage = () => {
       if (selectedCategoryId === id) {
         setSelectedCategoryId(null);
       }
-    } catch (error) {
+    } catch {
       alert("Failed to delete category. Please try again.");
     }
   };
