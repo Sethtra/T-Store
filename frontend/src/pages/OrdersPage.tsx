@@ -152,35 +152,47 @@ const OrdersPage = () => {
       ) : (
         <div className="bg-[var(--color-bg-primary)] rounded-3xl border border-[var(--color-border)] overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-sm">
               <thead>
-                <tr className="bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] text-xs uppercase text-[var(--color-text-muted)] font-semibold tracking-wider">
-                  <th className="px-6 py-5">Tracking ID</th>
-                  <th className="px-6 py-5">Date</th>
-                  <th className="px-6 py-5 hidden md:table-cell">Status</th>
-                  <th className="px-6 py-5 hidden sm:table-cell">Time Left</th>
-                  <th className="px-6 py-5 hidden lg:table-cell">Delivery</th>
-                  <th className="px-6 py-5">Total</th>
-                  <th className="px-6 py-5 text-right">Action</th>
+                <tr className="bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] text-[10px] sm:text-xs uppercase text-[var(--color-text-muted)] font-semibold tracking-wider">
+                  <th className="px-3 sm:px-6 py-4 sm:py-5">Tracking ID</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5">Date</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden md:table-cell">Status</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">Time Left</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden lg:table-cell">Delivery</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5">Total</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5 text-right hidden sm:table-cell">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
                 {filteredOrders?.map((order) => (
                   <tr
                     key={order.id}
-                    className="hover:bg-[var(--color-bg-elevated)] transition-colors group"
+                    className="hover:bg-[var(--color-bg-elevated)] transition-colors group cursor-pointer sm:cursor-default"
+                    onClick={() => {
+                      // On mobile, clicking the row opens details
+                      if (window.innerWidth < 640) {
+                        if (order.payment_status === "pending") {
+                          navigate(`/checkout?retry_order=${order.id}`);
+                        } else {
+                          handleViewDetails(order);
+                        }
+                      }
+                    }}
                   >
-                    <td className="px-6 py-5 font-medium text-[var(--color-primary)]">
-                      #{order.tracking_id || order.id}
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 font-medium text-[var(--color-primary)] text-xs sm:text-sm">
+                      <span className="inline-block max-w-[80px] sm:max-w-none truncate align-bottom">
+                        #{order.tracking_id || order.id}
+                      </span>
                     </td>
-                    <td className="px-6 py-5 text-[var(--color-text-secondary)] whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 text-[var(--color-text-secondary)] whitespace-nowrap text-xs sm:text-sm">
                       {new Date(order.created_at).toLocaleDateString("en-US", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
                       })}
                     </td>
-                    <td className="px-6 py-5 hidden md:table-cell">
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 hidden md:table-cell">
                       {order.payment_status === "pending" ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
                           Payment Pending
@@ -210,7 +222,7 @@ const OrdersPage = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-5 hidden sm:table-cell">
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">
                       {order.payment_status === "pending" ? (
                         getCountdown(order.created_at) ? (
                           <span className="text-sm font-semibold text-[var(--color-error)]">
@@ -225,12 +237,8 @@ const OrdersPage = () => {
                         <span className="text-sm text-[var(--color-text-muted)]">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-5 text-[var(--color-text-secondary)] hidden lg:table-cell">
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 text-[var(--color-text-secondary)] hidden lg:table-cell">
                       {
-                        /* Calculate delivery fee: Total - (Items * Price) - Tax(10%) roughly, or just display "Free" if >50? 
-                           For now, let's display "Free" if total matches item sum, else show diff.
-                           Simpler: Check if it was pickup or delivery. Since we don't store "method" easily accessible here without calculation,
-                           let's just show "Free" for now as per design ref or $9.99 */
                         Number(order.total) > 50 ? (
                           <span className="text-green-600 font-medium">
                             Free
@@ -240,15 +248,15 @@ const OrdersPage = () => {
                         )
                       }
                     </td>
-                    <td className="px-6 py-5 font-bold text-[var(--color-text-primary)]">
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 font-bold text-[var(--color-text-primary)] text-xs sm:text-sm">
                       ${Number(order.total).toFixed(2)}
                     </td>
-                    <td className="px-6 py-5">
+                    <td className="px-3 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">
                       <div className="flex items-center justify-end gap-2">
                         {order.payment_status === "pending" ? (
                           <Button
                             size="sm"
-                            onClick={() => navigate(`/checkout?retry_order=${order.id}`)}
+                            onClick={(e) => { e.stopPropagation(); navigate(`/checkout?retry_order=${order.id}`); }}
                             className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white border-none shadow-lg shadow-[var(--color-primary)]/20"
                           >
                             Pay Now
@@ -258,7 +266,7 @@ const OrdersPage = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleViewInvoice(order)}
+                              onClick={(e) => { e.stopPropagation(); handleViewInvoice(order); }}
                               className="border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] hover:border-[var(--color-text-muted)]"
                             >
                               Invoice
@@ -266,7 +274,7 @@ const OrdersPage = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleViewDetails(order)}
+                              onClick={(e) => { e.stopPropagation(); handleViewDetails(order); }}
                             >
                               Details
                             </Button>

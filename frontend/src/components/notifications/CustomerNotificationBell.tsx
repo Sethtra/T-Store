@@ -216,7 +216,7 @@ const CustomerNotificationBell = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-12 w-80 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-2xl shadow-2xl shadow-black/20 z-50 overflow-hidden"
+            className="fixed left-2 right-2 top-[72px] sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-80 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-2xl shadow-2xl shadow-black/20 z-50 overflow-hidden"
           >
             {/* Header */}
             <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between bg-[var(--color-bg-surface)]">

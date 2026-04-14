@@ -486,12 +486,12 @@ const Navbar = () => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass border-t border-[var(--color-border)] overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="md:hidden fixed inset-0 top-[64px] z-40 bg-[var(--color-bg-primary)] overflow-y-auto"
           >
-            <div className="container px-4 py-6 space-y-4">
+            <div className="px-4 py-6 space-y-4">
               <div className="flex flex-col gap-2">
                 <Link
                   to="/"
