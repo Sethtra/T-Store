@@ -9,8 +9,17 @@ import { useOrders } from "../../hooks/useOrders";
 import Button from "../ui/Button";
 import CustomerNotificationBell from "../notifications/CustomerNotificationBell";
 
+
+// Helper for icon size consistency
+const ActionIcon = ({ children }: { children: React.ReactNode }) => (
+  <div className="w-10 h-10 rounded-xl bg-[var(--color-bg-surface)] flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all border border-[var(--color-border)] shadow-sm">
+    {children}
+  </div>
+);
+
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Record<number, boolean>>({});
   const [scrolled, setScrolled] = useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
   const { totalItems, toggleCart } = useCartStore();
@@ -35,10 +44,15 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const toggleCategory = (id: number) => {
+    setExpandedCategories(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const handleLogout = async () => {
     await logout();
     navigate("/");
   };
+
 
   return (
     <header
@@ -491,7 +505,72 @@ const Navbar = () => {
             exit={{ opacity: 0 }}
             className="md:hidden fixed inset-0 top-[64px] z-40 bg-[var(--color-bg-primary)] overflow-y-auto"
           >
-            <div className="px-4 py-6 space-y-4">
+            <div className="px-4 py-6 space-y-6">
+              {/* Profile Section (Only if Authenticated) */}
+              {isAuthenticated && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 p-2">
+                    <div className="w-16 h-16 bg-gradient-to-br from-[var(--color-primary)] to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-xl shadow-[var(--color-primary)]/20 border-2 border-[var(--color-bg-primary)]">
+                    {user?.name?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl font-bold text-[var(--color-text-primary)] truncate">
+                        {user?.name || "User"}
+                      </h3>
+                      <p className="text-sm text-[var(--color-text-muted)] truncate">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Icon Row */}
+                  <div className="grid grid-cols-4 gap-3 px-1">
+                    <button onClick={toggleTheme} className="flex flex-col items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <ActionIcon>
+                         {theme === "dark" ? (
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                        ) : (
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                          </svg>
+                        )}
+                      </ActionIcon>
+                      <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Theme</span>
+                    </button>
+
+                    <button onClick={() => { setIsMobileMenuOpen(false); navigate("/orders"); }} className="flex flex-col items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                      <ActionIcon>
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                      </ActionIcon>
+                      <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Orders</span>
+                    </button>
+
+                    {/* Notification uses the bell component or just an icon for simplicity in menu */}
+                     <button onClick={() => { setIsMobileMenuOpen(false); navigate("/orders"); }} className="flex flex-col items-center gap-1.5 relative animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <ActionIcon>
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                      </ActionIcon>
+                      <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Alerts</span>
+                    </button>
+
+                    <button onClick={() => { setIsMobileMenuOpen(false); toggleCart(); }} className="flex flex-col items-center gap-1.5 relative animate-in fade-in slide-in-from-bottom-2 duration-600">
+                      <ActionIcon>
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                      </ActionIcon>
+                      <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Cart</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col gap-2">
                 <Link
                   to="/"
@@ -527,40 +606,69 @@ const Navbar = () => {
                   About
                 </Link>
 
-                {/* Mobile Categories - simplified list */}
+                <div className="h-px bg-[var(--color-border)]/50 my-2 mx-4" />
+
+                {/* Mobile Categories - Collapsible */}
                 <div className="px-4 py-2 text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
                   Categories
                 </div>
-                {categories?.map((cat) => (
-                  <div key={cat.id} className="pl-4">
-                    <Link
-                      to={`/products?category=${cat?.slug}`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-4 py-2 rounded-xl font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
-                    >
-                      {cat.name}
-                    </Link>
-                    {cat.children && cat.children.length > 0 && (
-                      <div className="pl-4">
-                        {cat.children.map((child) => (
-                          <Link
-                            key={child.id}
-                            to={`/products?category=${child?.slug}`}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block px-4 py-1.5 rounded-xl text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
+                <div className="space-y-1">
+                  {categories?.map((cat) => (
+                    <div key={cat.id} className="px-2">
+                      <button
+                        onClick={() => toggleCategory(cat.id)}
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-primary)] transition-all group"
+                      >
+                        {cat.name}
+                        <svg
+                          className={`w-4 h-4 transition-transform duration-300 ${expandedCategories[cat.id] ? "rotate-180 text-[var(--color-primary)]" : "text-[var(--color-text-muted)]"}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      
+                      <AnimatePresence>
+                        {expandedCategories[cat.id] && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="overflow-hidden pl-4"
                           >
-                            {child.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                            <div className="py-2 space-y-1 border-l-2 border-[var(--color-primary)]/20 ml-4">
+                              <Link
+                                to={`/products?category=${cat?.slug}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block px-4 py-2 rounded-xl text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5"
+                              >
+                                View All {cat.name}
+                              </Link>
+                              {cat.children?.map((child) => (
+                                <Link
+                                  key={child.id}
+                                  to={`/products?category=${child?.slug}`}
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className="block px-4 py-2 rounded-xl text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] transition-colors"
+                                >
+                                  {child.name}
+                                </Link>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="h-px bg-[var(--color-border)]/50 mx-2" />
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 pb-8">
                 {isAuthenticated ? (
                   <>
                     {user?.role === "admin" && (
@@ -571,27 +679,24 @@ const Navbar = () => {
                         <Button
                           variant="ghost"
                           fullWidth
-                          className="justify-start"
+                          className="justify-start gap-3"
                         >
+                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                          </svg>
                           Admin Dashboard
                         </Button>
                       </Link>
                     )}
-                    <Link
-                      to="/orders"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors mt-2"
                     >
-                      <Button
-                        variant="ghost"
-                        fullWidth
-                        className="justify-start"
-                      >
-                        My Orders
-                      </Button>
-                    </Link>
-                    <Button variant="outline" fullWidth onClick={handleLogout}>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
                       Logout
-                    </Button>
+                    </button>
                   </>
                 ) : (
                   <div className="grid grid-cols-2 gap-3">
