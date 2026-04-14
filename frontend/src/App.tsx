@@ -14,6 +14,7 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import CartDrawer from "./components/cart/CartDrawer";
 import ScrollToTop from "./components/layout/ScrollToTop";
+import MobileBottomNav from "./components/layout/MobileBottomNav";
 
 // Pages - Eager load critical pages
 import HomePage from "./pages/HomePage";
@@ -65,6 +66,7 @@ const MainLayout = () => {
       </main>
       <Footer />
       <CartDrawer />
+      <MobileBottomNav />
     </>
   );
 };

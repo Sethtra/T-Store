@@ -222,15 +222,6 @@ const navItems = [
       },
     ],
   },
-  {
-    href: "/",
-    label: "Back to Store",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-      </svg>
-    ),
-  },
 ];
 
 // Notification type config
@@ -499,11 +490,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Auto-close sidebar on route change (mobile)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (isSidebarOpen) {
-      setIsSidebarOpen(false);
-    }
-  }, [location.pathname, isSidebarOpen]);
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();

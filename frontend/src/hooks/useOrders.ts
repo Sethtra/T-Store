@@ -46,6 +46,7 @@ export const useOrders = () => {
       const response = await api.get('/orders');
       return response.data;
     },
+    enabled: !!localStorage.getItem('auth_token'),
   });
 };
 

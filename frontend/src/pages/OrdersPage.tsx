@@ -5,6 +5,8 @@ import Button from "../components/ui/Button";
 import OrderDetailsModal from "../components/orders/OrderDetailsModal";
 import InvoiceModal from "../components/orders/InvoiceModal";
 
+const ORDERS_PER_PAGE = 8;
+
 const OrdersPage = () => {
   const navigate = useNavigate();
   const { data: orders, isLoading, error } = useOrders();
@@ -12,6 +14,7 @@ const OrdersPage = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("All");
+  const [currentPage, setCurrentPage] = useState(1);
   const [, setTick] = useState(0);
 
   // Re-render every minute to update countdowns
@@ -63,6 +66,19 @@ const OrdersPage = () => {
     return order.status === filterStatus.toLowerCase();
   });
 
+  // Pagination logic
+  const totalFiltered = filteredOrders?.length || 0;
+  const totalPages = Math.ceil(totalFiltered / ORDERS_PER_PAGE);
+  const paginatedOrders = filteredOrders?.slice(
+    (currentPage - 1) * ORDERS_PER_PAGE,
+    currentPage * ORDERS_PER_PAGE
+  );
+
+  const handleFilterChange = (tab: string) => {
+    setFilterStatus(tab);
+    setCurrentPage(1);
+  };
+
   const tabs = [
     "All",
     "Payment Pending",
@@ -111,7 +127,7 @@ const OrdersPage = () => {
         {tabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => setFilterStatus(tab)}
+            onClick={() => handleFilterChange(tab)}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
               filterStatus === tab
                 ? "bg-[var(--color-primary)] text-white shadow-lg shadow-blue-500/20"
@@ -165,7 +181,7 @@ const OrdersPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
-                {filteredOrders?.map((order) => (
+                {paginatedOrders?.map((order) => (
                   <tr
                     key={order.id}
                     className="hover:bg-[var(--color-bg-elevated)] transition-colors group cursor-pointer sm:cursor-default"
@@ -291,6 +307,59 @@ const OrdersPage = () => {
           {filteredOrders?.length === 0 && (
             <div className="p-12 text-center text-[var(--color-text-muted)]">
               No orders found in this category.
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-t border-[var(--color-border)]">
+              <p className="text-xs sm:text-sm text-[var(--color-text-muted)]">
+                Showing {(currentPage - 1) * ORDERS_PER_PAGE + 1}–{Math.min(currentPage * ORDERS_PER_PAGE, totalFiltered)} of {totalFiltered}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Prev
+                </button>
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  const page = i + 1;
+                  // Show limited page numbers on mobile
+                  if (
+                    totalPages > 5 &&
+                    page !== 1 &&
+                    page !== totalPages &&
+                    Math.abs(page - currentPage) > 1
+                  ) {
+                    // Show ellipsis marker
+                    if (page === 2 && currentPage > 3) return <span key={page} className="px-1 text-[var(--color-text-muted)]">…</span>;
+                    if (page === totalPages - 1 && currentPage < totalPages - 2) return <span key={page} className="px-1 text-[var(--color-text-muted)]">…</span>;
+                    return null;
+                  }
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                        currentPage === page
+                          ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20"
+                          : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] border border-[var(--color-border)]"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>

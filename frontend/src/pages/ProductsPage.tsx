@@ -200,14 +200,23 @@ const ProductsPage = () => {
     updateFilters({ search: localSearch || undefined });
   };
 
+  // Map from ProductFilters property names to URL search param keys
+  const filterKeyToParam: Record<string, string> = {
+    sortBy: "sort",
+    minPrice: "min_price",
+    maxPrice: "max_price",
+    // These map 1:1 so no entry needed: search, category, page, limit
+  };
+
   const updateFilters = (newFilters: Partial<ProductFilters>) => {
     const params = new URLSearchParams(searchParams);
 
     Object.entries(newFilters).forEach(([key, value]) => {
+      const paramKey = filterKeyToParam[key] || key;
       if (value !== undefined && value !== null && value !== "") {
-        params.set(key, String(value));
+        params.set(paramKey, String(value));
       } else {
-        params.delete(key);
+        params.delete(paramKey);
       }
     });
 
@@ -221,9 +230,9 @@ const ProductsPage = () => {
 
   const handlePriceFilter = () => {
     updateFilters({
-      min_price: localMinPrice ? Number(localMinPrice) : undefined,
-      max_price: localMaxPrice ? Number(localMaxPrice) : undefined,
-    } as unknown as Partial<ProductFilters>);
+      minPrice: localMinPrice ? Number(localMinPrice) : undefined,
+      maxPrice: localMaxPrice ? Number(localMaxPrice) : undefined,
+    });
   };
 
   const clearFilters = () => {
