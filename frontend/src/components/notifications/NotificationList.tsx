@@ -20,7 +20,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
     (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
   );
 
-  const handleItemClick = (orderId: number) => {
+  const handleItemClick = () => {
     if (onItemClick) onItemClick();
     navigate("/orders");
   };

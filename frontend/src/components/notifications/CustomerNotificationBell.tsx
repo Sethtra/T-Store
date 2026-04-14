@@ -8,7 +8,6 @@ import NotificationList from "./NotificationList";
 const CustomerNotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
 
   // Only fetch orders if authenticated
