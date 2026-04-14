@@ -35,6 +35,12 @@ const Navbar = () => {
     ? (orders || []).filter((o) => o.payment_status !== "paid").length
     : 0;
 
+  // Notification count logic (same as bell component)
+  const unreadCount = isAuthenticated ? (orders || []).filter((o) => {
+    const isRecent = new Date().getTime() - new Date(o.updated_at).getTime() < 7 * 24 * 60 * 60 * 1000;
+    return isRecent;
+  }).length : 0;
+
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -230,10 +236,10 @@ const Navbar = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-3 md:gap-4">
-            {/* Theme Toggle */}
+            {/* Theme Toggle - Hidden on mobile */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] transition-all active:scale-95"
+              className="hidden md:flex p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] transition-all active:scale-95"
               aria-label="Toggle Theme"
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -279,14 +285,16 @@ const Navbar = () => {
               </AnimatePresence>
             </button>
 
-            {/* Customer Notifications (Only shows if authenticated) */}
-            <CustomerNotificationBell />
+            {/* Customer Notifications (Only shows if authenticated) - Hidden on mobile */}
+            <div className="hidden md:block">
+              <CustomerNotificationBell />
+            </div>
 
-            {/* Orders Shortcut (Only shows if authenticated) */}
+            {/* Orders Shortcut (Only shows if authenticated) - Hidden on mobile */}
             {isAuthenticated && (
               <button
                 onClick={() => navigate("/orders")}
-                className="relative p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] transition-all active:scale-95"
+                className="hidden md:flex relative p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] transition-all active:scale-95"
                 aria-label="My Orders"
                 title="My Orders"
               >
@@ -316,10 +324,10 @@ const Navbar = () => {
               </button>
             )}
 
-            {/* Cart Button */}
+            {/* Cart Button - Hidden on mobile */}
             <button
               onClick={toggleCart}
-              className="relative p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] transition-all active:scale-95"
+              className="hidden md:flex relative p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] transition-all active:scale-95"
               aria-label="Shopping Cart"
             >
               <svg
@@ -540,22 +548,31 @@ const Navbar = () => {
                       <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Theme</span>
                     </button>
 
-                    <button onClick={() => { setIsMobileMenuOpen(false); navigate("/orders"); }} className="flex flex-col items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                    <button onClick={() => { setIsMobileMenuOpen(false); navigate("/orders"); }} className="flex flex-col items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-400 relative">
                       <ActionIcon>
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
                       </ActionIcon>
+                      {unpaidCount > 0 && (
+                        <span className="absolute top-0 right-2 bg-[var(--color-error)] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[var(--color-bg-primary)]">
+                          {unpaidCount}
+                        </span>
+                      )}
                       <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Orders</span>
                     </button>
 
-                    {/* Notification uses the bell component or just an icon for simplicity in menu */}
-                     <button onClick={() => { setIsMobileMenuOpen(false); navigate("/orders"); }} className="flex flex-col items-center gap-1.5 relative animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <button onClick={() => { setIsMobileMenuOpen(false); navigate("/orders"); }} className="flex flex-col items-center gap-1.5 relative animate-in fade-in slide-in-from-bottom-2 duration-500">
                       <ActionIcon>
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                       </ActionIcon>
+                      {unreadCount > 0 && (
+                        <span className="absolute top-0 right-2 bg-[var(--color-error)] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[var(--color-bg-primary)]">
+                          {unreadCount}
+                        </span>
+                      )}
                       <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Alerts</span>
                     </button>
 
@@ -565,6 +582,11 @@ const Navbar = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
                       </ActionIcon>
+                      {totalItems() > 0 && (
+                        <span className="absolute top-0 right-2 bg-[var(--color-error)] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[var(--color-bg-primary)]">
+                          {totalItems()}
+                        </span>
+                      )}
                       <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Cart</span>
                     </button>
                   </div>
