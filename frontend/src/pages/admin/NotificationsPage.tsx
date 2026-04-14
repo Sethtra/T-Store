@@ -167,13 +167,13 @@ const NotificationsPage = () => {
           </p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        {/* Filter Tabs - Horizontal Scroll on Mobile */}
+        <div className="flex overflow-x-auto pb-4 mb-2 -mx-4 px-4 gap-2 no-scrollbar snap-x">
           {filterButtons.map((btn) => (
             <button
               key={btn.key}
               onClick={() => setFilter(btn.key)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 flex-shrink-0 snap-start whitespace-nowrap ${
                 filter === btn.key
                   ? btn.activeBg
                     ? `${btn.activeBg} ${btn.color}`
