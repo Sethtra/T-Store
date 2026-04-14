@@ -8,6 +8,7 @@ import { useCategories } from "../../hooks/useProducts";
 import { useOrders } from "../../hooks/useOrders";
 import Button from "../ui/Button";
 import CustomerNotificationBell from "../notifications/CustomerNotificationBell";
+import NotificationList from "../notifications/NotificationList";
 
 
 // Helper for icon size consistency
@@ -19,6 +20,7 @@ const ActionIcon = ({ children }: { children: React.ReactNode }) => (
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showMobileNotifications, setShowMobileNotifications] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<number, boolean>>({});
   const [scrolled, setScrolled] = useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -574,7 +576,7 @@ const Navbar = () => {
                       <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Orders</span>
                     </button>
 
-                    <button onClick={() => { setIsMobileMenuOpen(false); navigate("/orders"); }} className="flex flex-col items-center gap-1.5 relative animate-in fade-in slide-in-from-bottom-2 duration-500 active:scale-95 transition-transform">
+                    <button onClick={() => setShowMobileNotifications(true)} className="flex flex-col items-center gap-1.5 relative animate-in fade-in slide-in-from-bottom-2 duration-500 active:scale-95 transition-transform">
                       <ActionIcon>
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -750,6 +752,45 @@ const Navbar = () => {
                     </Link>
                   </div>
                 )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Notification Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && showMobileNotifications && (
+          <motion.div
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="md:hidden fixed inset-0 top-[64px] z-50 bg-[var(--color-bg-primary)] overflow-y-auto"
+          >
+            <div className="flex flex-col h-full">
+              <div className="px-4 py-4 border-b border-[var(--color-border)] flex items-center gap-3 bg-[var(--color-bg-surface)]">
+                <button 
+                  onClick={() => setShowMobileNotifications(false)}
+                  className="p-2 -ml-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <h3 className="text-lg font-bold text-[var(--color-text-primary)]">
+                  Notifications
+                </h3>
+              </div>
+              <div className="flex-1">
+                <NotificationList 
+                  orders={orders || []} 
+                  onItemClick={() => {
+                    setShowMobileNotifications(false);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  maxHeight="none"
+                />
               </div>
             </div>
           </motion.div>
