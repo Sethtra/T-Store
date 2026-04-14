@@ -221,6 +221,15 @@ const navItems = [
       },
     ],
   },
+  {
+    href: "/",
+    label: "Back to Store",
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+    ),
+  },
 ];
 
 // Time ago helper
@@ -754,16 +763,16 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* View Store Button */}
-            <Link to="/" target="_blank" className="hidden md:block mr-2">
+            {/* View Store Button - Now visible on mobile */}
+            <Link to="/" className="mr-1">
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]"
+                className="gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] px-2 sm:px-3"
               >
-                <span>Store</span>
+                <span className="hidden sm:inline">Store</span>
                 <svg
-                  className="w-4 h-4"
+                  className="w-5 h-5 sm:w-4 sm:h-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
