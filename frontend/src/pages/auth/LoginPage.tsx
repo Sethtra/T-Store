@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../../stores/authStore";
@@ -15,10 +15,17 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
 
+  // Ref guard to prevent React double-firing the Google token exchange
+  const googleVerifyStarted = useRef(false);
+
   // Handle Google OAuth callback
   useEffect(() => {
     const googleStatus = searchParams.get("google");
     if (googleStatus === "pending") {
+      // Guard: only run once even if React re-fires useEffect
+      if (googleVerifyStarted.current) return;
+      googleVerifyStarted.current = true;
+
       const token = searchParams.get("token");
       if (!token) {
         setError("Google login failed: missing token.");

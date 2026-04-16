@@ -81,7 +81,10 @@ class GoogleAuthController extends Controller
             return response()->json(['message' => 'Token is required.'], 422);
         }
 
-        $userId = Cache::pull('google_auth_token:' . $token); // pull = get + delete
+        // Use get() instead of pull() — React can fire useEffect twice in rapid succession.
+        // If we pull (delete) on the first call, the second call gets 401 and the
+        // frontend interceptor wipes the session. Let the 5-min TTL handle expiry.
+        $userId = Cache::get('google_auth_token:' . $token);
 
         if (!$userId) {
             return response()->json(['message' => 'Invalid or expired token.'], 401);

@@ -14,7 +14,7 @@ class VisitController extends Controller
     public function store(Request $request)
     {
         $ip = $request->ip();
-        $userAgent = $request->userAgent();
+        $userAgent = substr($request->userAgent() ?? '', 0, 255);
         // Try to get user ID if authenticated via Sanctum
         $user = $request->user('sanctum');
         $userId = $user ? $user->id : null;
