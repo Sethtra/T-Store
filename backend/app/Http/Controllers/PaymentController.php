@@ -32,12 +32,14 @@ class PaymentController extends Controller
             'order_id' => 'required|exists:orders,id',
         ]);
 
+        /** @var Order $order */
         $order = Order::where('id', $request->order_id)
             ->where('user_id', $request->user()->id)
             ->where('payment_status', 'pending')
             ->firstOrFail();
 
         try {
+            /** @var PaymentIntent $paymentIntent */
             $paymentIntent = PaymentIntent::create([
                 'amount' => (int) round($order->total * 100),
                 'currency' => 'usd',
