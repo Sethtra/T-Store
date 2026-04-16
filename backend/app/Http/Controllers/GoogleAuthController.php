@@ -75,34 +75,43 @@ class GoogleAuthController extends Controller
      */
     public function verify(Request $request)
     {
-        $token = $request->input('token');
+        try {
+            $token = $request->input('token');
 
-        if (!$token) {
-            return response()->json(['message' => 'Token is required.'], 422);
+            if (!$token) {
+                return response()->json(['message' => 'Token is required.'], 422);
+            }
+
+            // Use get() instead of pull() — React can fire useEffect twice in rapid succession.
+            // If we pull (delete) on the first call, the second call gets 401 and the
+            // frontend interceptor wipes the session. Let the 5-min TTL handle expiry.
+            $userId = Cache::get('google_auth_token:' . $token);
+
+            if (!$userId) {
+                return response()->json(['message' => 'Invalid or expired token.'], 401);
+            }
+
+            $user = User::find($userId);
+
+            if (!$user) {
+                return response()->json(['message' => 'User not found.'], 404);
+            }
+
+            // Create a Sanctum personal access token (same as normal login)
+            $sanctumToken = $user->createToken('auth-token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'Login successful',
+                'token' => $sanctumToken,
+                'user' => $user,
+            ]);
+        } catch (\Throwable $e) {
+            // Return exactly what caused the 500 error so we can debug the live server
+            return response()->json([
+                'message' => 'Internal Error: ' . $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
-
-        // Use get() instead of pull() — React can fire useEffect twice in rapid succession.
-        // If we pull (delete) on the first call, the second call gets 401 and the
-        // frontend interceptor wipes the session. Let the 5-min TTL handle expiry.
-        $userId = Cache::get('google_auth_token:' . $token);
-
-        if (!$userId) {
-            return response()->json(['message' => 'Invalid or expired token.'], 401);
-        }
-
-        $user = User::find($userId);
-
-        if (!$user) {
-            return response()->json(['message' => 'User not found.'], 404);
-        }
-
-        // Create a Sanctum personal access token (same as normal login)
-        $sanctumToken = $user->createToken('auth-token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login successful',
-            'token' => $sanctumToken,
-            'user' => $user,
-        ]);
     }
 }

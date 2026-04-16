@@ -36,7 +36,8 @@ const LoginPage = () => {
           await googleLogin(token);
           // Redirect to home
           window.location.href = "/";
-        } catch {
+        } catch (error: any) {
+          console.error("Backend Error Details:", error?.response?.data || error);
           setError("Google login failed. Please try again.");
         }
       };
@@ -60,6 +61,7 @@ const LoginPage = () => {
         navigate("/");
       }
     } catch (err: any) {
+      console.error("Backend Error Details:", err?.response?.data || err);
       const errorMessage =
         err.response?.data?.message ||
         err.message ||
