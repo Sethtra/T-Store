@@ -33,11 +33,13 @@ export const useAuthStore = create<AuthState>()(
 
       setUser: (user) => {
         set({ user, isAuthenticated: !!user });
+        useCartStore.getState().syncCartWithUser(user ? String(user.id) : null);
       },
 
       login: async (email, password, remember) => {
         set({ isLoading: true });
         try {
+           // ... existing implementation remains here but we await fetchUser which handles the sync ...
           const response = await api.post('/login', { email, password, remember: remember || false });
           if (response.data.token) {
             localStorage.setItem('auth_token', response.data.token);
@@ -70,8 +72,8 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           localStorage.removeItem('auth_token');
           set({ user: null, isAuthenticated: false, isLoading: false });
-          // Clear cart on logout to ensure privacy across accounts
-          useCartStore.getState().clearCart();
+          // Dettach from user cart and switch back to an empty guest cart
+          useCartStore.getState().syncCartWithUser(null);
         }
       },
 
@@ -80,8 +82,10 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await api.get('/user');
           set({ user: response.data, isAuthenticated: true });
+          useCartStore.getState().syncCartWithUser(String(response.data.id));
         } catch {
           set({ user: null, isAuthenticated: false });
+          useCartStore.getState().syncCartWithUser(null);
         } finally {
           set({ isLoading: false });
         }
