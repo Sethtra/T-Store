@@ -31,20 +31,29 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // Only redirect to login if user was previously authenticated (session expired)
-      const hadToken = localStorage.getItem('auth_token');
-      const hadAuth = localStorage.getItem('t-store-auth');
-      
-      // Clear auth state
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('t-store-auth');
-      useAuthStore.getState().setUser(null);
-      
-      // Only redirect if user was previously logged in (session expired)
-      // Do NOT redirect guests who were never logged in
-      if (hadToken || (hadAuth && JSON.parse(hadAuth)?.state?.isAuthenticated)) {
-        if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
-          window.location.href = '/login';
+      // NEVER wipe auth state for the Google verify endpoint.
+      // A 401 from that endpoint means "expired one-time token",
+      // NOT "your session has expired". The LoginPage handles this error itself.
+      const requestUrl = error.config?.url || '';
+      const isGoogleVerify = requestUrl.includes('/auth/google/verify');
+      const isOnLoginPage = window.location.pathname.includes('/login');
+
+      if (!isGoogleVerify && !isOnLoginPage) {
+        // Only redirect to login if user was previously authenticated (session expired)
+        const hadToken = localStorage.getItem('auth_token');
+        const hadAuth = localStorage.getItem('t-store-auth');
+        
+        // Clear auth state
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('t-store-auth');
+        useAuthStore.getState().setUser(null);
+        
+        // Only redirect if user was previously logged in (session expired)
+        // Do NOT redirect guests who were never logged in
+        if (hadToken || (hadAuth && JSON.parse(hadAuth)?.state?.isAuthenticated)) {
+          if (!window.location.pathname.includes('/register')) {
+            window.location.href = '/login';
+          }
         }
       }
     }
