@@ -7,45 +7,54 @@ import Input from "../../components/ui/Input";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, googleLogin, isLoading } = useAuthStore();
+  const { login, setUser, isLoading } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
 
-  // Ref guard to prevent React double-firing the Google token exchange
-  const googleVerifyStarted = useRef(false);
+  // Ref guard to prevent React double-firing the Google token handling
+  const googleHandled = useRef(false);
 
-  // Handle Google OAuth callback
+  // Handle Google OAuth callback — direct token flow (no API call needed)
   useEffect(() => {
     const googleStatus = searchParams.get("google");
-    if (googleStatus === "pending") {
+
+    if (googleStatus === "success") {
       // Guard: only run once even if React re-fires useEffect
-      if (googleVerifyStarted.current) return;
-      googleVerifyStarted.current = true;
+      if (googleHandled.current) return;
+      googleHandled.current = true;
 
       const token = searchParams.get("token");
-      if (!token) {
-        setError("Google login failed: missing token.");
+      const userParam = searchParams.get("user");
+
+      if (!token || !userParam) {
+        setError("Google login failed: missing credentials.");
         return;
       }
 
-      const handleGoogleLogin = async () => {
-        try {
-          await googleLogin(token);
-          // Redirect to home
+      try {
+        // Decode user data from base64
+        const userData = JSON.parse(atob(userParam));
+
+        // Store the Sanctum token and set user state directly — zero API calls
+        localStorage.setItem("auth_token", token);
+        setUser(userData);
+
+        // Navigate to the correct page based on role
+        if (userData.role === "admin") {
+          window.location.href = "/admin";
+        } else {
           window.location.href = "/";
-        } catch (error: any) {
-          console.error("Backend Error Details:", error?.response?.data || error);
-          setError("Google login failed. Please try again.");
         }
-      };
-      handleGoogleLogin();
+      } catch {
+        setError("Google login failed: invalid response.");
+      }
     } else if (googleStatus === "error") {
       setError(searchParams.get("message") || "Google login failed.");
     }
-  }, [searchParams, googleLogin]);
+  }, [searchParams, setUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

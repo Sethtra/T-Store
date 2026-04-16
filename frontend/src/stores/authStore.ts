@@ -21,7 +21,6 @@ interface AuthState {
   register: (name: string, email: string, password: string, password_confirmation: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
-  googleLogin: (token: string) => Promise<void>;
   setUser: (user: User | null) => void;
 }
 
@@ -87,23 +86,6 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: false });
         }
       },
-
-      googleLogin: async (token) => {
-        set({ isLoading: true });
-        try {
-          const response = await api.post('/auth/google/verify', { token });
-          if (response.data.token) {
-            localStorage.setItem('auth_token', response.data.token);
-          }
-          if (response.data.user) {
-            set({ user: response.data.user, isAuthenticated: true });
-          } else {
-            await get().fetchUser();
-          }
-        } finally {
-          set({ isLoading: false });
-        }
-      },
     }),
     {
       name: 't-store-auth',
@@ -111,3 +93,4 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -23,9 +22,9 @@ class GoogleAuthController extends Controller
 
     /**
      * Handle the callback from Google.
-     * Since this route doesn't have session middleware (API route + redirect from Google),
-     * we use a one-time token stored in cache and let the frontend exchange it via a
-     * normal SPA request that DOES go through Sanctum's stateful middleware.
+     * Creates the Sanctum token directly and passes it to the frontend
+     * via the redirect URL. This eliminates the unreliable Cache-based
+     * token exchange that was causing first-login failures.
      */
     public function callback(Request $request)
     {
@@ -55,63 +54,24 @@ class GoogleAuthController extends Controller
                 ]);
             }
 
-            // Store a one-time login token in cache (expires in 5 minutes)
-            $token = Str::random(64);
-            Cache::put('google_auth_token:' . $token, $user->id, now()->addMinutes(5));
+            // Create Sanctum token directly (no Cache intermediary)
+            $sanctumToken = $user->createToken('auth-token')->plainTextToken;
 
-            // Redirect to frontend with the token
+            // Redirect to frontend with the real token and user data
             $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
-            return redirect($frontendUrl . '/login?google=pending&token=' . $token);
+            $userData = base64_encode(json_encode([
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'created_at' => $user->created_at,
+            ]));
+
+            return redirect($frontendUrl . '/login?google=success&token=' . $sanctumToken . '&user=' . $userData);
         } catch (\Exception $e) {
             $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
             return redirect($frontendUrl . '/login?google=error&message=' . urlencode($e->getMessage()));
         }
     }
-
-    /**
-     * Exchange the one-time token for a proper session login.
-     * This endpoint is called by the frontend via a normal SPA request,
-     * which goes through Sanctum's stateful middleware and has session support.
-     */
-    public function verify(Request $request)
-    {
-        try {
-            $token = $request->input('token');
-
-            if (!$token) {
-                return response()->json(['message' => 'Token is required.'], 422);
-            }
-
-            // Use get() instead of pull() — React can fire useEffect twice in rapid succession.
-            // If we pull (delete) on the first call, the second call gets 401 and the
-            // frontend interceptor wipes the session. Let the 5-min TTL handle expiry.
-            $userId = Cache::get('google_auth_token:' . $token);
-
-            if (!$userId) {
-                return response()->json(['message' => 'Invalid or expired token.'], 401);
-            }
-
-            $user = User::find($userId);
-
-            if (!$user) {
-                return response()->json(['message' => 'User not found.'], 404);
-            }
-
-            // Create a Sanctum personal access token (same as normal login)
-            $sanctumToken = $user->createToken('auth-token')->plainTextToken;
-
-            return response()->json([
-                'message' => 'Login successful',
-                'token' => $sanctumToken,
-                'user' => $user,
-            ]);
-        } catch (\Throwable $e) {
-            // Return exactly what caused the 500 error so we can debug the live server
-            return response()->json([
-                'message' => 'Internal Error: ' . $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ], 500);
-        }
-    }
 }
+

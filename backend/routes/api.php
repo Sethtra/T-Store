@@ -58,7 +58,6 @@ Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']
 // Google OAuth Routes
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect']);
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
-Route::post('/auth/google/verify', [GoogleAuthController::class, 'verify']);
 
 // Visitor Routes
 Route::post('/visit', [\App\Http\Controllers\VisitController::class, 'store']);
