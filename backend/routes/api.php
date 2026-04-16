@@ -71,11 +71,21 @@ Route::get('/ping', function () {
 Route::post('/webhooks/stripe', [PaymentController::class, 'stripeWebhook']);
 Route::post('/payment/payway/callback', [PaymentController::class, 'paywayCallback']);
 
+use App\Http\Controllers\CartController;
+
 // Protected Routes (Authenticated Users)
 Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Cart Management (Cloud Sync)
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart/sync', [CartController::class, 'sync']);
+    Route::post('/cart/items', [CartController::class, 'addItem']);
+    Route::put('/cart/items/{id}', [CartController::class, 'updateQuantity']);
+    Route::delete('/cart/items/{id}', [CartController::class, 'removeItem']);
+    Route::delete('/cart', [CartController::class, 'clear']);
 
     // Payment
     Route::post('/payment/stripe/create-intent', [PaymentController::class, 'createStripeIntent']);

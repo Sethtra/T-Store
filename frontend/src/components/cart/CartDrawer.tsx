@@ -85,8 +85,8 @@ const CartDrawer = () => {
                     <CartItemCard
                       key={item.id}
                       item={item}
-                      onRemove={() => removeItem(item.id)}
-                      onUpdateQuantity={(qty) => updateQuantity(item.id, qty)}
+                      onRemove={() => removeItem(item.id, item.attributes)}
+                      onUpdateQuantity={(qty) => updateQuantity(item.id, qty, item.attributes)}
                     />
                   ))}
                 </div>
@@ -149,14 +149,28 @@ const CartItemCard = ({
       </div>
 
       {/* Details */}
-      <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-sm truncate">{item.title}</h4>
-        <p className="text-[var(--color-primary)] font-medium mt-1">
-          ${Number(item.price).toFixed(2)}
-        </p>
+      <div className="flex-1 min-w-0 flex flex-col justify-between">
+        <div>
+          <h4 className="font-bold text-sm text-[var(--color-text-primary)] truncate">{item.title}</h4>
+          
+          {/* Attributes */}
+          {item.attributes && Object.keys(item.attributes).length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {Object.entries(item.attributes).map(([key, value]) => (
+                <span key={key} className="text-[10px] bg-[var(--color-bg-surface)] px-2 py-0.5 rounded-md font-medium text-[var(--color-text-muted)] border border-[var(--color-border)]">
+                  {key}: {value}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <p className="text-[var(--color-primary)] font-bold text-sm mt-1.5">
+            ${Number(item.price).toFixed(2)}
+          </p>
+        </div>
 
         {/* Quantity Controls */}
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center gap-1 mt-3">
           <button
             onClick={() => onUpdateQuantity(item.quantity - 1)}
             className="w-7 h-7 flex items-center justify-center rounded-md bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
