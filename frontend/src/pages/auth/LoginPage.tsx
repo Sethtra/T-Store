@@ -2,13 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../../stores/authStore";
-import api from "../../lib/api";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuthStore();
+  const { login, googleLogin, isLoading } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -31,15 +30,10 @@ const LoginPage = () => {
         setError("Google login failed: missing token.");
         return;
       }
+
       const handleGoogleLogin = async () => {
         try {
-          // Exchange the one-time token for a bearer token
-          const response = await api.post("/auth/google/verify", { token });
-          if (response.data.token) {
-            localStorage.setItem('auth_token', response.data.token);
-          }
-          // Fetch user data so Zustand persists it to localStorage
-          await useAuthStore.getState().fetchUser();
+          await googleLogin(token);
           // Redirect to home
           window.location.href = "/";
         } catch {
@@ -50,7 +44,7 @@ const LoginPage = () => {
     } else if (googleStatus === "error") {
       setError(searchParams.get("message") || "Google login failed.");
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, googleLogin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

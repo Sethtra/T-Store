@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '../lib/api';
+import { useCartStore } from './cartStore';
 
 export interface User {
   id: number;
@@ -20,6 +21,7 @@ interface AuthState {
   register: (name: string, email: string, password: string, password_confirmation: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
+  googleLogin: (token: string) => Promise<void>;
   setUser: (user: User | null) => void;
 }
 
@@ -69,6 +71,8 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           localStorage.removeItem('auth_token');
           set({ user: null, isAuthenticated: false, isLoading: false });
+          // Clear cart on logout to ensure privacy across accounts
+          useCartStore.getState().clearCart();
         }
       },
 
@@ -79,6 +83,23 @@ export const useAuthStore = create<AuthState>()(
           set({ user: response.data, isAuthenticated: true });
         } catch {
           set({ user: null, isAuthenticated: false });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      googleLogin: async (token) => {
+        set({ isLoading: true });
+        try {
+          const response = await api.post('/auth/google/verify', { token });
+          if (response.data.token) {
+            localStorage.setItem('auth_token', response.data.token);
+          }
+          if (response.data.user) {
+            set({ user: response.data.user, isAuthenticated: true });
+          } else {
+            await get().fetchUser();
+          }
         } finally {
           set({ isLoading: false });
         }
