@@ -74,6 +74,11 @@ class PaymentController extends Controller
         $sig_header = $request->header('Stripe-Signature');
         $endpoint_secret = config('services.stripe.webhook_secret');
 
+        if (!$endpoint_secret) {
+            Log::error('Stripe webhook secret is not configured. Rejecting webhook.');
+            return response()->json(['error' => 'Webhook not configured'], 500);
+        }
+
         try {
             $event = Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
         } catch (\UnexpectedValueException $e) {
@@ -362,8 +367,8 @@ class PaymentController extends Controller
 
     public function simulatePaywayPayment(Request $request)
     {
-        // DO NOT allow in Live Production!
-        if (config('services.payway.base_url') === 'https://checkout.payway.com.kh') {
+        // Only allow simulation in debug/sandbox mode
+        if (!config('app.debug') && config('services.payway.base_url') === 'https://checkout.payway.com.kh') {
             abort(403, 'Simulation is strictly restricted to Sandbox environment.');
         }
 
@@ -371,17 +376,27 @@ class PaymentController extends Controller
             'order_id' => 'required|exists:orders,id',
         ]);
 
-        $order = Order::findOrFail($request->order_id);
+        // Ensure user owns this order (prevent marking other users' orders as paid)
+        $order = Order::where('id', $request->order_id)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
         
         // Mark as paid
         $order->payment_status = 'paid';
+        $order->status = 'processing';
         $order->save();
 
-        // Increment product stock counters for this sandbox purchase
+        // Decrement product stock for this sandbox purchase
         foreach ($order->items as $item) {
-            $product = \App\Models\Product::find($item->product_id);
+            $product = Product::find($item->product_id);
             if ($product && !empty($item->quantity)) {
                 $product->decrement('stock', $item->quantity);
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'quantity_change' => -$item->quantity,
+                    'type' => 'sale',
+                    'reference' => 'Order #' . $order->tracking_id . ' (simulated)',
+                ]);
             }
         }
 

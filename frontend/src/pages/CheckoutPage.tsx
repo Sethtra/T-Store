@@ -109,82 +109,135 @@ const PaymentMethodCard = ({
   <button
     type="button"
     onClick={onSelect}
-    className={`relative w-full text-left p-5 rounded-2xl border-2 transition-all duration-300 group ${
+    className={`w-full flex items-center p-4 rounded-[1.25rem] border-[1.5px] transition-all duration-300 ${
       selected
-        ? `border-[${accentColor}] bg-gradient-to-br from-[${accentColor}]/5 to-[${accentColor}]/10 shadow-lg shadow-[${accentColor}]/10`
-        : "border-[var(--color-border)] hover:border-[var(--color-border-hover)] hover:shadow-md"
+        ? `border-[${accentColor}] bg-[${accentColor}]/[0.08]`
+        : "border-[var(--color-border)] hover:border-[var(--color-border-hover)]"
     }`}
-    style={
-      selected
-        ? {
-            borderColor: accentColor,
-            background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}15)`,
-            boxShadow: `0 8px 25px -5px ${accentColor}20`,
-          }
-        : {}
-    }
+    style={selected ? {
+      borderColor: accentColor,
+      backgroundColor: `${accentColor}1A`,
+    } : {}}
   >
-    {/* Selection indicator */}
-    <div className="absolute top-4 right-4">
-      <div
-        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-          selected ? "border-transparent" : "border-[var(--color-border)]"
-        }`}
-        style={selected ? { backgroundColor: accentColor } : {}}
-      >
-        {selected && (
-          <motion.svg
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="w-3.5 h-3.5 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={3}
-              d="M5 13l4 4L19 7"
-            />
-          </motion.svg>
-        )}
+    <div
+      className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 mr-4"
+      style={{
+        background: selected ? accentColor : `${accentColor}20`,
+        color: selected ? "white" : accentColor,
+      }}
+    >
+      <div className="text-[1.75rem]">
+        {icon}
       </div>
+    </div>
+    
+    <div className="flex-1 text-left">
+      <h4
+        className="font-bold text-sm tracking-wide mb-1"
+        style={selected ? { color: accentColor } : { color: 'var(--color-text-primary)' }}
+      >
+        {title}
+      </h4>
+      <p className="text-[13px] text-[var(--color-text-muted)] line-clamp-1">
+        {description}
+      </p>
     </div>
 
-    <div className="flex items-start gap-4">
-      <div
-        className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-          selected ? "scale-110" : "group-hover:scale-105"
-        }`}
-        style={{
-          background: selected
-            ? `linear-gradient(135deg, ${accentColor}, ${accentColor}CC)`
-            : `${accentColor}15`,
-        }}
-      >
-        <div
-          style={{ color: selected ? "white" : accentColor }}
-          className="text-2xl"
-        >
-          {icon}
-        </div>
-      </div>
-      <div className="flex-1 pr-6">
-        <h4
-          className={`font-bold text-base mb-1 transition-colors ${
-            selected ? "" : "text-[var(--color-text-primary)]"
-          }`}
-          style={selected ? { color: accentColor } : {}}
-        >
-          {title}
-        </h4>
-        <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">
-          {description}
-        </p>
-      </div>
+    <div
+      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ml-4 flex-shrink-0 transition-colors ${
+        selected ? 'border-[var(--color-bg-primary)] ring-2 ring-[var(--color-primary)]' : 'border-[var(--color-border)]'
+      }`}
+      style={selected ? { backgroundColor: accentColor, boxShadow: `0 0 0 2px ${accentColor}` } : {}}
+    >
+      {selected && (
+        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M5 13l4 4L19 7" />
+        </svg>
+      )}
     </div>
   </button>
+);
+
+const PaywayQRView = ({
+  paywayData,
+  totalAmount,
+  qrTimeLeft,
+  formatTime,
+  createdOrderId,
+}: {
+  paywayData: any;
+  totalAmount: number;
+  qrTimeLeft: number;
+  formatTime: (t: number) => string;
+  createdOrderId: number | null;
+}) => (
+  <div className="flex flex-col items-center justify-center p-2 sm:p-6 w-full">
+    <div className="bg-[var(--color-bg-elevated)] backdrop-blur-3xl border border-[var(--color-border)] rounded-[2rem] shadow-2xl overflow-hidden max-w-[26rem] w-full mx-auto relative group">
+       {/* Cut-out Red Ticket Header */}
+       <div className="bg-[#e21937] pt-5 pb-4 flex flex-col items-center justify-center relative z-10 w-full rounded-t-[2rem]" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 65%, 92% 100%, 0 100%)' }}>
+          <div className="h-6 flex items-center justify-center mb-1 drop-shadow-sm">
+             <span className="text-white font-[900] text-[1.4rem] tracking-[0.35em] font-sans ml-[0.35em]">KHQR</span>
+          </div>
+       </div>
+
+       {/* Background Glow */}
+       <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-transparent opacity-50 pointer-events-none" />
+       
+       <div className="pt-6 px-8 pb-2 text-center relative z-10">
+         <h3 className="text-2xl font-black mb-2 text-[var(--color-text-primary)]">Scan to Pay</h3>
+         <p className="text-[var(--color-text-muted)] text-[15px] max-w-[16rem] mx-auto mb-6 leading-relaxed">
+           Complete your order safely with your favorite banking app
+         </p>
+         
+         <div className="inline-flex flex-col items-center bg-[var(--color-bg-surface)] px-8 py-4 rounded-[1.5rem] mb-6 shadow-sm border border-[var(--color-border)]/50">
+           <span className="text-[11px] font-bold tracking-widest uppercase text-[var(--color-text-muted)] mb-1">Order Total</span>
+           <span className="text-[2rem] font-black text-[var(--color-primary)] tracking-tight leading-none">${Number(totalAmount).toFixed(2)}</span>
+         </div>
+       </div>
+
+       <div className="px-8 pb-10 flex flex-col items-center relative z-10">
+         {/* QR Code Container */}
+         <div className="bg-white p-5 rounded-[2rem] shadow-[0_0_40px_rgba(0,0,0,0.06)] border border-gray-100 flex items-center justify-center w-[17rem] h-[17rem] relative mb-8 group-hover:scale-[1.02] transition-transform duration-500">
+            <img 
+               src={paywayData.qrImage} 
+               alt="Payment QR" 
+               className="w-full h-full object-contain mix-blend-multiply opacity-90 scale-110"
+               style={{ imageRendering: "pixelated" }}
+            />
+         </div>
+         
+         {/* Timer Component */}
+         <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-mono text-xl font-bold border-2 transition-all duration-300 w-full justify-center ${qrTimeLeft < 60 ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] border-[var(--color-border)]'}`}>
+           <svg className={`w-5 h-5 ${qrTimeLeft < 60 ? 'animate-pulse' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+           </svg>
+           {formatTime(qrTimeLeft)}
+         </div>
+
+         {paywayData.deeplink && (
+            <a
+              href={paywayData.deeplink}
+              className="mt-4 w-full flex justify-center items-center gap-2 bg-[var(--color-primary)] hover:brightness-110 !text-white px-6 py-[1.125rem] rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] text-[15px]"
+              style={{ color: 'white' }}
+            >
+              <svg className="w-5 h-5 !text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <span>Pay on Phone</span>
+            </a>
+         )}
+
+        <button
+          onClick={async () => {
+            try { await api.post("/payment/payway/simulate", { order_id: createdOrderId }); } catch (e) {}
+          }}
+          className="mt-6 text-[11px] font-bold tracking-widest text-[var(--color-text-muted)] hover:text-[var(--color-primary)] opacity-60 transition-colors uppercase cursor-pointer"
+        >
+          {'>'} Simulate Payment {'<'}
+        </button>
+       </div>
+    </div>
+  </div>
 );
 
 const CheckoutPage = () => {
@@ -230,6 +283,7 @@ const CheckoutPage = () => {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [qrTimeLeft, setQrTimeLeft] = useState<number>(300); // 5 minutes in seconds
 
   // Handle retry order from URL param
   useEffect(() => {
@@ -260,11 +314,27 @@ const CheckoutPage = () => {
     }
   }, [searchParams, clearCart]);
 
-  // Polling for PayWay Status
+  // Polling for PayWay Status and QR Timer
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (currentStep === 2 && paymentMethod === "payway" && createdOrderId) {
-      interval = setInterval(async () => {
+    let statusInterval: ReturnType<typeof setInterval>;
+    let timerInterval: ReturnType<typeof setInterval>;
+
+    if (currentStep === 2 && paymentMethod === "payway" && createdOrderId && !orderSuccess) {
+      // Setup QR Code Timer Countdown
+      timerInterval = setInterval(() => {
+        setQrTimeLeft((prev) => {
+          if (prev <= 1) {
+             clearInterval(statusInterval);
+             clearInterval(timerInterval);
+             navigate("/cart");
+             return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      // Setup Polling Status every 5 seconds
+      statusInterval = setInterval(async () => {
         try {
           const res = await api.get(`/orders/${createdOrderId}`);
           if (res.data.payment_status === "paid") {
@@ -275,8 +345,19 @@ const CheckoutPage = () => {
         }
       }, 5000);
     }
-    return () => clearInterval(interval);
-  }, [currentStep, paymentMethod, createdOrderId]);
+    
+    return () => {
+      clearInterval(statusInterval);
+      clearInterval(timerInterval);
+    };
+  }, [currentStep, paymentMethod, createdOrderId, orderSuccess, navigate]);
+
+  // Format QR time into MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -321,8 +402,8 @@ const CheckoutPage = () => {
       const orderId = res.order.id;
       setCreatedOrderId(orderId);
 
-      // Clear cart immediately after order is created
-      clearCart();
+      // Removed clearCart() from here to allow keeping cart until successful payment!
+      setQrTimeLeft(300); // Reset timer when order created
 
       if (paymentMethod === "stripe") {
         // Stripe: get client secret and show card form
@@ -362,6 +443,7 @@ const CheckoutPage = () => {
 
   // Step 2: Handle Successful Payment
   const handlePaymentSuccess = () => {
+    clearCart(); // Clear cart only when payment succeeds
     setOrderSuccess(true);
   };
 
@@ -509,72 +591,13 @@ const CheckoutPage = () => {
                 </Elements>
               )}
               {paymentMethod === "payway" && paywayData && (
-                <div className="flex flex-col items-center justify-center p-4">
-                  <div className="mb-4 text-center">
-                    <img
-                      src="https://checkout.payway.com.kh/images/aba-payway-logo.svg"
-                      alt="ABA PayWay"
-                      className="h-8 mx-auto mb-2"
-                    />
-                    <p className="text-[var(--color-text-muted)] text-sm">
-                      Scan with ABA Mobile or any KHQR Bank app
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-3xl shadow-md border-2 border-red-500/20 mb-6 group relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <img
-                      src={paywayData.qrImage}
-                      alt="Payment QR Code"
-                      className="w-64 h-64 object-contain relative z-10 mix-blend-multiply"
-                    />
-                  </div>
-
-                  {paywayData.deeplink && (
-                    <div className="flex flex-col items-center w-full max-w-sm gap-3">
-                      <span className="text-xs text-[var(--color-text-muted)] font-medium tracking-wider uppercase">
-                        Or pay directly on mobile
-                      </span>
-                      <a
-                        href={paywayData.deeplink}
-                        className="w-full flex justify-center items-center gap-2 bg-[#E21937] hover:bg-[#C1152F] text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg shadow-red-500/20"
-                      >
-                        <svg
-                          className="w-6 h-6"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M17,1H7A2,2,0,0,0,5,3V21a2,2,0,0,0,2,2H17a2,2,0,0,0,2-2V3A2,2,0,0,0,17,1ZM12,21a1,1,0,1,1,1-1A1,1,0,0,1,12,21ZM17,18H7V4H17Z" />
-                        </svg>
-                        Pay with ABA Mobile
-                      </a>
-                    </div>
-                  )}
-
-                  <div className="mt-8 flex flex-col items-center justify-center gap-3 w-full">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-                      <span className="text-sm font-medium text-[var(--color-text-muted)]">
-                        Waiting for you to scan...
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={async () => {
-                        try {
-                          await api.post("/payment/payway/simulate", {
-                            order_id: createdOrderId,
-                          });
-                        } catch (e) {
-                          console.error("Simulation failed", e);
-                        }
-                      }}
-                      className="mt-4 text-xs font-mono text-[var(--color-text-muted)] hover:text-[var(--color-primary)] underline decoration-dashed transition-colors"
-                    >
-                      [ Simulate Payment (Dev Mode) ]
-                    </button>
-                  </div>
-                </div>
+                <PaywayQRView 
+                   paywayData={paywayData}
+                   totalAmount={Number(retryOrder?.total || 0)}
+                   qrTimeLeft={qrTimeLeft}
+                   formatTime={formatTime}
+                   createdOrderId={createdOrderId}
+                />
               )}
             </div>
           </div>
@@ -953,72 +976,13 @@ const CheckoutPage = () => {
                       )}
 
                       {paymentMethod === "payway" && paywayData && (
-                        <div className="flex flex-col items-center justify-center p-4">
-                          <div className="mb-4 text-center">
-                            <img
-                              src="https://checkout.payway.com.kh/images/aba-payway-logo.svg"
-                              alt="ABA PayWay"
-                              className="h-8 mx-auto mb-2"
-                            />
-                            <p className="text-[var(--color-text-muted)] text-sm">
-                              Scan with ABA Mobile or any KHQR Bank app
-                            </p>
-                          </div>
-
-                          <div className="bg-white p-4 rounded-3xl shadow-md border-2 border-red-500/20 mb-6 group relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <img
-                              src={paywayData.qrImage}
-                              alt="Payment QR Code"
-                              className="w-64 h-64 object-contain relative z-10 mix-blend-multiply"
-                            />
-                          </div>
-
-                          {paywayData.deeplink && (
-                            <div className="flex flex-col items-center w-full max-w-sm gap-3">
-                              <span className="text-xs text-[var(--color-text-muted)] font-medium tracking-wider uppercase">
-                                Or pay directly on mobile
-                              </span>
-                              <a
-                                href={paywayData.deeplink}
-                                className="w-full flex justify-center items-center gap-2 bg-[#E21937] hover:bg-[#C1152F] text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg shadow-red-500/20"
-                              >
-                                <svg
-                                  className="w-6 h-6"
-                                  fill="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path d="M17,1H7A2,2,0,0,0,5,3V21a2,2,0,0,0,2,2H17a2,2,0,0,0,2-2V3A2,2,0,0,0,17,1ZM12,21a1,1,0,1,1,1-1A1,1,0,0,1,12,21ZM17,18H7V4H17Z" />
-                                </svg>
-                                Pay with ABA Mobile
-                              </a>
-                            </div>
-                          )}
-
-                          <div className="mt-8 flex flex-col items-center justify-center gap-3 w-full">
-                            <div className="flex items-center gap-3">
-                              <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-                              <span className="text-sm font-medium text-[var(--color-text-muted)]">
-                                Waiting for you to scan...
-                              </span>
-                            </div>
-
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await api.post("/payment/payway/simulate", {
-                                    order_id: createdOrderId,
-                                  });
-                                } catch (e) {
-                                  console.error("Simulation failed", e);
-                                }
-                              }}
-                              className="mt-4 text-xs font-mono text-[var(--color-text-muted)] hover:text-[var(--color-primary)] underline decoration-dashed transition-colors"
-                            >
-                              [ Simulate Payment (Dev Mode) ]
-                            </button>
-                          </div>
-                        </div>
+                        <PaywayQRView 
+                          paywayData={paywayData}
+                          totalAmount={total}
+                          qrTimeLeft={qrTimeLeft}
+                          formatTime={formatTime}
+                          createdOrderId={createdOrderId}
+                        />
                       )}
                     </div>
                   )}
@@ -1043,10 +1007,19 @@ const CheckoutPage = () => {
                       />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium line-clamp-1 text-sm">
+                      <h4 className="font-bold line-clamp-1 text-sm text-[var(--color-text-primary)]">
                         {item.title}
                       </h4>
-                      <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                      {item.attributes && Object.keys(item.attributes).length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1 mb-1">
+                          {Object.entries(item.attributes).map(([key, value]) => (
+                            <span key={key} className="text-[10px] bg-[var(--color-bg-surface)] px-2 py-0.5 rounded-md font-medium text-[var(--color-text-muted)]">
+                              {value}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-[11px] font-semibold tracking-wide text-[var(--color-text-muted)] uppercase mt-1">
                         Qty: {item.quantity}
                       </p>
                     </div>
@@ -1115,7 +1088,7 @@ const CheckoutPage = () => {
                   fullWidth
                   isLoading={isCreatingOrder}
                   disabled={!isAuthenticated}
-                  className="py-4 text-base rounded-xl mb-6 bg-[var(--color-primary)] text-white border-none shadow-lg shadow-blue-500/20"
+                  className="py-4 text-base rounded-xl mb-24 md:mb-6 bg-[var(--color-primary)] text-white border-none shadow-lg shadow-blue-500/20"
                 >
                   {paymentMethod === "stripe"
                     ? "Proceed to Payment"

@@ -97,9 +97,16 @@ class OrderController extends Controller
                 $shippingAddress = 'Self Pick Up';
             }
 
+            // Apply shipping cost (same logic as frontend)
+            $deliveryMethod = $request->delivery_method ?? 'pickup';
+            $shipping = 0;
+            if ($deliveryMethod === 'delivery') {
+                $shipping = $total > 50 ? 0 : 9.99;
+            }
+
             // Apply 10% tax
             $tax = $total * 0.10;
-            $total = $total + $tax;
+            $total = $total + $shipping + $tax;
 
             // Create order with pending payment status
             $order = Order::create([

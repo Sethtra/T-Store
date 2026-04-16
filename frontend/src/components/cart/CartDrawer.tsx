@@ -83,7 +83,7 @@ const CartDrawer = () => {
                 <div className="space-y-4">
                   {items.map((item) => (
                     <CartItemCard
-                      key={item.id}
+                      key={`${item.id}-${JSON.stringify(item.attributes || {})}`}
                       item={item}
                       onRemove={() => removeItem(item.id, item.attributes)}
                       onUpdateQuantity={(qty) => updateQuantity(item.id, qty, item.attributes)}
@@ -95,7 +95,7 @@ const CartDrawer = () => {
 
             {/* Footer */}
             {items.length > 0 && (
-              <div className="p-4 border-t border-[var(--color-border)] space-y-4">
+              <div className="p-4 pb-24 md:pb-4 border-t border-[var(--color-border)] space-y-4">
                 <div className="flex items-center justify-between text-lg">
                   <span className="text-[var(--color-text-secondary)]">
                     Subtotal

@@ -13,161 +13,89 @@
 
 <br />
 
-T-Store is an enterprise-grade, full-stack e-commerce solution architected for high performance, seamless user experience, and comprehensive store management. Built on a robust **Laravel API** backend and a dynamic **React SPA** frontend, with **Supabase** powering both database and image storage.
+T-Store is an enterprise-grade, full-stack e-commerce solution architected for high performance, premium user experience, and robust store management. Built with a **Laravel 12 API** backend and a **React 19 SPA** frontend, powered by **Supabase** for persistent storage.
 
-🔗 **Live Demo:** [t-store-rosy.vercel.app](https://t-store-rosy.vercel.app)
+🔗 **Live Demo:** [t-store.site](https://t-store.site)
 
 ---
 
-## ✨ System Features
+## ✨ Key Features & Recent Updates
 
-### 🛍️ Client Storefront
-- **Product Discovery & Associations:** Real-time filtering by category, full-text search, and an intelligent "Related Products" recommendation system.
-- **Dynamic Homepage:** Live-preview Hero section configuration directly tied to client-side storage for instant visual feedback.
-- **Persistent Cart Management:** Seamless cart state preservation across sessions using Zustand.
-- **Frictionless Checkout:** Multi-gateway payment processing supporting both **Stripe** (Credit/Debit) and **PayPal** SDKs.
-- **User Authentication:** Secure token-based authentication via Laravel Sanctum, featuring Google OAuth (Socialite) integration.
-- **Responsive UI/UX:** Mobile-first design implemented with Tailwind CSS v4 and Framer Motion micro-interactions.
+### 🛍️ Premium Client Storefront
+- **Advanced Product Discovery:** Real-time filtering, recursive category tree, and full-text search.
+- **Product Variant Support:** Full support for product attributes (e.g., **Size, Color**) with distinct badges in Cart and Checkout.
+- **Cloud-Synced Cart:** Persistent cart state synced between local storage and backend database using **Zustand**. Cart items are preserved even across different devices once logged in.
+- **Modern Checkout Experience:**
+  - **KHQR / ABA PayWay Integration:** Custom-styled, branded KHQR payment container with a **5-minute live expiration timer**.
+  - **Stripe Integration:** Secure credit/debit card processing.
+  - **Frictionless Flow:** Cart is only cleared upon *successful* payment confirmation, preventing item loss on abandoned transactions.
+- **Mobile-First UX:** Ultra-responsive design with a dedicated **Mobile Bottom Navigation** and smooth Framer Motion transitions.
 
 ### 🎛️ Administrative Back-Office
-- **Comprehensive Analytics:** Real-time BI dashboard visualizing revenue streams, sales velocity, and top-performing SKUs.
-- **Product Management:** Robust CRUD workflows featuring multi-image gallery uploads and intelligent orphaned image cleanup via Supabase Storage REST APIs.
-- **Inventory Tracking:** Automated stock ledger (`stock_movements`) with order lifecycle transitions.
-- **Order Pipeline:** Status-driven workflow management (Pending → Processing → Shipped) with notification dispatch.
-- **Data Export:** On-the-fly CSV report generation for Orders, Products, and User data.
+- **Real-Time Analytics:** Interactive dashboard for revenue, sales velocity, and inventory health.
+- **Intelligent Inventory:** Automated stock ledger (`stock_movements`) tracking every purchase and manual adjustment.
+- **Orphaned Image Cleanup:** Automatically deletes images from Supabase Storage when products are removed or updated.
+- **Secure Simulation:** Dedicated sandbox environment for testing PayWay transactions without real currency.
+
+### 🛡️ Security & Performance
+- **Database Connection Pooling:** Optimized for high concurrency using port `6543`.
+- **Stateless Auth:** Laravel Sanctum token-based authentication with Google OAuth integration.
+- **Hardened API:** 
+  - Ownership verification on all order/payment actions.
+  - Webhook signature validation.
+  - Intelligent error handling to prevent server internal leakage in production.
 
 ---
 
-## 🏗️ System Architecture & Tech Stack
+## 🏗️ Technical Stack
 
-The application adheres to the REST architectural pattern with total decoupling between the client SPA and the server API.
+### Frontend
+- **React 19 + TypeScript 5**
+- **Vite** (Build Tool)
+- **TanStack Query v5** (Server State)
+- **Zustand** (Store Management)
+- **Tailwind CSS v4** (Modern Styling)
+- **Framer Motion** (Animations)
 
-### Frontend (Vercel)
-| Technology | Purpose |
-| :--- | :--- |
-| React 19 + TypeScript | Core SPA framework |
-| Vite | Build tool & HMR |
-| TanStack Query v5 | Server-state & caching |
-| Zustand | Client-side state management |
-| Tailwind CSS v4 | Styling pipeline |
-| React Router v6 | Client-side routing |
+### Backend
+- **Laravel 12** (PHP 8.2+)
+- **Laravel Sanctum** (Auth)
+- **Stripe & ABA PayWay SDKs**
+- **Spatie Laravel MediaLibrary** (Optional)
 
-### Backend (Render)
-| Technology | Purpose |
-| :--- | :--- |
-| Laravel 12 (PHP 8.2+) | API framework |
-| Laravel Sanctum | Stateless token authentication |
-| Eloquent ORM | Database abstraction layer |
-| Stripe PHP SDK | Payment processing |
-| PayPal REST API | Alternative payment gateway |
-
-### Cloud Services (Supabase)
-| Service | Purpose |
-| :--- | :--- |
-| PostgreSQL (Supabase) | Primary database (Singapore region) |
-| Supabase Storage | Persistent image storage (product images, banners, etc.) |
-| Connection Pooler | Database connection management (port 6543) |
+### Cloud Infrastructure
+- **Supabase PostgreSQL** (Primary DB - Singapore)
+- **Supabase Storage** (Media Hosting)
+- **Nginx** (Web Server on EC2)
 
 ---
 
-## 🚀 Deployment Architecture
+## 🚀 Installation & Setup
 
-```
-┌──────────────┐     API calls     ┌──────────────┐     SQL      ┌──────────────┐
-│   Frontend   │ ───────────────── │   Backend    │ ──────────── │   Supabase   │
-│   (Vercel)   │                   │   (Render)   │              │  PostgreSQL  │
-│  React SPA   │                   │  Laravel API │ ──────────── │   Storage    │
-└──────────────┘                   └──────────────┘   Images     └──────────────┘
-```
-
-### Production URLs
-- **Frontend:** `https://t-store-5a2qpzq45-lufiis-projects.vercel.app`
-- **Backend API:** `https://api.t-store.site`
-- **Database:** Supabase PostgreSQL (Singapore `ap-southeast-1`)
-
-### ⏱️ Server Keep-Alive
-AWS EC2 instances do not spin down like Render's free tier, so keep-alive monitors are no longer strictly required, but still recommended for uptime tracking:
-👉 `https://api.t-store.site/api/ping`
-
----
-
-## 🔧 Environment Setup
-
-### Dependencies
-- **Node.js**: `v18.0.0+`
-- **PHP**: `v8.2.0+`
-- **Composer**: `v2.x`
-
-### 1️⃣ Backend Setup
-
+### 1️⃣ Backend Setup (`/backend`)
 ```bash
-cd backend
-composer install --no-interaction --optimize-autoloader
+composer install
 cp .env.example .env
 php artisan key:generate
-php artisan migrate --force
+php artisan migrate
 php artisan serve
 ```
-*API runs on: `http://localhost:8000`*
 
-### 2️⃣ Frontend Setup
-
+### 2️⃣ Frontend Setup (`/frontend`)
 ```bash
-cd frontend
 npm install
 npm run dev
 ```
-*Client runs on: `http://localhost:3000`*
 
 ---
 
-## 🔑 Environment Variables
+## 🔑 Key Environment Variables
 
-### Backend (`backend/.env`)
-
-```env
-# Application
-APP_ENV=production
-APP_URL=https://t-store-yl92.onrender.com
-
-# Database (Supabase PostgreSQL - Connection Pooler)
-DB_CONNECTION=pgsql
-DB_HOST=aws-1-ap-southeast-1.pooler.supabase.com
-DB_PORT=6543
-DB_DATABASE=postgres
-DB_USERNAME=postgres.YOUR_PROJECT_REF
-DB_PASSWORD="YOUR_DB_PASSWORD"
-
-# Frontend
-FRONTEND_URL=https://t-store-rosy.vercel.app
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_REDIRECT_URI=https://api.t-store.site/api/auth/google/callback
-
-# Stripe
-STRIPE_KEY=pk_test_...
-STRIPE_SECRET=sk_test_...
-
-# PayPal
-PAYPAL_CLIENT_ID=your_paypal_client_id
-PAYPAL_SECRET=your_paypal_secret
-
-# Supabase Storage
-SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
-SUPABASE_KEY=sb_secret_YOUR_SECRET_KEY
-SUPABASE_STORAGE_BUCKET=images
-```
-
----
-
-## 🔐 Default Accounts
-
-| Role | Email | Password |
+| Variable | Mode | Purpose |
 | :--- | :--- | :--- |
-| **Admin** | `admin@tstore.com` | `password` |
-| **User** | `john@example.com` | `password` |
+| `APP_DEBUG` | `true/false` | Toggles detailed errors & payment simulation |
+| `PAYWAY_BASE_URL` | URL | Toggles between ABA Sandbox & Production |
+| `STRIPE_KEY` | Key | Toggles between Stripe Test & Live modes |
 
 ---
 

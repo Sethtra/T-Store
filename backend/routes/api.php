@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminInventoryController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminExportController;
+use App\Http\Controllers\CartController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,7 +72,6 @@ Route::get('/ping', function () {
 Route::post('/webhooks/stripe', [PaymentController::class, 'stripeWebhook']);
 Route::post('/payment/payway/callback', [PaymentController::class, 'paywayCallback']);
 
-use App\Http\Controllers\CartController;
 
 // Protected Routes (Authenticated Users)
 Route::middleware('auth:sanctum')->group(function () {
