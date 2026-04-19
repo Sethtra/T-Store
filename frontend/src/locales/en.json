@@ -12,6 +12,9 @@
     "orders": "Orders"
   },
   "hero": {
+    "default_title": "Welcome to T-Store",
+    "default_subtitle": "The best place to buy premium tech products",
+    "default_description": "Discover our curated collection of high-quality electronics, smart devices, and accessories designed to elevate your lifestyle.",
     "shop_now": "Shop Now",
     "view_details": "View Details",
     "featured": "Featured Product"

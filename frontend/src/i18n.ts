@@ -24,4 +24,10 @@ i18n
     },
   });
 
+// Synchronize language with HTML element to activate localized CSS styling
+document.documentElement.lang = i18n.language;
+i18n.on('languageChanged', (lng) => {
+  document.documentElement.lang = lng;
+});
+
 export default i18n;
