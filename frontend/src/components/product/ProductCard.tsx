@@ -1,26 +1,38 @@
 import { Link } from "react-router-dom";
 import { getImageUrl } from "../../utils/image";
+import { useTranslation } from "react-i18next";
 
 interface ProductCardProps {
   id: number;
   slug: string;
   title: string;
+  title_kh?: string;
   price: number;
   image: string;
   category?: string;
+  category_kh?: string;
   stock?: number;
   description?: string;
+  description_kh?: string;
 }
 
 const ProductCard = ({
   slug,
   title,
+  title_kh,
   price,
   image,
   category,
+  category_kh,
   stock,
   description,
+  description_kh,
 }: ProductCardProps) => {
+  const { i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
+  const displayTitle = isKh && title_kh ? title_kh : title;
+  const displayDescription = isKh && description_kh ? description_kh : description;
+  const displayCategory = isKh && category_kh ? category_kh : category;
   const isOutOfStock = (stock ?? 0) <= 0;
 
   return (
@@ -36,6 +48,7 @@ const ProductCard = ({
               src={getImageUrl(image)}
               alt={title}
               loading="lazy"
+              decoding="async"
               className="w-full h-full object-contain p-4 will-change-transform transition-transform duration-500 ease-out group-hover:scale-110"
               onError={(e) => {
                 e.currentTarget.src = "/placeholder.jpg";
@@ -44,9 +57,9 @@ const ProductCard = ({
             />
 
             {/* Category Badge */}
-            {category && (
+            {displayCategory && (
               <span className="absolute top-3 left-3 px-3 py-1 text-xs font-medium bg-black/60 text-white rounded-full border border-white/10 z-20 shadow-sm">
-                {category}
+                {displayCategory}
               </span>
             )}
 
@@ -61,16 +74,16 @@ const ProductCard = ({
           </div>
 
           {/* Content */}
-          <div className="p-5">
+          <div className="p-6">
             {/* Title */}
-            <h3 className="font-medium text-[var(--color-text-primary)] truncate group-hover:text-[var(--color-primary)] transition-colors duration-300">
-              {title}
+            <h3 className="font-bold text-lg leading-snug text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)] transition-colors duration-300 line-clamp-2 min-h-[3.5rem]">
+              {displayTitle}
             </h3>
 
             {/* Description */}
-            {description && (
-              <p className="text-sm text-[var(--color-text-muted)] mt-1 line-clamp-2">
-                {description}
+            {displayDescription && (
+              <p className="text-sm text-[var(--color-text-muted)] mt-1.5 line-clamp-2">
+                {displayDescription}
               </p>
             )}
 

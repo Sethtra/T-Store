@@ -3,8 +3,10 @@ import { useCartStore, type CartItem } from "../../stores/cartStore";
 import { Link } from "react-router-dom";
 import Button from "../ui/Button";
 import { getImageUrl } from "../../utils/image";
+import { useTranslation } from "react-i18next";
 
 const CartDrawer = () => {
+  const { t, i18n } = useTranslation();
   const { items, isOpen, closeCart, removeItem, updateQuantity, totalPrice } =
     useCartStore();
 
@@ -31,7 +33,7 @@ const CartDrawer = () => {
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
-              <h2 className="text-xl font-bold">Shopping Cart</h2>
+              <h2 className="text-xl font-bold">{t("cart.title")}</h2>
               <button
                 onClick={closeCart}
                 className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
@@ -73,10 +75,10 @@ const CartDrawer = () => {
                     />
                   </svg>
                   <p className="text-[var(--color-text-muted)] mb-4">
-                    Your cart is empty
+                    {t("cart.empty")}
                   </p>
                   <Button onClick={closeCart} variant="outline">
-                    Continue Shopping
+                    {t("cart.continue_shopping")}
                   </Button>
                 </div>
               ) : (
@@ -98,17 +100,17 @@ const CartDrawer = () => {
               <div className="p-4 pb-24 md:pb-4 border-t border-[var(--color-border)] space-y-4">
                 <div className="flex items-center justify-between text-lg">
                   <span className="text-[var(--color-text-secondary)]">
-                    Subtotal
+                    {t("cart.subtotal")}
                   </span>
                   <span className="font-bold">${totalPrice().toFixed(2)}</span>
                 </div>
                 <Link to="/checkout" onClick={closeCart}>
                   <Button fullWidth size="lg">
-                    Proceed to Checkout
+                    {t("cart.checkout")}
                   </Button>
                 </Link>
                 <p className="text-center text-sm text-[var(--color-text-muted)]">
-                  Shipping and taxes calculated at checkout
+                  {i18n.language === 'kh' ? "ការដឹកជញ្ជូន និងពន្ធត្រូវបានគណនានៅពេលទូទាត់ប្រាក់" : "Shipping and taxes calculated at checkout"}
                 </p>
               </div>
             )}

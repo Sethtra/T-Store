@@ -148,7 +148,7 @@ class ApiSmokeTest extends TestCase
             ->assertJsonPath('email', 'auth@example.com');
     }
 
-    public function test_orders_can_be_created_and_decrement_stock(): void
+    public function test_orders_can_be_created_without_immediate_decrement(): void
     {
         $user = User::create([
             'name' => 'Buyer',
@@ -174,7 +174,9 @@ class ApiSmokeTest extends TestCase
 
         $res->assertStatus(201)->assertJsonStructure(['message', 'order']);
         $this->assertDatabaseHas('orders', ['user_id' => $user->id, 'status' => 'pending']);
-        $this->assertDatabaseHas('products', ['id' => $product->id, 'stock' => 3]);
+        
+        // Stock should STILL be 5 because payment hasn't happened yet
+        $this->assertDatabaseHas('products', ['id' => $product->id, 'stock' => 5]);
     }
 
     public function test_admin_routes_forbidden_for_non_admin(): void

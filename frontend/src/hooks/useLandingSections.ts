@@ -8,6 +8,7 @@ export interface LandingSectionProduct {
   slug: string;
   price: number;
   image_url: string;
+  images: string[];
   category?: string;
 }
 
@@ -15,7 +16,10 @@ export interface LandingSection {
   id: number;
   section_type: "hero_main" | "hero_featured" | "hero_small";
   title: string;
+  title_kh: string;
   description: string;
+  description_kh: string;
+  image?: string;
   custom_image?: string;
   order: number;
   product: LandingSectionProduct;
@@ -25,7 +29,9 @@ export interface LandingSectionFormData {
   section_type: "hero_main" | "hero_featured" | "hero_small";
   product_id: number;
   title?: string;
+  title_kh?: string;
   description?: string;
+  description_kh?: string;
   is_active?: boolean;
   order?: number;
 }

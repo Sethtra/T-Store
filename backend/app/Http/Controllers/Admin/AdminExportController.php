@@ -43,7 +43,7 @@ class AdminExportController extends Controller
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->chunk(100, function ($orders) use ($file) {
                     foreach ($orders as $order) {
-                        fputcsv($file, [
+                        fputcsv($file, array_map([$this, 'sanitizeCsvValue'], [
                             $order->id,
                             $order->tracking_id,
                             $order->status,
@@ -54,7 +54,7 @@ class AdminExportController extends Controller
                             $order->shipping_email ?? ($order->user ? $order->user->email : ''),
                             $order->shipping_city,
                             $order->created_at->format('Y-m-d H:i:s')
-                        ]);
+                        ]));
                     }
                 });
 
@@ -91,7 +91,7 @@ class AdminExportController extends Controller
                 foreach ($products as $product) {
                     $status = $product->stock <= 0 ? 'Out of Stock' : ($product->stock <= 10 ? 'Low Stock' : 'In Stock');
                     
-                    fputcsv($file, [
+                    fputcsv($file, array_map([$this, 'sanitizeCsvValue'], [
                         $product->id,
                         $product->title,
                         $product->category ? $product->category->name : 'N/A',
@@ -99,7 +99,7 @@ class AdminExportController extends Controller
                         $product->stock,
                         $status,
                         $product->created_at->format('Y-m-d H:i:s')
-                    ]);
+                    ]));
                 }
             });
 
@@ -139,7 +139,7 @@ class AdminExportController extends Controller
                 }], 'total')
                 ->chunk(100, function ($users) use ($file) {
                     foreach ($users as $user) {
-                        fputcsv($file, [
+                        fputcsv($file, array_map([$this, 'sanitizeCsvValue'], [
                             $user->id,
                             $user->name,
                             $user->email,
@@ -148,7 +148,7 @@ class AdminExportController extends Controller
                             $user->orders_count,
                             number_format((float) $user->total_spent, 2, '.', ''),
                             $user->created_at->format('Y-m-d H:i:s')
-                        ]);
+                        ]));
                     }
                 });
 
@@ -156,5 +156,23 @@ class AdminExportController extends Controller
         };
 
         return new StreamedResponse($callback, 200, $headers);
+    }
+
+    /**
+     * Sanitize value for CSV to prevent Formula Injection (CSV Injection).
+     * Prepending a single quote (') if the value starts with =, +, -, or @.
+     */
+    private function sanitizeCsvValue($value): string
+    {
+        if (is_null($value)) return '';
+        
+        $value = (string) $value;
+        $vulnerableChars = ['=', '+', '-', '@'];
+        
+        if (!empty($value) && in_array($value[0], $vulnerableChars)) {
+            return "'" . $value;
+        }
+        
+        return $value;
     }
 }

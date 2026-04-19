@@ -8,9 +8,12 @@ export interface CategoryDisplay {
   category_id: number | null;
   category?: Category;
   title: string;
+  title_kh: string | null;
   description: string | null;
+  description_kh: string | null;
   image_url: string | null;
   button_text: string;
+  button_text_kh: string | null;
   link: string | null;
   is_active: boolean;
   order: number;

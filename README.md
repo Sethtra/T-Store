@@ -75,6 +75,7 @@ You can use these accounts to explore the platform without signing up:
 ## ✨ Key Features
 
 ### Storefront
+- 🌍 **Full Localization** — Complete dual-language support for English and Khmer (i18n) across the entire UI, including checkout and notifications.
 - 🔍 **Smart Search & Filtering** — Filter by category, price range, and sort order with instant results.
 - 🛒 **Cloud-Synced Cart** — Cart persists across sessions and syncs between devices when logged in. Supports product variants (Size, Color).
 - 💳 **Dual Payment Gateways** — Stripe (Credit/Debit Card) and ABA PayWay (KHQR) with a branded 5-minute expiry timer.

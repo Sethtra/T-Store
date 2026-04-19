@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../../stores/authStore";
 import { useCartStore } from "../../stores/cartStore";
 import { useThemeStore } from "../../stores/themeStore";
-import { useCategories } from "../../hooks/useProducts";
+import { useAppBootstrap } from "../../hooks/useAppBootstrap";
 import { useOrders } from "../../hooks/useOrders";
+import { useTranslation } from "react-i18next";
 import Button from "../ui/Button";
 import CustomerNotificationBell from "../notifications/CustomerNotificationBell";
 
@@ -16,8 +17,16 @@ const Navbar = () => {
   const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
 
-  const { data: categories } = useCategories();
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "kh" : "en";
+    i18n.changeLanguage(newLang);
+  };
+
+  const { data: bootstrapData } = useAppBootstrap();
+  const categories = bootstrapData?.categories;
 
   // Fetch orders for desktop badge counts
   const { data: orders } = useOrders();
@@ -89,14 +98,14 @@ const Navbar = () => {
                       : undefined,
                 }}
               >
-                Home
+                {t("nav.home")}
               </span>
             </Link>
 
             {/* Categories Mega Menu */}
             <div className="relative group px-5 py-2 cursor-pointer">
               <div className="flex items-center gap-1 text-sm font-medium text-[var(--color-text-secondary)] group-hover:text-[var(--color-text-primary)] transition-colors relative z-20">
-                Categories
+                {t("nav.categories")}
                 <svg
                   className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180"
                   fill="none"
@@ -121,7 +130,7 @@ const Navbar = () => {
                         to={`/products?category=${cat?.slug}`}
                         className="block font-bold text-[var(--color-text-primary)] hover:text-[var(--color-primary)] transition-colors text-lg"
                       >
-                        {cat.name}
+                        {isKh && cat.name_kh ? cat.name_kh : cat.name}
                       </Link>
                       {cat.children && cat.children.length > 0 && (
                         <ul className="space-y-2">
@@ -131,7 +140,7 @@ const Navbar = () => {
                                 to={`/products?category=${child?.slug}`}
                                 className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors block"
                               >
-                                {child.name}
+                                {isKh && child.name_kh ? child.name_kh : child.name}
                               </Link>
                             </li>
                           ))}
@@ -174,7 +183,7 @@ const Navbar = () => {
                       : undefined,
                 }}
               >
-                Products
+                {t("nav.featured")}
               </span>
             </Link>
 
@@ -208,13 +217,23 @@ const Navbar = () => {
                       : undefined,
                 }}
               >
-                About
+                {t("nav.about")}
               </span>
             </Link>
           </div>
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-3 md:gap-4">
+            {/* Language Toggle */}
+            <button
+              onClick={toggleLanguage}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] border border-[var(--color-border)] hover:border-[var(--color-primary)]/50 transition-all flex items-center gap-1.5 active:scale-95"
+            >
+              <span className={i18n.language === "en" ? "text-[var(--color-primary)]" : "opacity-40"}>EN</span>
+              <div className="w-[1px] h-3 bg-[var(--color-border)]" />
+              <span className={i18n.language === "kh" ? "text-[var(--color-primary)]" : "opacity-40"}>KH</span>
+            </button>
+
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -283,8 +302,8 @@ const Navbar = () => {
               <button
                 onClick={() => navigate("/orders")}
                 className="hidden md:flex relative p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] transition-all active:scale-95"
-                aria-label="My Orders"
-                title="My Orders"
+                aria-label={t("nav.orders")}
+                title={t("nav.orders")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -395,7 +414,7 @@ const Navbar = () => {
                               d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
                             />
                           </svg>
-                          Admin Dashboard
+                          {isKh ? "ផ្ទាំងគ្រប់គ្រង Admin" : "Admin Dashboard"}
                         </Link>
                       )}
                       <Link
@@ -415,7 +434,7 @@ const Navbar = () => {
                             d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                           />
                         </svg>
-                        My Orders
+                        {t("nav.orders")}
                       </Link>
                       <button
                         onClick={handleLogout}
@@ -434,7 +453,7 @@ const Navbar = () => {
                             d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                           />
                         </svg>
-                        Logout
+                        {t("nav.logout")}
                       </button>
                     </div>
                   </div>
@@ -443,7 +462,7 @@ const Navbar = () => {
                 <>
                   <Link to="/login">
                     <Button variant="ghost" size="sm">
-                      Login
+                      {t("nav.login")}
                     </Button>
                   </Link>
                   <Link to="/register">
@@ -451,12 +470,12 @@ const Navbar = () => {
                       size="sm"
                       className="shadow-lg shadow-[var(--color-primary)]/20"
                     >
-                      Sign Up
+                      {t("nav.register")}
                     </Button>
                   </Link>
                 </>
               )}
-          </div>
+            </div>
           </div>
         </nav>
       </div>

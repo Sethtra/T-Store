@@ -31,7 +31,9 @@ const LandingSectionPage = () => {
     section_type: "hero_main",
     product_id: 0,
     title: "",
+    title_kh: "",
     description: "",
+    description_kh: "",
     is_active: true,
     order: 0,
   });
@@ -69,7 +71,9 @@ const LandingSectionPage = () => {
         section_type: sectionType,
         product_id: products[0]?.id || 0,
         title: "",
+        title_kh: "",
         description: "",
+        description_kh: "",
         is_active: true,
         order: 0,
       });
@@ -85,7 +89,9 @@ const LandingSectionPage = () => {
       section_type: section.section_type,
       product_id: section.product?.id || 0,
       title: section.title || "",
+      title_kh: section.title_kh || "",
       description: section.description || "",
+      description_kh: section.description_kh || "",
       is_active: true,
       order: section.order,
     });
@@ -99,8 +105,11 @@ const LandingSectionPage = () => {
       submitData.append("section_type", formData.section_type);
       submitData.append("product_id", formData.product_id.toString());
       if (formData.title) submitData.append("title", formData.title);
+      if (formData.title_kh) submitData.append("title_kh", formData.title_kh);
       if (formData.description)
         submitData.append("description", formData.description);
+      if (formData.description_kh)
+        submitData.append("description_kh", formData.description_kh);
       submitData.append("is_active", formData.is_active ? "1" : "0");
       submitData.append("order", formData.order?.toString() || "0");
       if (selectedImage) submitData.append("image", selectedImage);
@@ -206,15 +215,49 @@ const LandingSectionPage = () => {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-2">Captivating Description</label>
-                <textarea
-                  defaultValue={localStorage.getItem("hero_description") || "Elevate your routine with premium goods and curated essentials..."}
-                  id="hero-description-input"
-                  rows={5}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all resize-none"
-                  placeholder="Tell your story..."
-                />
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-[var(--color-primary)] mb-2">Main Title (Khmer)</label>
+                  <input
+                    type="text"
+                    defaultValue={localStorage.getItem("hero_title_kh") || "លើកកម្ពស់របៀបរស់នៅរបស់អ្នក"}
+                    id="hero-title-kh-input"
+                    className="w-full px-4 py-3.5 rounded-2xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
+                    placeholder="បញ្ចូលចំណងជើងជាភាសាខ្មែរ..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-[var(--color-primary)] mb-2">Subtitle (Khmer)</label>
+                  <input
+                    type="text"
+                    defaultValue={localStorage.getItem("hero_subtitle_kh") || "ជាមួយនឹងរបស់របរចាំបាច់លំដាប់ខ្ពស់"}
+                    id="hero-subtitle-kh-input"
+                    className="w-full px-4 py-3.5 rounded-2xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all"
+                    placeholder="បញ្ចូលចំណងជើងរងជាភាសាខ្មែរ..."
+                  />
+                </div>
+              </div>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-2">Captivating Description</label>
+                  <textarea
+                    defaultValue={localStorage.getItem("hero_description") || "Elevate your routine with premium goods and curated essentials..."}
+                    id="hero-description-input"
+                    rows={4}
+                    className="w-full px-4 py-3.5 rounded-2xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all resize-none"
+                    placeholder="Tell your story in English..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-[var(--color-primary)] mb-2">Description (Khmer)</label>
+                  <textarea
+                    defaultValue={localStorage.getItem("hero_description_kh") || "បង្កើនទម្លាប់របស់អ្នកជាមួយនឹងទំនិញលំដាប់ខ្ពស់..."}
+                    id="hero-description-kh-input"
+                    rows={4}
+                    className="w-full px-4 py-3.5 rounded-2xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] transition-all resize-none"
+                    placeholder="រៀបរាប់ជាភាសាខ្មែរ..."
+                  />
+                </div>
               </div>
             </div>
             
@@ -229,11 +272,18 @@ const LandingSectionPage = () => {
                 variant="primary"
                 onClick={() => {
                   const title = (document.getElementById("hero-title-input") as HTMLInputElement)?.value;
+                  const titleKh = (document.getElementById("hero-title-kh-input") as HTMLInputElement)?.value;
                   const subtitle = (document.getElementById("hero-subtitle-input") as HTMLInputElement)?.value;
+                  const subtitleKh = (document.getElementById("hero-subtitle-kh-input") as HTMLInputElement)?.value;
                   const description = (document.getElementById("hero-description-input") as HTMLTextAreaElement)?.value;
+                  const descriptionKh = (document.getElementById("hero-description-kh-input") as HTMLTextAreaElement)?.value;
+
                   if (title) localStorage.setItem("hero_title", title);
+                  if (titleKh) localStorage.setItem("hero_title_kh", titleKh);
                   if (subtitle) localStorage.setItem("hero_subtitle", subtitle);
+                  if (subtitleKh) localStorage.setItem("hero_subtitle_kh", subtitleKh);
                   if (description) localStorage.setItem("hero_description", description);
+                  if (descriptionKh) localStorage.setItem("hero_description_kh", descriptionKh);
                   alert("✨ Hero text updated successfully!");
                 }}
                 className="w-full sm:w-auto px-8"
@@ -430,47 +480,76 @@ const LandingSectionPage = () => {
                   </div>
                 )}
 
-                {/* Custom Title */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                    Custom Title
-                    <span className="text-[var(--color-text-muted)] font-normal ml-2">
-                      (Optional)
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    placeholder={
-                      getSelectedProduct()?.title || "Enter custom title..."
-                    }
-                    className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
-                  />
+                {/* Custom Title & Description (English) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                      Custom Title (EN)
+                      <span className="text-[var(--color-text-muted)] font-normal ml-2">
+                        (Optional)
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
+                      placeholder={
+                        getSelectedProduct()?.title || "Enter title..."
+                      }
+                      className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-primary)] mb-2">
+                      Custom Title (KH)
+                      <span className="text-[var(--color-text-muted)] font-normal ml-2">
+                        (Optional)
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title_kh}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title_kh: e.target.value })
+                      }
+                      placeholder="បញ្ចូលចំណងជើងខ្មែរ..."
+                      className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+                    />
+                  </div>
                 </div>
 
-                {/* Custom Description */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                    Custom Description
-                    <span className="text-[var(--color-text-muted)] font-normal ml-2">
-                      (Optional)
-                    </span>
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    placeholder={
-                      getSelectedProduct()?.description?.slice(0, 100) ||
-                      "Enter custom description..."
-                    }
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
-                  />
+                {/* Custom Description (English & Khmer) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                      Description (EN)
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) =>
+                        setFormData({ ...formData, description: e.target.value })
+                      }
+                      placeholder="English description..."
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-primary)] mb-2">
+                      Description (KH)
+                    </label>
+                    <textarea
+                      value={formData.description_kh}
+                      onChange={(e) =>
+                        setFormData({ ...formData, description_kh: e.target.value })
+                      }
+                      placeholder="ការរៀបរាប់ខ្មែរ..."
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
+                    />
+                  </div>
                 </div>
 
                 {/* Custom Image */}

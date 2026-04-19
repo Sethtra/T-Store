@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { type Order } from "../../hooks/useOrders";
 import Button from "../ui/Button";
+import { useTranslation } from "react-i18next";
 
 interface InvoiceModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface InvoiceModalProps {
 }
 
 const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
+  const { t, i18n } = useTranslation();
   if (!isOpen || !order) return null;
 
   const handlePrint = () => {
@@ -26,7 +28,7 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
       printWindow.document.write(`
         <html>
           <head>
-            <title>Invoice - ${order.tracking_id || order.id}</title>
+            <title>${i18n.language === 'kh' ? 'វិក្កយបត្រ' : 'Invoice'} - ${order.tracking_id || order.id}</title>
             <style>
               body { font-family: sans-serif; padding: 20px; color: #333; }
               .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
@@ -39,7 +41,7 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
               .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #888; }
             </style>
           </head>
-          <body>
+          <body dir="${i18n.language === 'kh' ? 'ltr' : 'ltr'}">
             ${printContent.innerHTML}
           </body>
         </html>
@@ -71,7 +73,7 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
             >
               {/* Toolbar */}
               <div className="p-4 bg-gray-100 border-b border-gray-200 flex justify-between items-center">
-                <h3 className="font-bold text-gray-700">Invoice Preview</h3>
+                <h3 className="font-bold text-gray-700">{i18n.language === 'kh' ? 'មើលវិក្កយបត្រ' : 'Invoice Preview'}</h3>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -79,10 +81,10 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
                     onClick={handlePrint}
                     className="bg-white"
                   >
-                    Print / PDF
+                    {i18n.language === 'kh' ? 'បោះពុម្ព / PDF' : 'Print / PDF'}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={onClose}>
-                    Close
+                    {t("common.close")}
                   </Button>
                 </div>
               </div>
@@ -96,7 +98,7 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
                 <div className="flex justify-between items-start mb-12">
                   <div>
                     <h1 className="text-3xl font-bold tracking-tight text-black">
-                      INVOICE
+                      {i18n.language === 'kh' ? 'វិក្កយបត្រ' : 'INVOICE'}
                     </h1>
                     <div className="mt-4 text-gray-500 text-sm">
                       <p className="font-bold text-black">T-Store Inc.</p>
@@ -109,13 +111,13 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
                     <div className="w-12 h-12 bg-black text-white rounded-lg flex items-center justify-center ml-auto mb-4 text-xl font-bold">
                       T
                     </div>
-                    <p className="text-sm text-gray-500">Tracking ID</p>
+                    <p className="text-sm text-gray-500">{t("orders.tracking_id")}</p>
                     <p className="text-xl font-bold mb-2 font-mono">
                       {order.tracking_id || order.id}
                     </p>
-                    <p className="text-sm text-gray-500">Date</p>
+                    <p className="text-sm text-gray-500">{t("orders.date")}</p>
                     <p className="font-medium">
-                      {new Date(order.created_at).toLocaleDateString()}
+                      {new Date(order.created_at).toLocaleDateString(i18n.language === 'kh' ? 'km-KH' : 'en-US')}
                     </p>
                   </div>
                 </div>
@@ -124,15 +126,15 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
                 <table className="w-full mb-8">
                   <thead>
                     <tr className="bg-gray-50 border-y border-gray-100 text-sm uppercase text-gray-500">
-                      <th className="py-3 px-2 font-semibold">Item</th>
+                      <th className="py-3 px-2 font-semibold">{i18n.language === 'kh' ? 'ទំនិញ' : 'Item'}</th>
                       <th className="py-3 px-2 font-semibold text-right">
-                        Qty
+                        {i18n.language === 'kh' ? 'ចំនួន' : 'Qty'}
                       </th>
                       <th className="py-3 px-2 font-semibold text-right">
-                        Price
+                        {t("common.price")}
                       </th>
                       <th className="py-3 px-2 font-semibold text-right">
-                        Total
+                        {t("orders.total")}
                       </th>
                     </tr>
                   </thead>
@@ -177,20 +179,20 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
                 <div className="flex justify-end">
                   <div className="w-64 space-y-2">
                     <div className="flex justify-between text-gray-500">
-                      <span>Subtotal</span>
+                      <span>{t("cart.subtotal")}</span>
                       <span>${Number(order.total).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-gray-500">
-                      <span>Tax (0%)</span>
+                      <span>{i18n.language === 'kh' ? 'ពន្ធ (០%)' : 'Tax (0%)'}</span>
                       <span>$0.00</span>
                     </div>
                     <div className="flex justify-between text-gray-500">
-                      <span>Shipping</span>
-                      <span>Free</span>
+                      <span>{t("orders.delivery")}</span>
+                      <span>{t("orders.free")}</span>
                     </div>
                     <div className="h-px bg-gray-200 my-2"></div>
                     <div className="flex justify-between text-xl font-bold text-black">
-                      <span>Total</span>
+                      <span>{t("checkout.total")}</span>
                       <span>${Number(order.total).toFixed(2)}</span>
                     </div>
                   </div>
@@ -198,7 +200,7 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
 
                 {/* Footer */}
                 <div className="mt-16 pt-8 border-t border-gray-100 text-center text-gray-400 text-sm">
-                  <p>Thank you for shopping with T-Store!</p>
+                  <p>{i18n.language === 'kh' ? 'អរគុណសម្រាប់ការទិញទំនិញជាមួយ T-Store!' : 'Thank you for shopping with T-Store!'}</p>
                 </div>
               </div>
             </motion.div>

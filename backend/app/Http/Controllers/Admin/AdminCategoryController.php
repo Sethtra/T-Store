@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class AdminCategoryController extends Controller
 {
@@ -59,6 +60,7 @@ class AdminCategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'name_kh' => 'nullable|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
         ]);
 
@@ -77,6 +79,11 @@ class AdminCategoryController extends Controller
 
         $category = Category::create($validated);
 
+        // Invalidate public caches
+        Cache::forget('categories_index');
+        Cache::forget('app_bootstrap');
+        Cache::forget('landing_data_all');
+
         return response()->json($category->load('children'), 201);
     }
 
@@ -87,6 +94,7 @@ class AdminCategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
+            'name_kh' => 'nullable|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
         ]);
 
@@ -111,6 +119,11 @@ class AdminCategoryController extends Controller
 
         $category->update($validated);
 
+        // Invalidate public caches
+        Cache::forget('categories_index');
+        Cache::forget('app_bootstrap');
+        Cache::forget('landing_data_all');
+
         return response()->json($category->load('children'));
     }
 
@@ -121,6 +134,11 @@ class AdminCategoryController extends Controller
     {
         // Children will be deleted via cascade
         $category->delete();
+
+        // Invalidate public caches
+        Cache::forget('categories_index');
+        Cache::forget('app_bootstrap');
+        Cache::forget('landing_data_all');
 
         return response()->json(null, 204);
     }

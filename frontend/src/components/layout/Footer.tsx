@@ -1,25 +1,27 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Facebook, Twitter, Instagram, Github } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Footer = () => {
+  const { t, i18n } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
     shop: [
-      { label: "All Products", href: "/products" },
-      { label: "New Arrivals", href: "/products?sort=newest" },
-      { label: "Best Sellers", href: "/products?sort=popular" },
+      { label: t("footer.all_products"), href: "/products" },
+      { label: t("footer.new_arrivals"), href: "/products?sort=newest" },
+      { label: t("footer.best_sellers"), href: "/products?sort=popular" },
     ],
     support: [
-      { label: "Contact Us", href: "/contact" },
-      { label: "FAQs", href: "/faq" },
-      { label: "Shipping Info", href: "/shipping" },
-      { label: "Returns", href: "/returns" },
+      { label: t("footer.contact_us"), href: "/contact" },
+      { label: t("footer.faqs"), href: "/faq" },
+      { label: t("footer.shipping_info"), href: "/shipping" },
+      { label: t("footer.returns"), href: "/returns" },
     ],
     legal: [
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Terms of Service", href: "/terms" },
+      { label: t("footer.privacy"), href: "/privacy" },
+      { label: t("footer.terms"), href: "/terms" },
     ],
   };
 
@@ -41,9 +43,7 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-[var(--color-text-secondary)] leading-relaxed max-w-sm">
-              Discover premium electronics and accessories designed for modern
-              life. Quality products, exceptional service, and fast shipping
-              worldwide.
+              {t("footer.brand_desc")}
             </p>
 
             {/* Social Links */}
@@ -86,7 +86,7 @@ const Footer = () => {
             {/* Shop Links */}
             <div>
               <h4 className="font-bold text-[var(--color-text-primary)] mb-6 text-lg">
-                Shop
+                {t("footer.shop")}
               </h4>
               <ul className="space-y-4">
                 {footerLinks.shop.map((link) => (
@@ -105,7 +105,7 @@ const Footer = () => {
             {/* Support Links */}
             <div>
               <h4 className="font-bold text-[var(--color-text-primary)] mb-6 text-lg">
-                Support
+                {t("footer.support")}
               </h4>
               <ul className="space-y-4">
                 {footerLinks.support.map((link) => (
@@ -124,7 +124,7 @@ const Footer = () => {
             {/* Legal Links */}
             <div>
               <h4 className="font-bold text-[var(--color-text-primary)] mb-6 text-lg">
-                Company
+                {t("footer.company")}
               </h4>
               <ul className="space-y-4">
                 {footerLinks.legal.map((link) => (
@@ -142,12 +142,12 @@ const Footer = () => {
               {/* Newsletter Teaser */}
               <div className="mt-8 p-4 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border)]">
                 <p className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">
-                  Join our newsletter
+                  {t("footer.newsletter")}
                 </p>
                 <div className="flex gap-2">
                   <input
                     type="email"
-                    placeholder="Email"
+                    placeholder={i18n.language === 'kh' ? "អ៊ីមែល" : "Email"}
                     className="w-full bg-transparent border-b border-[var(--color-border)] text-sm py-1 focus:outline-none focus:border-[var(--color-primary)] transition-colors"
                   />
                   <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">
@@ -162,7 +162,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-[var(--color-border)] flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-[var(--color-text-muted)] text-sm">
-            © {currentYear} T-Store. All rights reserved.
+            {t("footer.copyright", { year: currentYear })}
           </p>
 
           <div className="flex items-center gap-6">

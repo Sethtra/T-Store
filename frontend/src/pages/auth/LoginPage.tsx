@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import { useAuthStore } from "../../stores/authStore";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
+import { useTranslation } from "react-i18next";
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login, setUser, isLoading } = useAuthStore();
   const [email, setEmail] = useState("");
@@ -30,7 +32,7 @@ const LoginPage = () => {
       const userParam = searchParams.get("user");
 
       if (!token || !userParam) {
-        setError("Google login failed: missing credentials.");
+        setError(t("auth.error_google_missing", "Google login failed: missing credentials."));
         return;
       }
 
@@ -49,10 +51,10 @@ const LoginPage = () => {
           window.location.href = "/";
         }
       } catch {
-        setError("Google login failed: invalid response.");
+        setError(t("auth.error_google_invalid", "Google login failed: invalid response."));
       }
     } else if (googleStatus === "error") {
-      setError(searchParams.get("message") || "Google login failed.");
+      setError(searchParams.get("message") || t("auth.error_google_failed", "Google login failed."));
     }
   }, [searchParams, setUser]);
 
@@ -74,7 +76,7 @@ const LoginPage = () => {
       const errorMessage =
         err.response?.data?.message ||
         err.message ||
-        "Invalid email or password";
+        t("auth.error_invalid_credentials", "Invalid email or password");
       setError(errorMessage);
     }
   };
@@ -94,9 +96,9 @@ const LoginPage = () => {
                 <span className="text-white font-bold text-xl">T</span>
               </div>
             </Link>
-            <h1 className="text-2xl font-bold">Welcome Back</h1>
+            <h1 className="text-2xl font-bold">{t("auth.welcome_back")}</h1>
             <p className="text-[var(--color-text-muted)] mt-2">
-              Sign in to your account
+              {t("auth.sign_in_to_account")}
             </p>
           </div>
 
@@ -109,7 +111,7 @@ const LoginPage = () => {
             )}
 
             <Input
-              label="Email"
+              label={t("auth.email")}
               type="email"
               placeholder="you@example.com"
               value={email}
@@ -118,7 +120,7 @@ const LoginPage = () => {
             />
 
             <Input
-              label="Password"
+              label={t("auth.password")}
               type="password"
               placeholder="••••••••"
               value={password}
@@ -135,19 +137,19 @@ const LoginPage = () => {
                   className="w-4 h-4 rounded border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
                 <span className="text-sm text-[var(--color-text-muted)]">
-                  Remember me
+                  {t("auth.remember_me")}
                 </span>
               </label>
               <Link
                 to="/forgot-password"
                 className="text-sm text-[var(--color-primary)] hover:underline"
               >
-                Forgot password?
+                {t("auth.forgot_password")}
               </Link>
             </div>
 
             <Button type="submit" fullWidth size="lg" isLoading={isLoading}>
-              Sign In
+              {t("auth.sign_in")}
             </Button>
           </form>
 
@@ -158,7 +160,7 @@ const LoginPage = () => {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]">
-                Or continue with
+                {t("auth.or_continue_with")}
               </span>
             </div>
           </div>
@@ -190,7 +192,7 @@ const LoginPage = () => {
                 fill="#EA4335"
               />
             </svg>
-            Continue with Google
+            {t("auth.continue_with_google")}
           </button>
 
           {/* Divider */}
@@ -200,7 +202,7 @@ const LoginPage = () => {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]">
-                Don't have an account?
+                {t("auth.dont_have_account")}
               </span>
             </div>
           </div>
@@ -208,7 +210,7 @@ const LoginPage = () => {
           {/* Register Link */}
           <Link to="/register">
             <Button variant="outline" fullWidth>
-              Create Account
+              {t("auth.create_account")}
             </Button>
           </Link>
         </div>

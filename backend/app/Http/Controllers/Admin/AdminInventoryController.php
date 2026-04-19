@@ -97,7 +97,7 @@ class AdminInventoryController extends Controller
         ]);
 
         return DB::transaction(function () use ($request) {
-            $product = Product::findOrFail($request->product_id);
+            $product = Product::lockForUpdate()->findOrFail($request->product_id);
             
             // Prevent negative stock
             $newStock = $product->stock + $request->quantity_change;
@@ -145,7 +145,9 @@ class AdminInventoryController extends Controller
 
         DB::transaction(function () use ($request, &$results, &$errors) {
             foreach ($request->adjustments as $adjustment) {
-                $product = Product::find($adjustment['product_id']);
+                $product = Product::lockForUpdate()->find($adjustment['product_id']);
+                
+                if (!$product) continue;
                 
                 $newStock = $product->stock + $adjustment['quantity_change'];
                 

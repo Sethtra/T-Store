@@ -11,6 +11,7 @@ import ProductCard from "../components/product/ProductCard";
 import { ProductGridSkeleton } from "../components/product/ProductCardSkeleton";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
+import { useTranslation } from "react-i18next";
 
 // Recursive Category Item Component
 const CategoryItem = ({
@@ -24,6 +25,8 @@ const CategoryItem = ({
   currentCategory?: string;
   onSelect: (slug?: string) => void;
 }) => {
+  const { i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
   const [isOpen, setIsOpen] = useState(false);
   const hasChildren = category.children && category.children.length > 0;
 
@@ -51,7 +54,7 @@ const CategoryItem = ({
         style={{ paddingLeft: `${depth * 12 + 12}px` }}
         onClick={() => onSelect(category?.slug)}
       >
-        <span>{category.name}</span>
+        <span>{isKh && category.name_kh ? category.name_kh : category.name}</span>
         {hasChildren && (
           <button
             onClick={(e) => {
@@ -112,6 +115,7 @@ const CategoryTree = ({
   currentCategory?: string;
   onSelect: (slug?: string) => void;
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="space-y-1">
       <button
@@ -122,7 +126,7 @@ const CategoryTree = ({
             : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]"
         }`}
       >
-        All Categories
+        {t("products.all_categories")}
       </button>
       {categories.map((cat) => (
         <CategoryItem
@@ -137,6 +141,8 @@ const CategoryTree = ({
 };
 
 const ProductsPage = () => {
+  const { t, i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
   const [searchParams, setSearchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
@@ -242,22 +248,14 @@ const ProductsPage = () => {
     setSearchParams(new URLSearchParams());
   };
 
-  const sortOptions = [
-    { value: "", label: "Default" },
-    { value: "price_asc", label: "Price: Low to High" },
-    { value: "price_desc", label: "Price: High to Low" },
-    { value: "newest", label: "Newest First" },
-    { value: "popular", label: "Most Popular" },
-  ];
-
   return (
     <div className="container pb-32" style={{ paddingTop: "128px" }}>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Products</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{t("products.title")}</h1>
           <p className="text-[var(--color-text-muted)] mt-1">
-            {productsData?.meta.total || 0} products found
+            {t("products.found_count", { count: productsData?.meta.total || 0 })}
           </p>
         </div>
 
@@ -272,11 +270,11 @@ const ProductsPage = () => {
             }
             className="px-4 py-2 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:border-[var(--color-primary)]"
           >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
+            <option value="">{t("products.sort_default")}</option>
+            <option value="price_asc">{t("products.sort_price_asc")}</option>
+            <option value="price_desc">{t("products.sort_price_desc")}</option>
+            <option value="newest">{t("products.sort_newest")}</option>
+            <option value="popular">{t("products.sort_popular")}</option>
           </select>
 
           {/* Mobile Filter Toggle */}
@@ -321,7 +319,7 @@ const ProductsPage = () => {
               {/* Mobile Close Button */}
               {isFilterOpen && (
                 <div className="flex items-center justify-between lg:hidden mb-4">
-                  <h2 className="text-xl font-bold">Filters</h2>
+                  <h2 className="text-xl font-bold">{t("products.filters")}</h2>
                   <button onClick={() => setIsFilterOpen(false)}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -343,10 +341,10 @@ const ProductsPage = () => {
 
               {/* Search */}
               <div className="pb-6 border-b border-[var(--color-border)]">
-                <h3 className="font-semibold mb-3 text-lg">Search</h3>
+                <h3 className="font-semibold mb-3 text-lg">{t("products.search")}</h3>
                 <form onSubmit={handleSearch}>
                   <Input
-                    placeholder="Search products..."
+                    placeholder={t("products.search") + "..."}
                     value={localSearch}
                     onChange={(e) => setLocalSearch(e.target.value)}
                     className="bg-[var(--color-bg-secondary)] border-transparent text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] placeholder:text-[var(--color-text-muted)]"
@@ -357,7 +355,7 @@ const ProductsPage = () => {
                     className="mt-3 bg-black text-white hover:bg-gray-800"
                     size="sm"
                   >
-                    Search
+                    {t("products.search")}
                   </Button>
                 </form>
               </div>
@@ -365,7 +363,7 @@ const ProductsPage = () => {
               {/* Categories */}
               {categories && categories.length > 0 && (
                 <div className="pb-6 border-b border-[var(--color-border)]">
-                  <h3 className="font-semibold mb-3 text-lg">Categories</h3>
+                  <h3 className="font-semibold mb-3 text-lg">{t("products.categories")}</h3>
                   <div className="space-y-1">
                     <CategoryTree
                       categories={categories}
@@ -378,7 +376,7 @@ const ProductsPage = () => {
 
               {/* Price Range */}
               <div className="pb-6">
-                <h3 className="font-semibold mb-3 text-lg">Price Range</h3>
+                <h3 className="font-semibold mb-3 text-lg">{t("products.price_range")}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <Input
                     type="number"
@@ -401,13 +399,13 @@ const ProductsPage = () => {
                   className="mt-3 bg-black text-white hover:bg-gray-800"
                   size="sm"
                 >
-                  Apply Filter
+                  {t("products.apply")}
                 </Button>
               </div>
 
               {/* Clear Filters */}
               <Button variant="ghost" fullWidth onClick={clearFilters}>
-                Clear All Filters
+                {t("products.clear_all")}
               </Button>
             </motion.aside>
           )}
@@ -433,12 +431,12 @@ const ProductsPage = () => {
                   d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <h3 className="text-xl font-semibold mb-2">No products found</h3>
+              <h3 className="text-xl font-semibold mb-2">{t("product.not_found")}</h3>
               <p className="text-[var(--color-text-muted)] mb-4">
-                Try adjusting your filters or search terms
+                {isKh ? "សាកល្បងកែសម្រួលការកំណត់របស់អ្នក" : "Try adjusting your filters or search terms"}
               </p>
               <Button onClick={clearFilters} variant="outline">
-                Clear Filters
+                {t("products.clear_all")}
               </Button>
             </div>
           ) : (
@@ -450,11 +448,14 @@ const ProductsPage = () => {
                     id={product.id}
                     slug={product?.slug}
                     title={product.title}
+                    title_kh={product.title_kh}
+                    description={product.description}
+                    description_kh={product.description_kh}
                     price={product.price}
                     image={product?.images?.[0] || "/placeholder.jpg"}
                     category={product.category?.name}
+                    category_kh={product.category?.name_kh}
                     stock={product.stock}
-                    description={product.description}
                   />
                 ))}
               </div>

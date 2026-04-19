@@ -1,16 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, type PanInfo } from "framer-motion";
-import { useProduct, useProducts } from "../hooks/useProducts";
+import { useProduct, type Product } from "../hooks/useProducts";
 import { useCartStore } from "../stores/cartStore";
 import Button from "../components/ui/Button";
 import ProductCard from "../components/product/ProductCard";
 import { getImageUrl } from "../utils/image";
+import { useTranslation } from "react-i18next";
 
 const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { data: product, isLoading, error } = useProduct(slug || "");
+  const { t, i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
+  const { data, isLoading, error } = useProduct(slug || "");
+  const product = data?.product;
+  const relatedFromBundle = data?.related;
+
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -65,8 +71,6 @@ const ProductDetailPage = () => {
     if (!product) return false;
 
     // Optional: Validate selection if attributes exist
-    // For now we allow adding without selection if user doesn't pick,
-    // unless we want to enforce it. Let's enforce if keys exist.
     const colors = getAttributeValues("Color");
     const sizes = getAttributeValues("Size");
 
@@ -80,7 +84,6 @@ const ProductDetailPage = () => {
     }
 
     for (let i = 0; i < quantity; i++) {
-      // Construct attributes object
       const attributes: Record<string, string> = {
         ...(selectedColor ? { Color: selectedColor } : {}),
         ...(selectedSize ? { Size: selectedSize } : {}),
@@ -110,7 +113,6 @@ const ProductDetailPage = () => {
   const getAttributeValues = (keyName: string): string[] => {
     if (!product?.attributes) return [];
 
-    // Find key case-insensitively if needed, or exact match
     const key = Object.keys(product.attributes).find(
       (k) => k.toLowerCase() === keyName.toLowerCase(),
     );
@@ -141,7 +143,7 @@ const ProductDetailPage = () => {
       grey: "#6b7280",
       orange: "#f97316",
       navy: "#1e3a8a",
-      beige: "#d4d4d8", // approximate
+      beige: "#d4d4d8",
       brown: "#78350f",
       gold: "#ca8a04",
       silver: "#9ca3af",
@@ -170,8 +172,8 @@ const ProductDetailPage = () => {
         className="container pb-16 text-center"
         style={{ paddingTop: "128px" }}
       >
-        <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
-        <Button onClick={() => navigate("/products")}>Browse Products</Button>
+        <h1 className="text-2xl font-bold mb-4">{t("product.not_found")}</h1>
+        <Button onClick={() => navigate("/products")}>{t("product.browse_products")}</Button>
       </div>
     );
   }
@@ -188,18 +190,18 @@ const ProductDetailPage = () => {
           onClick={() => navigate("/")}
           className="hover:text-[var(--color-text-primary)]"
         >
-          Home
+          {t("nav.home")}
         </button>
         <span>/</span>
         <button
           onClick={() => navigate("/products")}
           className="hover:text-[var(--color-text-primary)]"
         >
-          Products
+          {t("products.title")}
         </button>
         <span>/</span>
         <span className="text-[var(--color-text-primary)] font-medium">
-          {product.title}
+          {isKh ? product.title_kh || product.title : product.title}
         </span>
       </nav>
 
@@ -207,7 +209,7 @@ const ProductDetailPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
         {/* Image Gallery - Span 8 (Left) */}
         <div className="lg:col-span-8 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-4 h-auto">
-          {/* Thumbnails - Horizontal on mobile, Vertical on desktop */}
+          {/* Thumbnails */}
           {product.images.length > 1 && (
             <div className="flex lg:grid lg:grid-cols-1 lg:grid-rows-4 gap-2 lg:gap-4 shrink-0 w-full lg:w-36 h-auto lg:h-full order-2 lg:order-1 overflow-x-auto pb-1 lg:pb-0">
               {product.images.slice(0, 4).map((img, index) => (
@@ -233,7 +235,7 @@ const ProductDetailPage = () => {
             </div>
           )}
 
-          {/* Main Image - Compact on mobile, large on desktop */}
+          {/* Main Image */}
           <div
             className="flex-1 relative rounded-2xl overflow-hidden bg-[var(--color-bg-secondary)] border border-[var(--color-border)] group aspect-square lg:aspect-auto lg:min-h-[600px] lg:h-full order-1 lg:order-2 cursor-zoom-in"
             onClick={() => openLightbox(selectedImage)}
@@ -254,16 +256,15 @@ const ProductDetailPage = () => {
             {isOutOfStock && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                 <span className="text-white text-xl font-bold">
-                  Out of Stock
+                  {t("product.out_of_stock")}
                 </span>
               </div>
             )}
-            {/* Tap to view hint on mobile */}
             <div className="absolute bottom-3 right-3 lg:hidden bg-black/50 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
               </svg>
-              Tap to view
+              {t("product.tap_to_view")}
             </div>
           </div>
         </div>
@@ -271,21 +272,19 @@ const ProductDetailPage = () => {
         {/* Product Info - Span 4 (Right) */}
         <div className="lg:col-span-4 flex flex-col pt-4">
           <div>
-            {/* Category & Rating */}
             <div className="flex items-center justify-between mb-3">
               {product.category && (
                 <span className="text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1 rounded-full">
-                  {product.category.name}
+                  {isKh && product.category.name_kh ? product.category.name_kh : product.category.name}
                 </span>
               )}
               <div className="flex items-center gap-1 text-sm text-[var(--color-text-muted)]">
-                 {/* Placeholder for future ratings */}
-                 <span className="ml-1 text-xs px-2 py-1 bg-[var(--color-bg-elevated)] rounded">No Reviews Yet</span>
+                 <span className="ml-1 text-xs px-2 py-1 bg-[var(--color-bg-elevated)] rounded">{t("product.no_reviews")}</span>
               </div>
             </div>
 
             <h1 className="text-4xl font-bold leading-tight text-[var(--color-text-primary)] mb-4">
-              {product.title}
+              {isKh ? product.title_kh || product.title : product.title}
             </h1>
 
             <div className="flex items-baseline gap-4">
@@ -295,22 +294,19 @@ const ProductDetailPage = () => {
             </div>
           </div>
 
-          <div className="h-px bg-[var(--color-border)]" />
+          <div className="h-px bg-[var(--color-border)] my-6" />
 
-          {/* Description */}
-          <p className="text-[var(--color-text-secondary)] leading-relaxed">
-            {product.description}
+          <p className="text-[var(--color-text-secondary)] leading-relaxed mb-6">
+            {isKh ? product.description_kh || product.description : product.description}
           </p>
 
-          {/* Attributes Configurator */}
           <div className="space-y-6">
-            {/* Color Selector */}
             {colors.length > 0 && (
               <div>
                 <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-3">
-                  Color:{" "}
+                  {t("product.color")}:{" "}
                   <span className="text-[var(--color-text-secondary)] font-normal">
-                    {selectedColor || "Select a color"}
+                    {selectedColor || t("product.select_color")}
                   </span>
                 </label>
                 <div className="flex flex-wrap gap-3">
@@ -329,7 +325,6 @@ const ProductDetailPage = () => {
                         style={{ backgroundColor: hex }}
                         title={color}
                       >
-                        {/* Checkmark for selected (inverted color roughly) */}
                         {isSelected && (
                           <svg
                             className="w-5 h-5 text-white drop-shadow-md"
@@ -352,13 +347,12 @@ const ProductDetailPage = () => {
               </div>
             )}
 
-            {/* Size Selector */}
             {sizes.length > 0 && (
               <div>
                 <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-3">
-                  Size:{" "}
+                  {t("product.size")}:{" "}
                   <span className="text-[var(--color-text-secondary)] font-normal">
-                    {selectedSize || "Select a size"}
+                    {selectedSize || t("product.select_size")}
                   </span>
                 </label>
                 <div className="flex flex-wrap gap-3">
@@ -379,14 +373,13 @@ const ProductDetailPage = () => {
               </div>
             )}
 
-            {/* Other Specifications */}
             {product.attributes &&
               Object.entries(product.attributes).filter(
                 ([key]) => !["color", "size"].includes(key.toLowerCase()),
               ).length > 0 && (
                 <div className="pt-4 border-t border-[var(--color-border)]">
                   <h3 className="text-sm font-bold text-[var(--color-text-primary)] mb-3">
-                    Specifications
+                    {t("product.specifications")}
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {Object.entries(product.attributes)
@@ -412,13 +405,10 @@ const ProductDetailPage = () => {
               )}
           </div>
 
-          {/* Actions - Desktop only (mobile uses sticky bar below) */}
           <div className="hidden lg:block pt-6 space-y-4">
             {!isOutOfStock ? (
               <>
-                {/* Row: Quantity + Add to Cart */}
                 <div className="flex items-stretch gap-3">
-                  {/* Quantity Stepper */}
                   <div className="flex items-center gap-0 bg-[var(--color-bg-secondary)] rounded-full border border-[var(--color-border)] p-1">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -443,7 +433,6 @@ const ProductDetailPage = () => {
                     </button>
                   </div>
 
-                  {/* Add to Cart */}
                   <button
                     onClick={handleAddToCart}
                     className="flex-1 flex items-center justify-center gap-2.5 px-5 py-3 sm:py-3.5 rounded-full border-2 border-[var(--color-primary)] text-[var(--color-primary)] font-semibold text-sm sm:text-base hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 active:scale-[0.97] group"
@@ -451,22 +440,20 @@ const ProductDetailPage = () => {
                     <svg className="w-5 h-5 transition-transform group-hover:scale-110 group-hover:-rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
-                    Add to Cart
+                    {t("product.add_to_cart")}
                   </button>
                 </div>
 
-                {/* Buy Now - Primary CTA */}
                 <button
                   onClick={handleBuyNow}
                   className="relative w-full py-3.5 sm:py-4 rounded-full bg-gradient-to-r from-[var(--color-primary)] via-[#6366f1] to-[var(--color-primary)] bg-[length:200%_100%] text-white font-bold text-sm sm:text-base tracking-wide shadow-lg shadow-[var(--color-primary)]/30 hover:shadow-xl hover:shadow-[var(--color-primary)]/40 transition-all duration-300 active:scale-[0.98] overflow-hidden group"
                 >
-                  {/* Animated shine effect */}
                   <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
                   <span className="relative flex items-center justify-center gap-2">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    Buy Now
+                    {t("product.buy_now")}
                   </span>
                 </button>
               </>
@@ -475,96 +462,28 @@ const ProductDetailPage = () => {
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                 </svg>
-                Currently Out of Stock
+                {t("product.out_of_stock")}
               </div>
             )}
-          </div>
-
-          {/* Trust Badges */}
-          <div className="grid grid-cols-3 gap-4 pt-8 border-t border-[var(--color-border)]">
-            <div className="text-center space-y-2 group cursor-pointer hover:bg-[var(--color-bg-secondary)] p-2 rounded-xl transition-colors">
-              <div className="w-12 h-12 mx-auto bg-[var(--color-bg-elevated)] rounded-full flex items-center justify-center text-[var(--color-primary)] group-hover:scale-110 transition-transform">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <p className="text-xs font-medium text-[var(--color-text-secondary)]">
-                Quality Guarantee
-              </p>
-            </div>
-            <div className="text-center space-y-2 group cursor-pointer hover:bg-[var(--color-bg-secondary)] p-2 rounded-xl transition-colors">
-              <div className="w-12 h-12 mx-auto bg-[var(--color-bg-elevated)] rounded-full flex items-center justify-center text-[var(--color-primary)] group-hover:scale-110 transition-transform">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                  />
-                </svg>
-              </div>
-              <p className="text-xs font-medium text-[var(--color-text-secondary)]">
-                Free Shipping
-              </p>
-            </div>
-            <div className="text-center space-y-2 group cursor-pointer hover:bg-[var(--color-bg-secondary)] p-2 rounded-xl transition-colors">
-              <div className="w-12 h-12 mx-auto bg-[var(--color-bg-elevated)] rounded-full flex items-center justify-center text-[var(--color-primary)] group-hover:scale-110 transition-transform">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-              </div>
-              <p className="text-xs font-medium text-[var(--color-text-secondary)]">
-                24/7 Support
-              </p>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Related Products */}
-      {product.category && (
+      {relatedFromBundle && (
         <RelatedProducts
-          categorySlug={product.category.slug}
-          currentProductId={product.id}
+          related={relatedFromBundle}
         />
       )}
 
-      {/* ===== Mobile Sticky Action Bar ===== */}
+      {/* Mobile Sticky Bar */}
       {!isOutOfStock && (
         <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--color-bg-primary)]/95 backdrop-blur-lg border-t border-[var(--color-border)] px-4 py-3 safe-bottom">
           <div className="flex items-center gap-2.5">
-            {/* Price */}
             <div className="flex flex-col mr-auto">
               <span className="text-lg font-bold text-[var(--color-text-primary)] leading-tight">
                 ${Number(product.price).toFixed(2)}
               </span>
               <div className="flex items-center gap-1.5">
-                {/* Inline mini quantity stepper */}
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="w-6 h-6 rounded-full bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] active:scale-90 transition-transform"
@@ -585,7 +504,6 @@ const ProductDetailPage = () => {
               </div>
             </div>
 
-            {/* Add to Cart - Icon button */}
             <button
               onClick={handleAddToCart}
               className="w-12 h-12 flex-shrink-0 rounded-full border-2 border-[var(--color-primary)] text-[var(--color-primary)] flex items-center justify-center active:scale-90 transition-all hover:bg-[var(--color-primary)] hover:text-white"
@@ -595,7 +513,6 @@ const ProductDetailPage = () => {
               </svg>
             </button>
 
-            {/* Buy Now */}
             <button
               onClick={handleBuyNow}
               className="relative flex-1 max-w-[180px] py-3 rounded-full bg-gradient-to-r from-[var(--color-primary)] via-[#6366f1] to-[var(--color-primary)] bg-[length:200%_100%] text-white font-bold text-sm tracking-wide shadow-lg shadow-[var(--color-primary)]/30 active:scale-[0.97] transition-all overflow-hidden group"
@@ -605,16 +522,15 @@ const ProductDetailPage = () => {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                Buy Now
+                {t("product.buy_now")}
               </span>
             </button>
           </div>
         </div>
       )}
-      {/* Mobile bottom bar spacer */}
       <div className="h-20 lg:hidden" />
 
-      {/* ===== Fullscreen Lightbox ===== */}
+      {/* Lightbox */}
       <AnimatePresence>
         {isLightboxOpen && product && (
           <motion.div
@@ -625,7 +541,6 @@ const ProductDetailPage = () => {
             className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center"
             onClick={closeLightbox}
           >
-            {/* Header */}
             <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-10">
               <span className="text-white/70 text-sm font-medium">
                 {lightboxIndex + 1} / {product.images.length}
@@ -640,7 +555,6 @@ const ProductDetailPage = () => {
               </button>
             </div>
 
-            {/* Swipeable Image */}
             <div
               className="flex-1 w-full flex items-center justify-center overflow-hidden px-4"
               onClick={(e) => e.stopPropagation()}
@@ -667,7 +581,6 @@ const ProductDetailPage = () => {
               </AnimatePresence>
             </div>
 
-            {/* Desktop Navigation Arrows */}
             {product.images.length > 1 && (
               <>
                 {lightboxIndex > 0 && (
@@ -696,27 +609,23 @@ const ProductDetailPage = () => {
                     </svg>
                   </button>
                 )}
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                  {product.images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLightboxIndex(index);
+                      }}
+                      className={`rounded-full transition-all duration-300 ${
+                        lightboxIndex === index
+                          ? "w-6 h-2 bg-white"
+                          : "w-2 h-2 bg-white/40 hover:bg-white/60"
+                      }`}
+                    />
+                  ))}
+                </div>
               </>
-            )}
-
-            {/* Dot Indicators */}
-            {product.images.length > 1 && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
-                {product.images.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setLightboxIndex(index);
-                    }}
-                    className={`rounded-full transition-all duration-300 ${
-                      lightboxIndex === index
-                        ? "w-6 h-2 bg-white"
-                        : "w-2 h-2 bg-white/40 hover:bg-white/60"
-                    }`}
-                  />
-                ))}
-              </div>
             )}
           </motion.div>
         )}
@@ -725,30 +634,21 @@ const ProductDetailPage = () => {
   );
 };
 
-// Related Products Component
-const RelatedProducts = ({
-  categorySlug,
-  currentProductId,
-}: {
-  categorySlug: string;
-  currentProductId: number;
-}) => {
-  const { data } = useProducts({ category: categorySlug, limit: 5 });
-
-  const related = (data?.data || []).filter((p) => p.id !== currentProductId).slice(0, 4);
-
-  if (related.length === 0) return null;
+const RelatedProducts = ({ related }: { related: Product[] }) => {
+  const { t } = useTranslation();
+  if (!related || related.length === 0) return null;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
-      className="mt-16 pt-12 border-t border-[var(--color-border)]"
+      className="mt-24 pt-16 border-t border-[var(--color-border)]"
     >
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
-          You Might Also Like
+      <div className="flex items-center gap-4 mb-10">
+        <div className="w-2 h-8 bg-[var(--color-primary)] rounded-full" />
+        <h2 className="text-2xl md:text-3xl font-extrabold text-[var(--color-text-primary)] tracking-tight">
+          {t("product.related_products")}
         </h2>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -758,10 +658,13 @@ const RelatedProducts = ({
             id={product.id}
             slug={product.slug}
             title={product.title}
+            title_kh={product.title_kh}
             price={product.price}
             image={product.images?.[0] || ""}
             category={product.category?.name}
+            category_kh={product.category?.name_kh}
             stock={product.stock}
+            description_kh={product.description_kh}
           />
         ))}
       </div>

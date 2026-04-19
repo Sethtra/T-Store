@@ -1,20 +1,30 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  useLandingSections,
-  type LandingSection,
-} from "../../hooks/useLandingSections";
+import { useLandingData, type LandingSection } from "../../hooks/useLandingData";
+import { getImageUrl } from "../../utils/image";
+import { useTranslation } from "react-i18next";
 
 const HeroSection = () => {
-  const { data: sections, isLoading } = useLandingSections();
+  const { t, i18n } = useTranslation();
+  const { data: landingData, isLoading } = useLandingData();
+  const sections = landingData?.landing_sections;
 
   const mainProduct = sections?.find((s) => s.section_type === "hero_main" && s.product);
   const smallProduct = sections?.find((s) => s.section_type === "hero_small" && s.product);
 
   // Read hero text from localStorage (set by admin LandingSectionPage)
-  const heroTitle = localStorage.getItem("hero_title") || "Elevate your lifestyle";
-  const heroSubtitle = localStorage.getItem("hero_subtitle") || "with premium essentials.";
-  const heroDescription = localStorage.getItem("hero_description") || "Elevate your routine with premium goods and curated essentials, combining quality and style to enhance comfort, convenience, and sophistication in every moment of your day.";
+  const isKh = i18n.language === "kh";
+  const heroTitle = isKh
+    ? localStorage.getItem("hero_title_kh") || t("hero.default_title")
+    : localStorage.getItem("hero_title") || t("hero.default_title");
+
+  const heroSubtitle = isKh
+    ? localStorage.getItem("hero_subtitle_kh") || t("hero.default_subtitle")
+    : localStorage.getItem("hero_subtitle") || t("hero.default_subtitle");
+
+  const heroDescription = isKh
+    ? localStorage.getItem("hero_description_kh") || t("hero.default_description")
+    : localStorage.getItem("hero_description") || t("hero.default_description");
 
   if (isLoading) {
     return (
@@ -75,7 +85,7 @@ const HeroSection = () => {
                 to="/products"
                 className="bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] px-8 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-all shadow-lg border border-[var(--color-border)]"
               >
-                Browse All Products
+                {t("nav.categories")}
               </Link>
               <Link
                 to="/products"
@@ -132,6 +142,7 @@ const HeroSection = () => {
 
 // Main Product Card (Right Column)
 const MainProductCard = ({ product }: { product: LandingSection }) => {
+  const { t, i18n } = useTranslation();
   return (
     <Link
       to={`/products/${product?.product?.slug || ""}`}
@@ -139,14 +150,14 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
     >
       {/* Featured Badge */}
       <span className="absolute top-8 left-8 z-20 bg-[var(--color-bg-elevated)] backdrop-blur-md text-[var(--color-text-primary)] text-[11px] uppercase font-bold tracking-wider px-4 py-2 rounded-full shadow-sm border border-[var(--color-border)]">
-        Featured
+        {t("hero.featured")}
       </span>
 
       {/* Product Image - Massive & Centered */}
-      {product?.product?.image_url && (
+      {(product.product?.image_url || product.product?.images?.[0]) && (
         <div className="absolute inset-x-0 top-0 bottom-[120px] md:bottom-0 flex items-center justify-center p-6 md:p-0 overflow-hidden md:rounded-[2.5rem]">
           <img
-            src={product.product.image_url}
+            src={product.product?.image_url || getImageUrl(product.product?.images?.[0])}
             className="w-full h-full md:w-[110%] md:h-[110%] object-contain drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-105"
             alt={product.title}
           />
@@ -157,14 +168,14 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
       <div className="absolute bottom-0 left-0 right-0 p-5 md:p-10 bg-[var(--color-bg-elevated)]/60 backdrop-blur-md border-t border-[var(--color-border)] flex flex-col sm:flex-row sm:items-end justify-between gap-2 transition-colors duration-300">
         <div className="relative z-10">
           <h3 className="text-xl md:text-3xl font-semibold text-[var(--color-text-primary)] tracking-tight">
-            {product.title}
+            {i18n.language === "kh" ? product.title_kh || product.title : product.title}
           </h3>
           <p className="text-[var(--color-text-muted)] text-xs md:text-sm mt-1 md:mt-3 max-w-sm leading-relaxed line-clamp-2">
-            {product.description}
+            {i18n.language === "kh" ? product.description_kh || product.description : product.description}
           </p>
         </div>
         <p className="relative z-10 font-bold text-lg md:text-2xl text-[var(--color-text-primary)]">
-          USD {product?.product?.price ?? "0.00"}
+          {t("common.usd")} {product?.product?.price ?? "0.00"}
         </p>
       </div>
     </Link>
@@ -173,35 +184,36 @@ const MainProductCard = ({ product }: { product: LandingSection }) => {
 
 // Small Product Card (Left Column Bottom)
 const SmallProductCard = ({ product }: { product: LandingSection }) => {
+  const { t, i18n } = useTranslation();
   return (
     <Link
       to={`/products/${product?.product?.slug || ""}`}
       className="bg-[var(--color-bg-elevated)] rounded-xl md:rounded-[2rem] p-3 md:p-6 relative flex flex-row items-center sm:items-stretch gap-4 md:gap-6 group hover:shadow-xl transition-all duration-300 border border-[var(--color-border)]"
     >
       <span className="absolute top-6 left-6 bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full hidden sm:block">
-        Featured
+        {t("hero.featured")}
       </span>
 
       {/* Left Text Info */}
       <div className="flex-1 min-w-0 py-1 flex flex-col justify-center sm:justify-between sm:pt-12 order-2 sm:order-1">
         <div>
           <h3 className="text-base sm:text-3xl font-bold text-[var(--color-text-primary)] truncate leading-tight">
-            {product.title}
+            {i18n.language === "kh" ? product.title_kh || product.title : product.title}
           </h3>
           <p className="text-[var(--color-text-muted)] text-xs md:text-sm mt-1 sm:mt-3 line-clamp-1 sm:line-clamp-2 leading-relaxed">
-            {product.description}
+            {i18n.language === "kh" ? product.description_kh || product.description : product.description}
           </p>
         </div>
         <p className="font-bold text-sm sm:text-xl text-[var(--color-text-primary)] mt-1 sm:mt-0">
-          USD {product?.product?.price ?? "0.00"}
+          {t("common.usd")} {product?.product?.price ?? "0.00"}
         </p>
       </div>
 
       {/* Right Image Container */}
       <div className="w-20 h-20 sm:w-52 sm:h-52 bg-[var(--color-bg-surface)] rounded-xl md:rounded-2xl flex items-center justify-center p-2 sm:p-4 transition-colors duration-300 order-1 sm:order-2 shrink-0">
-        {product?.product?.image_url && (
+        {(product.product?.image_url || product.product?.images?.[0]) && (
           <img
-            src={product.product.image_url}
+            src={product.product?.image_url || getImageUrl(product.product?.images?.[0])}
             className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-110 transition-transform duration-500"
             alt={product.title}
           />

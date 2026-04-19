@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -103,6 +104,10 @@ class AdminProductController extends Controller
             'images' => json_encode(array_values($imageUrls)), // Ensure only clean string arrays are saved
             'attributes' => $request->input('attributes') ?? [],
         ]);
+
+        // Invalidate public caches
+        Cache::forget('landing_data_all');
+        Cache::forget('app_bootstrap');
 
         return response()->json([
             'message' => 'Product created successfully',
@@ -235,6 +240,10 @@ class AdminProductController extends Controller
 
         $product->update($updateData);
 
+        // Invalidate public caches
+        Cache::forget('landing_data_all');
+        Cache::forget('app_bootstrap');
+
         return response()->json([
             'message' => 'Product updated successfully',
             'product' => $product->fresh(),
@@ -265,6 +274,10 @@ class AdminProductController extends Controller
         }
 
         $product->delete();
+
+        // Invalidate public caches
+        Cache::forget('landing_data_all');
+        Cache::forget('app_bootstrap');
 
         return response()->json([
             'message' => 'Product deleted successfully',

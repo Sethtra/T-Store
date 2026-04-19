@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  useCategoryDisplays,
-  type CategoryDisplay,
-} from "../../hooks/useCategoryDisplays";
+import { useLandingData, type CategoryDisplay } from "../../hooks/useLandingData";
+import { getImageUrl } from "../../utils/image";
+import { useTranslation } from "react-i18next";
 
 const BrowseByCategories = () => {
-  const { data: displays, isLoading } = useCategoryDisplays();
+  const { t, i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
+  const { data: landingData, isLoading } = useLandingData();
+  const displays = landingData?.category_displays;
 
   const getDisplay = (position: string): CategoryDisplay | undefined => {
     return displays?.find((d) => d.position === position);
@@ -40,17 +42,17 @@ const BrowseByCategories = () => {
         >
           <div className="max-w-xl">
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-medium text-[var(--color-text-primary)] tracking-tight mb-3 md:mb-4">
-              Browse by Categories
+              {t("common.browse_by_categories", "Browse by Categories")}
             </h2>
             <p className="text-sm md:text-lg text-[var(--color-text-secondary)] font-normal leading-relaxed">
-              Explore our curated collections designed for your lifestyle.
+              {t("common.categories_description", "Explore our curated collections designed for your lifestyle.")}
             </p>
           </div>
           <Link
             to="/products"
             className="group flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors font-medium text-lg"
           >
-            View all categories
+            {t("common.view_all_categories", "View all categories")}
             <svg
               className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
               fill="none"
@@ -90,13 +92,13 @@ const BrowseByCategories = () => {
                   <div className="relative z-20 flex flex-col items-start gap-4 max-w-[60%]">
                     <div>
                       <span className="inline-block px-2.5 py-0.5 md:px-3 md:py-1 mb-2 md:mb-3 text-[10px] md:text-xs font-semibold tracking-wide uppercase bg-[var(--color-bg-elevated)] rounded-full text-[var(--color-text-primary)] shadow-sm">
-                        Premium Collection
+                        {t("common.premium_collection", "Premium Collection")}
                       </span>
                       <h3 className="text-xl md:text-4xl font-bold text-[var(--color-text-primary)] leading-tight">
-                        {mainDisplay?.title || "All Products"}
+                        {isKh ? mainDisplay?.title_kh || mainDisplay?.title : mainDisplay?.title || "All Products"}
                       </h3>
                       <p className="mt-2 text-sm text-[var(--color-text-muted)] font-medium leading-relaxed">
-                        Discover the latest in technology and design.
+                        {isKh ? mainDisplay?.description_kh || mainDisplay?.description : mainDisplay?.description || "Discover the latest in technology and design."}
                       </p>
                     </div>
 
@@ -132,7 +134,7 @@ const BrowseByCategories = () => {
                     >
                       <div className="absolute w-[80%] h-[80%] bg-gradient-to-tr from-orange-400/20 to-amber-300/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                       <img
-                        src={mainDisplay.image_url}
+                        src={getImageUrl(mainDisplay.image_url)}
                         alt={mainDisplay?.title}
                         className="relative z-10 w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-2xl"
                       />
@@ -162,13 +164,13 @@ const BrowseByCategories = () => {
 
                   <div className="z-10 flex flex-col items-start gap-1 md:gap-3 max-w-[50%]">
                     <span className="text-[10px] md:text-xs font-bold tracking-wider uppercase text-[var(--color-primary)]">
-                      Top Rated
+                       {t("common.top_rated", "Top Rated")}
                     </span>
                     <h3 className="text-base md:text-2xl font-bold text-[var(--color-text-primary)]">
-                      {featuredDisplay?.title || "Displays"}
+                      {isKh ? featuredDisplay?.title_kh || featuredDisplay?.title : featuredDisplay?.title || "Displays"}
                     </h3>
                     <p className="text-[var(--color-text-muted)] text-[10px] md:text-sm leading-relaxed font-medium mb-1 md:mb-2 hidden sm:block">
-                      {featuredDisplay?.description || "Stunning visuals."}
+                      {isKh ? featuredDisplay?.description_kh || featuredDisplay?.description : featuredDisplay?.description || "Stunning visuals."}
                     </p>
 
                     {/* View Now Button */}
@@ -202,7 +204,7 @@ const BrowseByCategories = () => {
                     >
                       <div className="absolute w-[70%] h-[70%] bg-blue-400/20 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <img
-                        src={featuredDisplay.image_url}
+                        src={getImageUrl(featuredDisplay.image_url)}
                         alt={featuredDisplay?.title}
                         className="relative z-10 w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-xl"
                       />
@@ -230,10 +232,10 @@ const BrowseByCategories = () => {
                   <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-full blur-[40px]" />
 
                   <h3 className="text-base md:text-xl font-bold text-[var(--color-text-primary)] z-10 mb-0.5 md:mb-1">
-                    {small1Display?.title || "Headphones"}
+                    {isKh ? small1Display?.title_kh || small1Display?.title : small1Display?.title || "Headphones"}
                   </h3>
                   <p className="text-xs text-[var(--color-text-muted)] font-medium z-10">
-                    New Arrival
+                    {t("common.new_arrival", "New Arrival")}
                   </p>
 
                   {small1Display?.image_url && (
@@ -244,7 +246,7 @@ const BrowseByCategories = () => {
                     >
                       <div className="absolute w-[60%] h-[60%] bg-yellow-300/20 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <img
-                        src={small1Display.image_url}
+                        src={getImageUrl(small1Display.image_url)}
                         alt={small1Display?.title}
                         className="relative z-10 w-[80%] h-[80%] object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-lg"
                       />
@@ -272,10 +274,10 @@ const BrowseByCategories = () => {
                   <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-400/10 rounded-full blur-[40px]" />
 
                   <h3 className="text-base md:text-xl font-bold text-[var(--color-text-primary)] z-10 mb-0.5 md:mb-1">
-                    {small2Display?.title || "Phones"}
+                    {isKh ? small2Display?.title_kh || small2Display?.title : small2Display?.title || "Phones"}
                   </h3>
                   <p className="text-xs text-[var(--color-text-muted)] font-medium z-10">
-                    Best Sellers
+                    {t("common.best_sellers", "Best Sellers")}
                   </p>
 
                   {small2Display?.image_url && (
@@ -286,7 +288,7 @@ const BrowseByCategories = () => {
                     >
                       <div className="absolute w-[60%] h-[60%] bg-green-300/20 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <img
-                        src={small2Display.image_url}
+                        src={getImageUrl(small2Display.image_url)}
                         alt={small2Display?.title}
                         className="relative z-10 w-[80%] h-[80%] object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-lg"
                       />

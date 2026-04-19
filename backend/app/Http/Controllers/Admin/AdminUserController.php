@@ -44,19 +44,14 @@ class AdminUserController extends Controller
         }
 
         $perPage = min($request->per_page ?? 15, 50);
-        $users = $query->paginate($perPage);
+        
+        $users = $query->withCount(['orders' => function ($q) {
+            $q->where('status', '!=', 'cancelled');
+        }])->withSum(['orders as total_spent' => function ($q) {
+            $q->where('status', '!=', 'cancelled');
+        }], 'total')->paginate($perPage);
 
-        // Attach order stats to each user
-        $userIds = $users->pluck('id');
-        $orderStats = Order::whereIn('user_id', $userIds)
-            ->where('status', '!=', 'cancelled')
-            ->selectRaw('user_id, COUNT(*) as orders_count, COALESCE(SUM(total), 0) as total_spent')
-            ->groupBy('user_id')
-            ->get()
-            ->keyBy('user_id');
-
-        $usersData = $users->getCollection()->map(function ($user) use ($orderStats) {
-            $stats = $orderStats->get($user->id);
+        $usersData = $users->getCollection()->map(function ($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -64,8 +59,8 @@ class AdminUserController extends Controller
                 'role' => $user->role ?? 'user',
                 'status' => $user->status ?? 'active',
                 'google_id' => $user->google_id ? true : false,
-                'orders_count' => $stats->orders_count ?? 0,
-                'total_spent' => (float) ($stats->total_spent ?? 0),
+                'orders_count' => $user->orders_count ?? 0,
+                'total_spent' => (float) ($user->total_spent ?? 0),
                 'created_at' => $user->created_at->toISOString(),
             ];
         });

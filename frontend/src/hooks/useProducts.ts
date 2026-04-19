@@ -6,7 +6,9 @@ export interface Product {
   id: number;
   slug: string;
   title: string;
+  title_kh: string;
   description: string;
+  description_kh: string;
   price: number;
   stock: number;
   sold: number;
@@ -20,6 +22,7 @@ export interface Product {
 export interface Category {
   id: number;
   name: string;
+  name_kh: string;
   slug: string;
   // banner_image removed
   products_count?: number;
@@ -89,11 +92,11 @@ export const useAdminProducts = (filters: ProductFilters = {}) => {
   });
 };
 
-// Fetch single product by slug
+// Fetch single product by slug (Now bundled with related products)
 export const useProduct = (slug: string) => {
   return useQuery({
     queryKey: ['product', slug],
-    queryFn: async (): Promise<Product> => {
+    queryFn: async (): Promise<{ product: Product; related: Product[] }> => {
       const response = await api.get(`/products/${slug}`);
       return response.data;
     },

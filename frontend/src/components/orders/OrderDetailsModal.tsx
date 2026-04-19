@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { type Order } from "../../hooks/useOrders";
 import Badge from "../ui/Badge";
 import Button from "../ui/Button";
+import { useTranslation } from "react-i18next";
 
 interface OrderDetailsModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ const OrderDetailsModal = ({
   onClose,
   order,
 }: OrderDetailsModalProps) => {
+  const { t, i18n } = useTranslation();
   if (!isOpen || !order) return null;
 
   const getStatusColor = (status: Order["status"]) => {
@@ -56,11 +58,11 @@ const OrderDetailsModal = ({
               {/* Header */}
               <div className="p-6 border-b border-[var(--color-border)] flex items-center justify-between bg-[var(--color-bg-secondary)]">
                 <div>
-                  <h2 className="text-xl font-bold">Order Details</h2>
+                  <h2 className="text-xl font-bold">{t("orders.details")}</h2>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge variant={getStatusColor(order.status) as any}>
-                    {order.status.toUpperCase()}
+                    {t(`orders.${order.status}`)}
                   </Badge>
                   <button
                     onClick={onClose}
@@ -88,10 +90,10 @@ const OrderDetailsModal = ({
                 <div className="grid grid-cols-2 gap-4 mb-8">
                   <div className="bg-[var(--color-bg-secondary)] p-4 rounded-2xl">
                     <p className="text-xs text-[var(--color-text-muted)] uppercase font-semibold tracking-wider mb-1">
-                      Order Date
+                      {t("orders.date")}
                     </p>
                     <p className="font-medium">
-                      {new Date(order.created_at).toLocaleDateString("en-US", {
+                      {new Date(order.created_at).toLocaleDateString(i18n.language === 'kh' ? 'km-KH' : 'en-US', {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
@@ -103,7 +105,7 @@ const OrderDetailsModal = ({
                   {order.tracking_id && (
                     <div className="bg-[var(--color-bg-secondary)] p-4 rounded-2xl">
                       <p className="text-xs text-[var(--color-text-muted)] uppercase font-semibold tracking-wider mb-1">
-                        Tracking ID
+                        {t("orders.tracking_id")}
                       </p>
                       <p className="font-mono">{order.tracking_id}</p>
                     </div>
@@ -112,7 +114,7 @@ const OrderDetailsModal = ({
 
                 {/* Items List */}
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--color-text-muted)] mb-4">
-                  Items
+                  {t("checkout.order_items")}
                 </h3>
                 <div className="space-y-4 mb-8">
                   {order.items.map((item) => (
@@ -169,7 +171,7 @@ const OrderDetailsModal = ({
                             </div>
                           )}
                         <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                          Qty: {item.quantity} × $
+                          {i18n.language === 'kh' ? "ចំនួន" : "Qty"}: {item.quantity} × $
                           {Number(item.price).toFixed(2)}
                         </p>
                       </div>
@@ -184,19 +186,19 @@ const OrderDetailsModal = ({
                 <div className="bg-[var(--color-bg-Secondary)] p-6 rounded-3xl space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-[var(--color-text-muted)]">
-                      Subtotal
+                      {t("cart.subtotal")}
                     </span>
                     <span>${Number(order.total).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[var(--color-text-muted)]">
-                      Shipping
+                      {t("orders.delivery")}
                     </span>
-                    <span>Free</span>
+                    <span>{t("orders.free")}</span>
                   </div>
                   <div className="h-px bg-[var(--color-border)] my-2"></div>
                   <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
+                    <span>{t("checkout.total")}</span>
                     <span className="text-[var(--color-primary)]">
                       ${Number(order.total).toFixed(2)}
                     </span>
@@ -207,7 +209,7 @@ const OrderDetailsModal = ({
               {/* Footer Actions */}
               <div className="p-6 border-t border-[var(--color-border)] bg-[var(--color-bg-secondary)] flex justify-end gap-3">
                 <Button variant="outline" onClick={onClose}>
-                  Close
+                  {t("common.close")}
                 </Button>
               </div>
             </motion.div>

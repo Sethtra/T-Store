@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 const AboutPage = () => {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] pt-28 pb-16">
       <div className="container mx-auto px-4 md:px-6 max-w-7xl">
@@ -13,23 +15,18 @@ const AboutPage = () => {
             className="space-y-8"
           >
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[var(--color-text-primary)]">
-              Crafted by One, <br />
+              {t("about.title_part1")} <br />
               <span className="text-[var(--color-primary)]">
-                Built for Everyone.
+                {t("about.title_part2")}
               </span>
             </h1>
 
             <div className="prose dark:prose-invert prose-lg text-[var(--color-text-secondary)]">
               <p className="leading-relaxed">
-                "Hello! I'm the sole developer behind T-Store. What started as a
-                passion project to explore the limits of modern web design has
-                evolved into the premium e-commerce experience you see today."
+                {t("about.p1")}
               </p>
               <p className="leading-relaxed">
-                My goal was simple: creating a digital storefront that doesn't
-                just sell products, but tells a story. Every pixel, every
-                interaction, and every line of code was meticulously crafted to
-                ensure speed, beauty, and accessibility.
+                {t("about.p2")}
               </p>
             </div>
 
@@ -37,7 +34,7 @@ const AboutPage = () => {
               <div className="flex items-center gap-4">
                 <div className="h-px flex-1 bg-[var(--color-border)]"></div>
                 <span className="text-sm font-medium uppercase tracking-widest text-[var(--color-text-muted)]">
-                  The Creator
+                  {t("about.creator")}
                 </span>
                 <div className="h-px flex-1 bg-[var(--color-border)]"></div>
               </div>
@@ -67,7 +64,7 @@ const AboutPage = () => {
                   <div>
                     <p className="text-white font-bold text-lg">Seth Tra</p>
                     <p className="text-white/80 text-sm">
-                      Full Stack Developer
+                      {t("about.role")}
                     </p>
                   </div>
                   <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black">

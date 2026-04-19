@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { type Order } from "../../hooks/useOrders";
 import NotificationItem from "./NotificationItem";
 
@@ -14,6 +15,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
   onItemClick,
   maxHeight = "320px",
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const sortedOrders = [...(orders || [])].sort(
@@ -42,15 +44,15 @@ const NotificationList: React.FC<NotificationListProps> = ({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={1.5}
-                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
             </div>
             <p className="text-sm font-medium text-[var(--color-text-primary)]">
-              No notifications yet
+              {t("notifications.none")}
             </p>
             <p className="text-xs text-[var(--color-text-muted)] mt-1">
-              When you place an order, updates will appear here.
+              {t("notifications.none_desc")}
             </p>
           </div>
         ) : (
@@ -73,7 +75,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
           }}
           className="w-full px-4 py-3 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-bg-surface)] transition-colors border-t border-[var(--color-border)] flex items-center justify-center gap-1.5 group"
         >
-          View all orders
+          {t("notifications.view_all")}
           <svg
             className="w-4 h-4 group-hover:translate-x-1 transition-transform"
             fill="none"

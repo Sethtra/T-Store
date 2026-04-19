@@ -233,7 +233,9 @@ const ProductsPage = () => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
+    title_kh: "",
     description: "",
+    description_kh: "",
     price: "",
     stock: "",
     category_id: "",
@@ -289,7 +291,9 @@ const ProductsPage = () => {
     setEditingProduct(null);
     setFormData({
       title: "",
+      title_kh: "",
       description: "",
+      description_kh: "",
       price: "",
       stock: "",
       category_id: "",
@@ -337,7 +341,9 @@ const ProductsPage = () => {
 
       setFormData({
         title: product.title,
+        title_kh: product.title_kh || "",
         description: product.description,
+        description_kh: product.description_kh || "",
         price: product.price?.toString() || "0",
         stock: product.stock?.toString() || "0",
         category_id: product.category_id?.toString() || "",
@@ -359,7 +365,9 @@ const ProductsPage = () => {
       try {
         const data = new FormData();
         data.append("title", formData.title);
+        if (formData.title_kh) data.append("title_kh", formData.title_kh);
         data.append("description", formData.description);
+        if (formData.description_kh) data.append("description_kh", formData.description_kh);
         data.append("price", formData.price);
         data.append("stock", formData.stock);
         if (formData.category_id)
@@ -725,21 +733,45 @@ const ProductsPage = () => {
                 {editingProduct ? "Edit Product" : "Create Product"}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <Input
-                  label="Title"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  required
-                />
-                <Input
-                  label="Description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="Title (EN)"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    required
+                  />
+                  <Input
+                    label="Title (KH)"
+                    value={formData.title_kh}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title_kh: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-[var(--color-text-primary)]">Description (EN)</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) =>
+                        setFormData({ ...formData, description: e.target.value })
+                      }
+                      className="w-full px-3 py-2 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] min-h-[80px]"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-[var(--color-primary)]">Description (KH)</label>
+                    <textarea
+                      value={formData.description_kh}
+                      onChange={(e) =>
+                        setFormData({ ...formData, description_kh: e.target.value })
+                      }
+                      className="w-full px-3 py-2 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] min-h-[80px]"
+                    />
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>

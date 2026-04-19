@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  useDashboardStats,
-  useAdminOrders,
-  useUpdateOrderStatus,
-} from "../../hooks/useOrders";
+import { useAdminDashboardData } from "../../hooks/useAdminDashboard";
+import { useUpdateOrderStatus } from "../../hooks/useOrders";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Card from "../../components/ui/Card";
 import { StatsCardSkeleton, TableSkeleton } from "../../components/admin/AdminSkeletons";
 
 const DashboardPage = () => {
-  const { data: stats, isLoading: isLoadingStats } = useDashboardStats();
+  const { data, isLoading } = useAdminDashboardData();
+  const stats = data?.stats;
+  const recentOrders = data?.recent_orders || [];
+  
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -19,11 +19,8 @@ const DashboardPage = () => {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const ITEMS_PER_PAGE = 4;
-  // Fetch ALL orders (no server-side pagination) - we paginate client-side
-  const { data: ordersData, isLoading: isLoadingOrders } = useAdminOrders({});
+  
   const updateStatusMutation = useUpdateOrderStatus();
-
-  const isLoading = isLoadingStats || isLoadingOrders;
 
   // Helper to get next status in the flow
   const getNextStatus = (currentStatus: string): string | null => {
@@ -51,7 +48,7 @@ const DashboardPage = () => {
   };
 
   // Filter orders based on search, status, and date
-  const allOrders = ordersData?.data ?? [];
+  const allOrders = recentOrders;
   const filteredOrders = allOrders.filter((order) => {
     // Search filter - check tracking_id, id, total
     const searchLower = searchQuery.toLowerCase();
@@ -183,7 +180,7 @@ const DashboardPage = () => {
 
         {/* Dashboard Stats Grid */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-6">
-          {isLoadingStats ? (
+          {isLoading ? (
             Array.from({ length: 4 }).map((_, i) => <StatsCardSkeleton key={i} />)
           ) : (
             dashboardStats.map((stat, index) => (

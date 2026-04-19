@@ -8,10 +8,8 @@ use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\CategoryDisplayController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\BannerController;
-use App\Http\Controllers\LandingSectionController;
+use App\Http\Controllers\PublicDataController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminCategoryController;
@@ -32,41 +30,55 @@ use App\Http\Controllers\CartController;
 |--------------------------------------------------------------------------
 */
 
-// Public Routes
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/featured', [ProductController::class, 'featured']);
-Route::get('/products/{slug}', [ProductController::class, 'show']);
-Route::get('/categories', [CategoryController::class, 'index']);
+// Public Routes with Rate Limiting (60 per minute)
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/featured', [ProductController::class, 'featured']);
+    Route::get('/products/{slug}', [ProductController::class, 'show']);
+    Route::get('/categories', [CategoryController::class, 'index']);
 
-// Banner Routes
-Route::get('/banners/main', [BannerController::class, 'getMainBanners']);
-Route::get('/banners/section', [BannerController::class, 'getSectionBanners']);
+    // Visitor Routes
+    Route::post('/visit', [\App\Http\Controllers\VisitController::class, 'store']);
 
-// Landing Section Routes (Public)
-Route::get('/landing-sections', [LandingSectionController::class, 'index']);
+    // Health Check / Supabase Keep-Alive
+    Route::get('/ping', function () {
+        try {
+            \Illuminate\Support\Facades\DB::connection()->getPdo();
+            return response()->json([
+                'status' => 'ok',
+                'database' => 'connected',
+                'message' => 'pong'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'database' => 'disconnected',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    });
 
-// Category Display Routes (Public)
-Route::get('/category-displays', [CategoryDisplayController::class, 'index']);
-
-// Authentication Routes
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-
-// Password Reset Routes
-Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
-Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
-
-// Google OAuth Routes
-Route::get('/auth/google', [GoogleAuthController::class, 'redirect']);
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
-
-// Visitor Routes
-Route::post('/visit', [\App\Http\Controllers\VisitController::class, 'store']);
-
-// Health Check / Keep-Alive Route (For UptimeRobot, cron-job.org, etc.)
-Route::get('/ping', function () {
-    return response()->json(['status' => 'ok', 'message' => 'pong'], 200);
+    // Consolidated Public Data
+    Route::get('/app-bootstrap', [PublicDataController::class, 'getAppBootstrap']);
+    Route::get('/landing-data', [PublicDataController::class, 'getLandingData']);
 });
+
+
+// Authentication Routes with Stricter Rate Limiting (10 per minute)
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+    
+    // Google OAuth (callback)
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
+});
+
+// Google OAuth (redirect - higher limit as it's a redirect)
+Route::get('/auth/google', [GoogleAuthController::class, 'redirect']);
+
+// Stripe Webhook (public, no auth - Stripe signs these)
 
 // Stripe Webhook (public, no auth - Stripe signs these)
 Route::post('/webhooks/stripe', [PaymentController::class, 'stripeWebhook']);
@@ -105,6 +117,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('admin')->prefix('admin')->group(function () {
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/dashboard-data', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index']);
 
         // Notifications
         Route::get('/notifications', [NotificationController::class, 'index']);

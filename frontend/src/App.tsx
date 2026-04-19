@@ -15,6 +15,7 @@ import Footer from "./components/layout/Footer";
 import CartDrawer from "./components/cart/CartDrawer";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import MobileBottomNav from "./components/layout/MobileBottomNav";
+import { useTranslation } from "react-i18next";
 
 // Pages - Eager load critical pages
 import HomePage from "./pages/HomePage";
@@ -110,6 +111,13 @@ const PageLoader = () => (
 );
 
 function App() {
+  const { i18n } = useTranslation();
+
+  // Sync language attribute on HTML tag for CSS font selection
+  useEffect(() => {
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+
   // Track visitor once on mount
   useEffect(() => {
     // Fire and forget - count this visit

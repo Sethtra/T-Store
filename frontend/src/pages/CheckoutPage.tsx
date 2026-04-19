@@ -13,6 +13,7 @@ import { useAuthStore } from "../stores/authStore";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import StripeForm from "../components/checkout/StripeForm";
+import { useTranslation } from "react-i18next";
 
 import api from "../lib/api";
 
@@ -23,9 +24,10 @@ const stripePromise = loadStripe(
 
 // Step Progress Component
 const StepProgress = ({ currentStep }: { currentStep: number }) => {
+  const { t } = useTranslation();
   const steps = [
-    { number: 1, label: "Contact & Shipping" },
-    { number: 2, label: "Payment" },
+    { number: 1, label: t("checkout.step_shipping") },
+    { number: 2, label: t("checkout.step_payment") },
   ];
 
   return (
@@ -170,8 +172,10 @@ const PaywayQRView = ({
   qrTimeLeft: number;
   formatTime: (t: number) => string;
   createdOrderId: number | null;
-}) => (
-  <div className="flex flex-col items-center justify-center p-2 sm:p-6 w-full">
+}) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center justify-center p-2 sm:p-6 w-full">
     <div className="bg-[var(--color-bg-elevated)] backdrop-blur-3xl border border-[var(--color-border)] rounded-[2rem] shadow-2xl overflow-hidden max-w-[26rem] w-full mx-auto relative group">
        {/* Cut-out Red Ticket Header */}
        <div className="bg-[#e21937] pt-5 pb-4 flex flex-col items-center justify-center relative z-10 w-full rounded-t-[2rem]" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 65%, 92% 100%, 0 100%)' }}>
@@ -184,13 +188,13 @@ const PaywayQRView = ({
        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-transparent opacity-50 pointer-events-none" />
        
        <div className="pt-6 px-8 pb-2 text-center relative z-10">
-         <h3 className="text-2xl font-black mb-2 text-[var(--color-text-primary)]">Scan to Pay</h3>
+         <h3 className="text-2xl font-black mb-2 text-[var(--color-text-primary)]">{t("checkout.scan_to_pay")}</h3>
          <p className="text-[var(--color-text-muted)] text-[15px] max-w-[16rem] mx-auto mb-6 leading-relaxed">
-           Complete your order safely with your favorite banking app
+           {t("checkout.pay_safe_desc")}
          </p>
          
          <div className="inline-flex flex-col items-center bg-[var(--color-bg-surface)] px-8 py-4 rounded-[1.5rem] mb-6 shadow-sm border border-[var(--color-border)]/50">
-           <span className="text-[11px] font-bold tracking-widest uppercase text-[var(--color-text-muted)] mb-1">Order Total</span>
+           <span className="text-[11px] font-bold tracking-widest uppercase text-[var(--color-text-muted)] mb-1">{t("checkout.order_total")}</span>
            <span className="text-[2rem] font-black text-[var(--color-primary)] tracking-tight leading-none">${Number(totalAmount).toFixed(2)}</span>
          </div>
        </div>
@@ -238,9 +242,12 @@ const PaywayQRView = ({
        </div>
     </div>
   </div>
-);
+  );
+};
 
 const CheckoutPage = () => {
+  const { t, i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { items, totalPrice, clearCart } = useCartStore();
@@ -459,10 +466,10 @@ const CheckoutPage = () => {
         animate={{ opacity: 1 }}
         className="min-h-[70vh] flex flex-col items-center justify-center"
       >
-        <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
+        <h2 className="text-2xl font-bold mb-2">{t("cart.empty")}</h2>
         <Link to="/products">
           <Button size="lg" className="mt-4">
-            Continue Shopping
+            {t("cart.continue_shopping")}
           </Button>
         </Link>
       </motion.div>
@@ -491,18 +498,18 @@ const CheckoutPage = () => {
             />
           </svg>
         </div>
-        <h2 className="text-3xl font-bold mb-3">Payment Successful!</h2>
+        <h2 className="text-3xl font-bold mb-3">{t("checkout.success_title")}</h2>
         <p className="text-[var(--color-text-muted)] mb-8">
-          Your order has been placed and is being processed.
+          {t("checkout.success_desc")}
         </p>
         <div className="flex gap-4">
           <Link to="/orders">
             <Button variant="outline" size="lg">
-              View Orders
+              {t("checkout.view_orders")}
             </Button>
           </Link>
           <Link to="/products">
-            <Button size="lg">Continue Shopping</Button>
+            <Button size="lg">{t("cart.continue_shopping")}</Button>
           </Link>
         </div>
       </motion.div>
@@ -730,7 +737,7 @@ const CheckoutPage = () => {
     >
       <div className="container lg:px-8">
         <div className="flex items-center justify-between mb-8 md:mb-12">
-          <h1 className="text-3xl font-bold">Checkout</h1>
+          <h1 className="text-3xl font-bold">{t("checkout.title")}</h1>
           <StepProgress currentStep={currentStep} />
         </div>
 
@@ -752,7 +759,7 @@ const CheckoutPage = () => {
                   exit={{ opacity: 0, x: -20 }}
                 >
                   <h2 className="text-xl font-bold mb-6">
-                    Shipping & Payment Method
+                    {t("checkout.step_shipping")} & {t("checkout.step_payment")}
                   </h2>
                   <form
                     id="checkout-form"
@@ -779,7 +786,7 @@ const CheckoutPage = () => {
                             d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
                           />
                         </svg>
-                        Delivery
+                        {t("checkout.delivery")}
                       </button>
                       <button
                         type="button"
@@ -799,7 +806,7 @@ const CheckoutPage = () => {
                             d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                           />
                         </svg>
-                        Pick up
+                        {t("checkout.pickup")}
                       </button>
                     </div>
 
@@ -807,7 +814,7 @@ const CheckoutPage = () => {
                     <div className="space-y-6">
                       <div className="grid md:grid-cols-2 gap-6">
                         <Input
-                          label="First name *"
+                          label={t("auth.full_name") + " *"}
                           value={formData.firstName}
                           onChange={(e) =>
                             handleInputChange("firstName", e.target.value)
@@ -824,7 +831,7 @@ const CheckoutPage = () => {
                         />
                       </div>
                       <Input
-                        label="Email address *"
+                        label={t("auth.email") + " *"}
                         type="email"
                         value={formData.email}
                         onChange={(e) =>
@@ -833,7 +840,7 @@ const CheckoutPage = () => {
                         required
                       />
                       <Input
-                        label="Phone number *"
+                        label="Phone *"
                         value={formData.phone}
                         onChange={(e) =>
                           handleInputChange("phone", e.target.value)
@@ -844,16 +851,16 @@ const CheckoutPage = () => {
                       {deliveryMethod === "delivery" && (
                         <div className="space-y-6">
                           <Input
-                            label="Country *"
-                            value={formData.country}
+                            label={t("checkout.shipping_address") + " *"}
+                            value={formData.address}
                             onChange={(e) =>
-                              handleInputChange("country", e.target.value)
+                              handleInputChange("address", e.target.value)
                             }
                             required
                           />
                           <div className="grid grid-cols-2 gap-6">
                             <Input
-                              label="City *"
+                              label={isKh ? "ទីក្រុង / ខេត្ត *" : "City / Province *"}
                               value={formData.city}
                               onChange={(e) =>
                                 handleInputChange("city", e.target.value)
@@ -861,7 +868,7 @@ const CheckoutPage = () => {
                               required
                             />
                             <Input
-                              label="ZIP Code *"
+                              label={isKh ? "លេខកូដប្រៃសណីយ៍ *" : "ZIP Code *"}
                               value={formData.postalCode}
                               onChange={(e) =>
                                 handleInputChange("postalCode", e.target.value)
@@ -869,14 +876,6 @@ const CheckoutPage = () => {
                               required
                             />
                           </div>
-                          <Input
-                            label="Street Address *"
-                            value={formData.address}
-                            onChange={(e) =>
-                              handleInputChange("address", e.target.value)
-                            }
-                            required
-                          />
                         </div>
                       )}
                     </div>
@@ -884,10 +883,10 @@ const CheckoutPage = () => {
                     {/* Payment Method Selection - Premium UI */}
                     <div className="pt-6 border-t border-[var(--color-border)]">
                       <h3 className="text-lg font-bold mb-2">
-                        Select Payment Method
+                        {t("checkout.step_payment")}
                       </h3>
                       <p className="text-sm text-[var(--color-text-muted)] mb-5">
-                        Choose your preferred payment option
+                        {isKh ? "ជ្រើសរើសវិធីសាស្ត្រទូទាត់ប្រាក់ដែលអ្នកចង់បាន" : "Choose your preferred payment option"}
                       </p>
                       <div className="space-y-4">
                         <PaymentMethodCard
@@ -895,8 +894,8 @@ const CheckoutPage = () => {
                           selected={paymentMethod === "stripe"}
                           onSelect={() => setPaymentMethod("stripe")}
                           accentColor="#635BFF"
-                          title="Credit / Debit Card"
-                          description="Pay securely with Visa, Mastercard, or American Express via Stripe"
+                          title={isKh ? "កាតឥណទាន / ឥណពន្ធ" : "Credit / Debit Card"}
+                          description={isKh ? "ទូទាត់ដោយសុវត្ថិភាពជាមួយ Visa, Mastercard តាមរយៈ Stripe" : "Pay securely with Visa, Mastercard, or American Express via Stripe"}
                           icon={
                             <svg
                               className="w-7 h-7"
@@ -919,7 +918,7 @@ const CheckoutPage = () => {
                           onSelect={() => setPaymentMethod("payway")}
                           accentColor="#E21937"
                           title="ABA PayWay"
-                          description="Pay with ABA Mobile, KHQR, or local bank cards via ABA PayWay"
+                          description={isKh ? "ទូទាត់ជាមួយ ABA Mobile, KHQR ឬកាតធនាគារក្នុងស្រុក" : "Pay with ABA Mobile, KHQR, or local bank cards via ABA PayWay"}
                           icon={
                             <svg
                               className="w-7 h-7"
@@ -948,12 +947,12 @@ const CheckoutPage = () => {
                   exit={{ opacity: 0, x: 20 }}
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold">Complete Payment</h2>
+                    <h2 className="text-xl font-bold">{t("checkout.step_payment")}</h2>
                     <button
                       onClick={() => setCurrentStep(1)}
                       className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)]"
                     >
-                      ← Back to Shipping
+                      ← {isKh ? "ត្រឡប់ទៅការដឹកជញ្ជូន" : "Back to Shipping"}
                     </button>
                   </div>
 
@@ -994,7 +993,7 @@ const CheckoutPage = () => {
           {/* Right Column: Order Summary */}
           <div className="lg:col-span-5">
             <div className="bg-[var(--color-bg-elevated)]/50 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-[var(--color-border)]/50 sticky top-32">
-              <h2 className="text-xl font-bold mb-6">Order Summary</h2>
+              <h2 className="text-xl font-bold mb-6">{t("checkout.summary")}</h2>
 
               <div className="space-y-4 mb-8 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
                 {items.map((item) => (
@@ -1020,7 +1019,7 @@ const CheckoutPage = () => {
                         </div>
                       )}
                       <p className="text-[11px] font-semibold tracking-wide text-[var(--color-text-muted)] uppercase mt-1">
-                        Qty: {item.quantity}
+                        {isKh ? "ចំនួន" : "Qty"}: {item.quantity}
                       </p>
                     </div>
                     <div className="font-semibold text-sm">${item.price}</div>
@@ -1031,26 +1030,26 @@ const CheckoutPage = () => {
               <div className="space-y-3 pb-6 border-b border-[var(--color-border)] mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-[var(--color-text-muted)]">
-                    Subtotal
+                    {t("cart.subtotal")}
                   </span>
                   <span className="font-medium">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[var(--color-text-muted)]">
-                    Shipping
+                    {t("checkout.delivery")}
                   </span>
                   <span className="font-medium">${shipping.toFixed(2)}</span>
                 </div>
                 {tax > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-[var(--color-text-muted)]">
-                      Tax (10%)
+                      {t("checkout.tax")}
                     </span>
                     <span className="font-medium">${tax.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-lg font-bold pt-2">
-                  <span>Total</span>
+                  <span>{t("checkout.total")}</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
               </div>
@@ -1065,9 +1064,9 @@ const CheckoutPage = () => {
                   }}
                 />
                 <span className="text-xs font-medium text-[var(--color-text-muted)]">
-                  Paying with{" "}
+                  {isKh ? "ទូទាត់ជាមួយ" : "Paying with"}{" "}
                   {paymentMethod === "stripe"
-                    ? "Credit/Debit Card (Stripe)"
+                    ? isKh ? "កាតឥណទាន / ឥណពន្ធ (Stripe)" : "Credit/Debit Card (Stripe)"
                     : "ABA PayWay"}
                 </span>
               </div>
@@ -1091,8 +1090,8 @@ const CheckoutPage = () => {
                   className="py-4 text-base rounded-xl mb-24 md:mb-6 bg-[var(--color-primary)] text-white border-none shadow-lg shadow-blue-500/20"
                 >
                   {paymentMethod === "stripe"
-                    ? "Proceed to Payment"
-                    : "Pay with ABA PayWay"}
+                    ? isKh ? "បន្តទៅការទូទាត់" : "Proceed to Payment"
+                    : t("checkout.simulate_payment")}
                 </Button>
               )}
             </div>

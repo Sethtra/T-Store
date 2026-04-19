@@ -28,6 +28,7 @@ const CategoriesPage = () => {
 
   const [formData, setFormData] = useState({
     name: "",
+    name_kh: "",
     parent_id: "" as string | number, // Empty string for "No Parent"
   });
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,7 +39,7 @@ const CategoriesPage = () => {
 
   const openCreateModal = () => {
     setEditingCategory(null);
-    setFormData({ name: "", parent_id: "" });
+    setFormData({ name: "", name_kh: "", parent_id: "" });
     setIsModalOpen(true);
   };
 
@@ -46,6 +47,7 @@ const CategoriesPage = () => {
     setEditingCategory(category);
     setFormData({
       name: category.name,
+      name_kh: category.name_kh || "",
       parent_id: category.parent_id || "",
     });
     setIsModalOpen(true);
@@ -57,6 +59,7 @@ const CategoriesPage = () => {
     try {
       const dataToSend = {
         name: formData.name,
+        name_kh: formData.name_kh,
         parent_id: formData.parent_id ? Number(formData.parent_id) : null,
       };
 
@@ -70,7 +73,7 @@ const CategoriesPage = () => {
       }
 
       setIsModalOpen(false);
-      setFormData({ name: "", parent_id: "" });
+      setFormData({ name: "", name_kh: "", parent_id: "" });
     } catch (error: any) {
       alert(
         error.response?.data?.message ||
@@ -355,7 +358,7 @@ const CategoriesPage = () => {
                             <button
                               onClick={() => {
                                 setEditingCategory(null);
-                                setFormData({ name: "", parent_id: selectedCategory.id });
+                                setFormData({ name: "", name_kh: "", parent_id: selectedCategory.id });
                                 setIsModalOpen(true);
                               }}
                               className="text-xs font-semibold text-[var(--color-primary)] hover:underline flex items-center gap-1"
@@ -435,16 +438,28 @@ const CategoriesPage = () => {
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5 text-[var(--color-text-primary)]">Name</label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="e.g., Electronics"
-                    required
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 text-[var(--color-text-primary)]">Name (EN)</label>
+                    <Input
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      placeholder="e.g., Electronics"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 text-[var(--color-primary)]">Name (KH)</label>
+                    <Input
+                      value={formData.name_kh}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name_kh: e.target.value })
+                      }
+                      placeholder="ឧទាហរណ៍៖ គ្រឿងអេឡិចត្រូនិច"
+                    />
+                  </div>
                 </div>
 
                 <div>

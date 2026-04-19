@@ -1,12 +1,13 @@
 import React from "react";
 import { type Order } from "../../hooks/useOrders";
 import { timeAgo } from "../../utils/time";
+import { useTranslation } from "react-i18next";
 
 // Map order status to notification display
-const statusConfig = {
+const statusConfig = (t: any) => ({
   pending: {
-    title: "Order Received",
-    message: "We're reviewing your order",
+    title: t("notifications.pending_title"),
+    message: t("notifications.pending_msg"),
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -16,8 +17,8 @@ const statusConfig = {
     bg: "bg-blue-500/10",
   },
   processing: {
-    title: "Order Processing",
-    message: "We're getting your items ready",
+    title: t("notifications.processing_title"),
+    message: t("notifications.processing_msg"),
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -27,8 +28,8 @@ const statusConfig = {
     bg: "bg-yellow-500/10",
   },
   shipped: {
-    title: "Order Shipped",
-    message: "Your package is on the way!",
+    title: t("notifications.shipped_title"),
+    message: t("notifications.shipped_msg"),
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
@@ -38,8 +39,8 @@ const statusConfig = {
     bg: "bg-purple-500/10",
   },
   completed: {
-    title: "Order Delivered",
-    message: "Your order has been completed",
+    title: t("notifications.completed_title"),
+    message: t("notifications.completed_msg"),
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -49,8 +50,8 @@ const statusConfig = {
     bg: "bg-green-500/10",
   },
   cancelled: {
-    title: "Order Cancelled",
-    message: "Your order has been cancelled",
+    title: t("notifications.cancelled_title"),
+    message: t("notifications.cancelled_msg"),
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -59,7 +60,7 @@ const statusConfig = {
     color: "text-red-400",
     bg: "bg-red-500/10",
   },
-};
+});
 
 interface NotificationItemProps {
   order: Order;
@@ -67,7 +68,9 @@ interface NotificationItemProps {
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ order, onClick }) => {
-  const config = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.pending;
+  const { t } = useTranslation();
+  const configMap = statusConfig(t);
+  const config = configMap[order.status as keyof typeof configMap] || configMap.pending;
 
   return (
     <button

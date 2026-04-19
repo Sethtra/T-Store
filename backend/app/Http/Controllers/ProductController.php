@@ -112,12 +112,25 @@ class ProductController extends Controller
     {
         $cacheKey = 'product_show_' . $slug;
 
-        $product = Cache::remember($cacheKey, 3600, function () use ($slug) {
-            return Product::with('category')
+        $data = Cache::remember($cacheKey, 3600, function () use ($slug) {
+            $product = Product::with('category')
                 ->where('slug', $slug)
                 ->firstOrFail();
+
+            // Get related products (same category, excluding self)
+            $related = Product::with('category')
+                ->where('category_id', $product->category_id)
+                ->where('id', '!=', $product->id)
+                ->where('stock', '>', 0)
+                ->take(4)
+                ->get();
+
+            return [
+                'product' => $product,
+                'related' => $related,
+            ];
         });
 
-        return response()->json($product);
+        return response()->json($data);
     }
 }

@@ -38,8 +38,11 @@ const CategoryDisplayPage = () => {
     setEditingId(display.id);
     setFormData({
       title: display.title,
+      title_kh: display.title_kh || "",
       description: display.description || "",
+      description_kh: display.description_kh || "",
       button_text: display.button_text,
+      button_text_kh: display.button_text_kh || "",
       link: display.link || "",
       category_id: display.category_id,
       is_active: display.is_active,
@@ -377,6 +380,14 @@ const CategoryDisplayPage = () => {
                           }
                         />
 
+                        <Input
+                          label="Title (Khmer)"
+                          value={formData.title_kh || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, title_kh: e.target.value })
+                          }
+                        />
+
                         <div>
                           <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
                             Description
@@ -394,6 +405,23 @@ const CategoryDisplayPage = () => {
                           />
                         </div>
 
+                        <div>
+                          <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+                            Description (Khmer)
+                          </label>
+                          <textarea
+                            value={formData.description_kh || ""}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                description_kh: e.target.value,
+                              })
+                            }
+                            rows={3}
+                            className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 transition-all resize-none"
+                          />
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
                           <Input
                             label="Button Text"
@@ -402,6 +430,16 @@ const CategoryDisplayPage = () => {
                               setFormData({
                                 ...formData,
                                 button_text: e.target.value,
+                              })
+                            }
+                          />
+                          <Input
+                            label="Button Text (Khmer)"
+                            value={formData.button_text_kh || ""}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                button_text_kh: e.target.value,
                               })
                             }
                           />

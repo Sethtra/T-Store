@@ -38,9 +38,12 @@ class AdminCategoryDisplayController extends Controller
         $validated = $request->validate([
             'category_id' => 'nullable|exists:categories,id',
             'title' => 'sometimes|required|string|max:255',
+            'title_kh' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'description_kh' => 'nullable|string',
             'image_url' => 'nullable|string|max:500',
             'button_text' => 'sometimes|required|string|max:100',
+            'button_text_kh' => 'nullable|string|max:100',
             'link' => 'nullable|string|max:500',
             'is_active' => 'sometimes|boolean',
             'order' => 'sometimes|integer|min:0',
@@ -50,6 +53,7 @@ class AdminCategoryDisplayController extends Controller
 
         // Clear the public cache so frontend picks up changes immediately
         Cache::forget('category_displays_index');
+        Cache::forget('landing_data_all');
 
         return response()->json($categoryDisplay->load('category'));
     }
@@ -76,6 +80,7 @@ class AdminCategoryDisplayController extends Controller
 
         // Clear the public cache so frontend picks up changes immediately
         Cache::forget('category_displays_index');
+        Cache::forget('landing_data_all');
 
         return response()->json([
             'image_url' => $imageUrl,
@@ -97,6 +102,7 @@ class AdminCategoryDisplayController extends Controller
 
         // Clear the public cache so frontend picks up changes immediately
         Cache::forget('category_displays_index');
+        Cache::forget('landing_data_all');
 
         return response()->json($categoryDisplay->load('category'));
     }

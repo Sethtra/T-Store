@@ -4,16 +4,18 @@ import { useOrders, type Order } from "../hooks/useOrders";
 import Button from "../components/ui/Button";
 import OrderDetailsModal from "../components/orders/OrderDetailsModal";
 import InvoiceModal from "../components/orders/InvoiceModal";
+import { useTranslation } from "react-i18next";
 
 const ORDERS_PER_PAGE = 8;
 
 const OrdersPage = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { data: orders, isLoading, error } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<string>("All");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [, setTick] = useState(0);
 
@@ -31,7 +33,7 @@ const OrdersPage = () => {
     if (remaining <= 0) return null;
     const hours = Math.floor(remaining / (1000 * 60 * 60));
     const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
+    return `${hours}${i18n.language === 'kh' ? 'ម៉ោង' : 'h'} ${minutes}${i18n.language === 'kh' ? 'នាទី' : 'm'}`;
   };
 
   const handleViewDetails = (order: Order) => {
@@ -45,9 +47,9 @@ const OrdersPage = () => {
   };
 
   const filteredOrders = orders?.filter((order) => {
-    if (filterStatus === "All") return true;
+    if (filterStatus === "all") return true;
     
-    if (filterStatus === "Payment Pending") {
+    if (filterStatus === "pending") {
       return order.payment_status === "pending" || order.payment_status === "failed";
     }
     
@@ -56,12 +58,12 @@ const OrdersPage = () => {
       return false;
     }
 
-    if (filterStatus === "Processing") {
+    if (filterStatus === "processing") {
       return order.status === "pending" || order.status === "processing";
     }
-    if (filterStatus === "Shipped") return order.status === "shipped";
-    if (filterStatus === "Completed") return order.status === "completed";
-    if (filterStatus === "Cancelled") return order.status === "cancelled";
+    if (filterStatus === "shipped") return order.status === "shipped";
+    if (filterStatus === "completed") return order.status === "completed";
+    if (filterStatus === "cancelled") return order.status === "cancelled";
     
     return order.status === filterStatus.toLowerCase();
   });
@@ -80,18 +82,18 @@ const OrdersPage = () => {
   };
 
   const tabs = [
-    "All",
-    "Payment Pending",
-    "Processing",
-    "Shipped",
-    "Completed",
-    "Cancelled",
+    { id: "all", label: t("orders.all") },
+    { id: "pending", label: t("orders.pending") },
+    { id: "processing", label: t("orders.processing") },
+    { id: "shipped", label: t("orders.shipped") },
+    { id: "completed", label: t("orders.completed") },
+    { id: "cancelled", label: t("orders.cancelled") },
   ];
 
   if (isLoading) {
     return (
       <div className="container pb-16" style={{ paddingTop: "140px" }}>
-        <h1 className="text-3xl font-bold mb-8">My Orders</h1>
+        <h1 className="text-3xl font-bold mb-8">{t("orders.title")}</h1>
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
             <div
@@ -110,8 +112,8 @@ const OrdersPage = () => {
         className="container pb-16 text-center"
         style={{ paddingTop: "140px" }}
       >
-        <h1 className="text-3xl font-bold mb-4">My Orders</h1>
-        <p className="text-[var(--color-error)]">Failed to load orders</p>
+        <h1 className="text-3xl font-bold mb-4">{t("orders.title")}</h1>
+        <p className="text-[var(--color-error)]">{t("orders.failed_load")}</p>
       </div>
     );
   }
@@ -126,15 +128,15 @@ const OrdersPage = () => {
       <div className="flex overflow-x-auto pb-4 mb-6 gap-2 no-scrollbar">
         {tabs.map((tab) => (
           <button
-            key={tab}
-            onClick={() => handleFilterChange(tab)}
+            key={tab.id}
+            onClick={() => handleFilterChange(tab.id)}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
-              filterStatus === tab
+              filterStatus === tab.id
                 ? "bg-[var(--color-primary)] text-white shadow-lg shadow-blue-500/20"
                 : "bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] border border-[var(--color-border)] hover:border-[var(--color-text-muted)]"
             }`}
           >
-            {tab}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -157,12 +159,12 @@ const OrdersPage = () => {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-bold mb-2">No orders found</h2>
+          <h2 className="text-xl font-bold mb-2">{t("orders.no_orders")}</h2>
           <p className="text-[var(--color-text-muted)] mb-8">
-            You haven't placed any orders yet.
+            {i18n.language === 'kh' ? "អ្នកមិនទាន់បានដាក់បញ្ជាទិញណាមួយនៅឡើយទេ។" : "You haven't placed any orders yet."}
           </p>
           <Link to="/products">
-            <Button>Start Shopping</Button>
+            <Button>{t("orders.start_shopping")}</Button>
           </Link>
         </div>
       ) : (
@@ -171,13 +173,13 @@ const OrdersPage = () => {
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] text-[10px] sm:text-xs uppercase text-[var(--color-text-muted)] font-semibold tracking-wider">
-                  <th className="px-3 sm:px-6 py-4 sm:py-5">Tracking ID</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5">Date</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden md:table-cell">Status</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">Time Left</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden lg:table-cell">Delivery</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5">Total</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5 text-right hidden sm:table-cell">Action</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5">{t("orders.tracking_id")}</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5">{t("orders.date")}</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden md:table-cell">{t("orders.status")}</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">{t("orders.time_left")}</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden lg:table-cell">{t("orders.delivery")}</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5">{t("orders.total")}</th>
+                  <th className="px-3 sm:px-6 py-4 sm:py-5 text-right hidden sm:table-cell">{t("orders.action")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
@@ -211,15 +213,15 @@ const OrdersPage = () => {
                     <td className="px-3 sm:px-6 py-4 sm:py-5 hidden md:table-cell">
                       {order.payment_status === "pending" ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                          Payment Pending
+                          {t("orders.pending")}
                         </span>
                       ) : order.payment_status === "failed" ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                          ✕ Payment Failed
+                          ✕ {t("orders.failed")}
                         </span>
                       ) : order.payment_status === "cancelled" ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                          Cancelled
+                          {t("orders.cancelled")}
                         </span>
                       ) : (
                         <span
@@ -234,7 +236,7 @@ const OrdersPage = () => {
                             : "bg-blue-100 text-blue-700"
                         }`}
                         >
-                          {order.status}
+                          {t(`orders.${order.status}`)}
                         </span>
                       )}
                     </td>
@@ -246,7 +248,7 @@ const OrdersPage = () => {
                           </span>
                         ) : (
                           <span className="text-sm font-semibold text-[var(--color-error)]">
-                            Expired
+                            {t("orders.expired")}
                           </span>
                         )
                       ) : (
@@ -257,7 +259,7 @@ const OrdersPage = () => {
                       {
                         Number(order.total) > 50 ? (
                           <span className="text-green-600 font-medium">
-                            Free
+                            {t("orders.free")}
                           </span>
                         ) : (
                           <span>$9.99</span>
@@ -275,7 +277,7 @@ const OrdersPage = () => {
                             onClick={(e) => { e?.stopPropagation(); navigate(`/checkout?retry_order=${order.id}`); }}
                             className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white border-none shadow-lg shadow-[var(--color-primary)]/20"
                           >
-                            Pay Now
+                            {t("orders.pay_now")}
                           </Button>
                         ) : (
                           <>
@@ -285,14 +287,14 @@ const OrdersPage = () => {
                               onClick={(e) => { e?.stopPropagation(); handleViewInvoice(order); }}
                               className="border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] hover:border-[var(--color-text-muted)]"
                             >
-                              Invoice
+                              {t("orders.invoice")}
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={(e) => { e?.stopPropagation(); handleViewDetails(order); }}
                             >
-                              Details
+                              {t("orders.details")}
                             </Button>
                           </>
                         )}
@@ -306,7 +308,7 @@ const OrdersPage = () => {
 
           {filteredOrders?.length === 0 && (
             <div className="p-12 text-center text-[var(--color-text-muted)]">
-              No orders found in this category.
+              {t("orders.no_orders_category")}
             </div>
           )}
 
@@ -322,7 +324,7 @@ const OrdersPage = () => {
                   disabled={currentPage === 1}
                   className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  Prev
+                  {t("orders.prev")}
                 </button>
                 {Array.from({ length: totalPages }).map((_, i) => {
                   const page = i + 1;
@@ -357,7 +359,7 @@ const OrdersPage = () => {
                   disabled={currentPage === totalPages}
                   className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  Next
+                  {t("orders.next")}
                 </button>
               </div>
             </div>

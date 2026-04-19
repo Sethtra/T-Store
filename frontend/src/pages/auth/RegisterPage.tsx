@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import { useAuthStore } from "../../stores/authStore";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
+import { useTranslation } from "react-i18next";
 
 const RegisterPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { register, isLoading } = useAuthStore();
   const [name, setName] = useState("");
@@ -19,7 +21,7 @@ const RegisterPage = () => {
     setError("");
 
     if (password !== passwordConfirmation) {
-      setError("Passwords do not match");
+      setError(t("auth.password_mismatch", "Passwords do not match"));
       return;
     }
 
@@ -50,9 +52,9 @@ const RegisterPage = () => {
                 <span className="text-white font-bold text-xl">T</span>
               </div>
             </Link>
-            <h1 className="text-2xl font-bold">Create Account</h1>
+            <h1 className="text-2xl font-bold">{t("auth.create_account")}</h1>
             <p className="text-[var(--color-text-muted)] mt-2">
-              Join T-Store today
+              {t("auth.join_today")}
             </p>
           </div>
 
@@ -65,7 +67,7 @@ const RegisterPage = () => {
             )}
 
             <Input
-              label="Full Name"
+              label={t("auth.full_name")}
               type="text"
               placeholder="John Doe"
               value={name}
@@ -74,7 +76,7 @@ const RegisterPage = () => {
             />
 
             <Input
-              label="Email"
+              label={t("auth.email")}
               type="email"
               placeholder="you@example.com"
               value={email}
@@ -83,17 +85,17 @@ const RegisterPage = () => {
             />
 
             <Input
-              label="Password"
+              label={t("auth.password")}
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              helperText="Must be at least 8 characters"
+              helperText={t("auth.password_hint")}
             />
 
             <Input
-              label="Confirm Password"
+              label={t("auth.confirm_password")}
               type="password"
               placeholder="••••••••"
               value={passwordConfirmation}
@@ -108,25 +110,25 @@ const RegisterPage = () => {
                 className="w-4 h-4 mt-0.5 rounded border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
               />
               <span className="text-sm text-[var(--color-text-muted)]">
-                I agree to the{" "}
+                {t("auth.agree_to")}{" "}
                 <Link
                   to="/terms"
                   className="text-[var(--color-primary)] hover:underline"
                 >
-                  Terms of Service
+                  {t("auth.terms")}
                 </Link>{" "}
-                and{" "}
+                {t("auth.and")}{" "}
                 <Link
                   to="/privacy"
                   className="text-[var(--color-primary)] hover:underline"
                 >
-                  Privacy Policy
+                  {t("auth.privacy")}
                 </Link>
               </span>
             </div>
 
             <Button type="submit" fullWidth size="lg" isLoading={isLoading}>
-              Create Account
+              {t("auth.create_account")}
             </Button>
           </form>
 
@@ -137,7 +139,7 @@ const RegisterPage = () => {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]">
-                Or continue with
+                {t("auth.or_continue_with")}
               </span>
             </div>
           </div>
@@ -169,7 +171,7 @@ const RegisterPage = () => {
                 fill="#EA4335"
               />
             </svg>
-            Sign up with Google
+            {t("auth.continue_with_google")}
           </button>
 
           {/* Divider */}
@@ -179,7 +181,7 @@ const RegisterPage = () => {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]">
-                Already have an account?
+                {t("auth.already_have_account")}
               </span>
             </div>
           </div>
@@ -187,7 +189,7 @@ const RegisterPage = () => {
           {/* Login Link */}
           <Link to="/login">
             <Button variant="outline" fullWidth>
-              Sign In
+              {t("auth.sign_in")}
             </Button>
           </Link>
         </div>
