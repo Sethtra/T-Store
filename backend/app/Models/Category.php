@@ -16,6 +16,7 @@ class Category extends Model
         'name_kh',
         'slug',
         'parent_id',
+        'banner_image',
     ];
 
     /**

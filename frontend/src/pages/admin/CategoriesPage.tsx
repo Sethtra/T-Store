@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useAdminCategories,
@@ -6,8 +6,11 @@ import {
   useCreateCategory,
   useUpdateCategory,
   useDeleteCategory,
+  useUploadCategoryImage,
+  useDeleteCategoryImage,
 } from "../../hooks/useCategories";
 import type { Category } from "../../hooks/useProducts";
+import { getImageUrl } from "../../utils/image";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -25,6 +28,10 @@ const CategoriesPage = () => {
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
+  const uploadImage = useUploadCategoryImage();
+  const deleteImage = useDeleteCategoryImage();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -79,6 +86,38 @@ const CategoriesPage = () => {
         error.response?.data?.message ||
           "Failed to save category. Please try again.",
       );
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingCategory) return;
+
+    try {
+      await uploadImage.mutateAsync({ id: editingCategory.id, file });
+      // Update local state so preview updates immediately
+      setEditingCategory({
+        ...editingCategory,
+        banner_image: URL.createObjectURL(file), // temporary preview
+      });
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+      alert("Failed to upload image. Please try again.");
+    }
+  };
+
+  const handleImageDelete = async () => {
+    if (!editingCategory || !confirm("Are you sure you want to delete this image?")) return;
+
+    try {
+      await deleteImage.mutateAsync(editingCategory.id);
+      setEditingCategory({
+        ...editingCategory,
+        banner_image: undefined,
+      });
+    } catch (error) {
+      console.error("Failed to delete image:", error);
+      alert("Failed to delete image. Please try again.");
     }
   };
 
@@ -486,6 +525,79 @@ const CategoriesPage = () => {
                     Select a parent to nest this category under it.
                   </p>
                 </div>
+
+                {editingCategory && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 text-[var(--color-text-primary)]">
+                      Category Banner Image
+                    </label>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      onChange={handleImageUpload}
+                      accept="image/*"
+                    />
+
+                    {editingCategory.banner_image ? (
+                      <div className="relative group w-full h-40 bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+                        <img
+                          src={getImageUrl(editingCategory.banner_image)}
+                          alt="Banner Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-colors"
+                            title="Change Image"
+                            disabled={uploadImage.isPending}
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleImageDelete}
+                            className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+                            title="Delete Image"
+                            disabled={deleteImage.isPending}
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                        {(uploadImage.isPending || deleteImage.isPending) && (
+                          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+                            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadImage.isPending}
+                        className="w-full h-40 border-2 border-dashed border-[var(--color-border)] rounded-xl flex flex-col items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all"
+                      >
+                        {uploadImage.isPending ? (
+                          <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <>
+                            <svg className="w-8 h-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span className="text-sm font-medium">Click to upload banner image</span>
+                            <span className="text-xs mt-1">Recommended size: 1200x400px (16:9 or 3:1)</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4">
                   <Button

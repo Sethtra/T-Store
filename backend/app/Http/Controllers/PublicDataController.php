@@ -58,8 +58,32 @@ class PublicDataController extends Controller
         $data = Cache::remember('landing_data_all', 3600, function () {
             return [
                 'banners' => [
-                    'main' => Banner::main()->active()->ordered()->get(),
-                    'section' => Banner::section()->active()->ordered()->get(),
+                    'main' => Banner::main()->active()->ordered()->get()->map(function($banner) {
+                        return [
+                            'id' => $banner->id,
+                            'title' => $banner->title,
+                            'title_kh' => $banner->title_kh,
+                            'description' => $banner->description,
+                            'description_kh' => $banner->description_kh,
+                            'image_url' => $banner->image ? (str_starts_with($banner->image, 'http') ? $banner->image : asset('storage/' . $banner->image)) : null,
+                            'type' => $banner->type,
+                            'order' => $banner->order,
+                            'link' => $banner->primary_button_link ?? $banner->button_link,
+                        ];
+                    }),
+                    'section' => Banner::section()->active()->ordered()->get()->map(function($banner) {
+                        return [
+                            'id' => $banner->id,
+                            'title' => $banner->title,
+                            'title_kh' => $banner->title_kh,
+                            'description' => $banner->description,
+                            'description_kh' => $banner->description_kh,
+                            'image_url' => $banner->image ? (str_starts_with($banner->image, 'http') ? $banner->image : asset('storage/' . $banner->image)) : null,
+                            'type' => $banner->type,
+                            'order' => $banner->order,
+                            'link' => $banner->primary_button_link ?? $banner->button_link,
+                        ];
+                    }),
                 ],
                 'featured_products' => Product::with('category')
                     ->where('stock', '>', 0)
@@ -100,10 +124,27 @@ class PublicDataController extends Controller
                             ] : null,
                         ];
                     }),
-                'category_displays' => CategoryDisplay::active()
+                'category_displays' => CategoryDisplay::with(['category.products', 'category'])->active()
                     ->ordered()
                     ->get()
                     ->map(function ($display) {
+                        $categoryBanner = $display->category?->banner_image;
+                        
+                        $firstProductImage = null;
+                        if ($display->category && $display->category->products->count() > 0) {
+                            $productImages = $display->category->products->first()->images;
+                            $firstProductImage = (is_array($productImages) && count($productImages) > 0) ? $productImages[0] : null;
+                        }
+
+                        $finalImageUrl = null;
+                        if ($display->image_url) {
+                            $finalImageUrl = str_starts_with($display->image_url, 'http') ? $display->image_url : asset('storage/' . $display->image_url);
+                        } elseif ($categoryBanner) {
+                            $finalImageUrl = str_starts_with($categoryBanner, 'http') ? $categoryBanner : asset('storage/' . $categoryBanner);
+                        } elseif ($firstProductImage) {
+                            $finalImageUrl = str_starts_with($firstProductImage, 'http') ? $firstProductImage : asset('storage/' . $firstProductImage);
+                        }
+
                         return [
                             'id' => $display->id,
                             'position' => $display->position,
@@ -111,7 +152,7 @@ class PublicDataController extends Controller
                             'title_kh' => $display->title_kh ?? $display->category?->name_kh ?? $display->title ?? $display->category?->name,
                             'description' => $display->description,
                             'description_kh' => $display->description_kh ?? $display->description,
-                            'image' => $display->image_url ? (str_starts_with($display->image_url, 'http') ? $display->image_url : asset('storage/' . $display->image_url)) : null,
+                            'image_url' => $finalImageUrl,
                             'link' => $display->link,
                             'button_text' => $display->button_text,
                             'button_text_kh' => $display->button_text_kh ?? $display->button_text,

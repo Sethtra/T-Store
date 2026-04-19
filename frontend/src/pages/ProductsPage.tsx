@@ -12,6 +12,7 @@ import { ProductGridSkeleton } from "../components/product/ProductCardSkeleton";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import { useTranslation } from "react-i18next";
+import { getImageUrl } from "../utils/image";
 
 // Recursive Category Item Component
 const CategoryItem = ({
@@ -176,6 +177,19 @@ const ProductsPage = () => {
   const { data: productsData, isLoading } = useProducts(filters);
   const { data: categories } = useCategories();
 
+  // Find the currently selected category object based on URL filters
+  const currentCategoryObj = useMemo(() => {
+    if (!filters.category || !categories) return null;
+    for (const cat of categories) {
+      if (cat.slug === filters.category) return cat;
+      if (cat.children) {
+        const child = cat.children.find(c => c.slug === filters.category);
+        if (child) return child;
+      }
+    }
+    return null;
+  }, [categories, filters.category]);
+
   // Local filter state
   const [localSearch, setLocalSearch] = useState(filters.search || "");
   const [localMinPrice, setLocalMinPrice] = useState(
@@ -250,14 +264,35 @@ const ProductsPage = () => {
 
   return (
     <div className="container pb-32" style={{ paddingTop: "128px" }}>
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">{t("products.title")}</h1>
-          <p className="text-[var(--color-text-muted)] mt-1">
-            {t("products.found_count", { count: productsData?.meta.total || 0 })}
-          </p>
+      {/* Category Banner */}
+      {currentCategoryObj?.banner_image && (
+        <div className="w-full h-48 md:h-64 rounded-2xl md:rounded-[2rem] overflow-hidden relative mb-8 border border-[var(--color-border)] shadow-sm group">
+          <img
+            src={getImageUrl(currentCategoryObj.banner_image)}
+            alt={isKh && currentCategoryObj.name_kh ? currentCategoryObj.name_kh : currentCategoryObj.name}
+            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-6 md:p-10 pointer-events-none">
+            <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg tracking-tight">
+              {isKh && currentCategoryObj.name_kh ? currentCategoryObj.name_kh : currentCategoryObj.name}
+            </h1>
+            <p className="text-white/90 mt-2 text-sm md:text-base font-medium">
+              {t("products.found_count", { count: productsData?.meta.total || 0 })}
+            </p>
+          </div>
         </div>
+      )}
+
+      {/* Header Controls */}
+      <div className={`flex flex-col md:flex-row ${!currentCategoryObj?.banner_image ? "md:items-center" : "md:items-end md:justify-end"} justify-between gap-4 mb-8`}>
+        {!currentCategoryObj?.banner_image && (
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">{t("products.title")}</h1>
+            <p className="text-[var(--color-text-muted)] mt-1">
+              {t("products.found_count", { count: productsData?.meta.total || 0 })}
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center gap-4">
           {/* Sort Dropdown */}

@@ -80,3 +80,44 @@ export const useDeleteCategory = () => {
     },
   });
 };
+
+// Admin: Upload Category Image
+export const useUploadCategoryImage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, file }: { id: number; file: File }) => {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await api.post(`/admin/categories/${id}/image`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories', 'all'] });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+  });
+};
+
+// Admin: Delete Category Image
+export const useDeleteCategoryImage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await api.delete(`/admin/categories/${id}/image`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories', 'all'] });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+  });
+};

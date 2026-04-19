@@ -136,6 +136,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/categories', [AdminCategoryController::class, 'store']);
         Route::put('/categories/{category}', [AdminCategoryController::class, 'update']);
         Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy']);
+        Route::post('/categories/{category}/image', [AdminCategoryController::class, 'uploadImage']);
+        Route::delete('/categories/{category}/image', [AdminCategoryController::class, 'deleteImage']);
 
         // Banners Management
         Route::get('/banners', [AdminBannerController::class, 'index']);

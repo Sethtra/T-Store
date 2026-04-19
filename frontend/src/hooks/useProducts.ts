@@ -24,7 +24,7 @@ export interface Category {
   name: string;
   name_kh: string;
   slug: string;
-  // banner_image removed
+  banner_image?: string;
   products_count?: number;
   parent_id?: number | null;
   children?: Category[];

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
@@ -132,6 +133,12 @@ class AdminCategoryController extends Controller
      */
     public function destroy(Category $category)
     {
+        // Delete banner image if exists before deleting category
+        if ($category->banner_image) {
+            $supabase = app(SupabaseStorageService::class);
+            $supabase->delete($category->banner_image);
+        }
+
         // Children will be deleted via cascade
         $category->delete();
 
@@ -141,5 +148,53 @@ class AdminCategoryController extends Controller
         Cache::forget('landing_data_all');
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Upload an image for a category.
+     */
+    public function uploadImage(Request $request, Category $category)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        // Delete old image from Supabase if it exists
+        $supabase = app(SupabaseStorageService::class);
+        if ($category->banner_image) {
+            $supabase->delete($category->banner_image);
+        }
+
+        // Upload new image to Supabase
+        $imageUrl = $supabase->upload($request->file('image'), 'categories');
+
+        $category->update(['banner_image' => $imageUrl]);
+
+        // Clear public caches
+        Cache::forget('categories_index');
+        Cache::forget('app_bootstrap');
+        Cache::forget('landing_data_all');
+
+        return response()->json($category->load('children'));
+    }
+
+    /**
+     * Delete the image from a category.
+     */
+    public function deleteImage(Category $category)
+    {
+        if ($category->banner_image) {
+            $supabase = app(SupabaseStorageService::class);
+            $supabase->delete($category->banner_image);
+        }
+
+        $category->update(['banner_image' => null]);
+
+        // Clear public caches
+        Cache::forget('categories_index');
+        Cache::forget('app_bootstrap');
+        Cache::forget('landing_data_all');
+
+        return response()->json($category->load('children'));
     }
 }
