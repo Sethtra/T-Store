@@ -42,7 +42,7 @@ class Banner extends Model
      */
     public function scopeMain($query)
     {
-        return $query->where('type', 'main');
+        return $query->where('type', '=', 'main');
     }
 
     /**
@@ -50,7 +50,7 @@ class Banner extends Model
      */
     public function scopeSection($query)
     {
-        return $query->where('type', 'section');
+        return $query->where('type', '=', 'section');
     }
 
     /**
@@ -58,7 +58,7 @@ class Banner extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('is_active', '=', true);
     }
 
     /**
