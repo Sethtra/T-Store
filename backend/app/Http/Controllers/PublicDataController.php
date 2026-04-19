@@ -100,9 +100,24 @@ class PublicDataController extends Controller
                             ] : null,
                         ];
                     }),
-                'category_displays' => CategoryDisplay::where('is_active', true)
-                    ->orderBy('position', 'asc')
-                    ->get(),
+                'category_displays' => CategoryDisplay::active()
+                    ->ordered()
+                    ->get()
+                    ->map(function ($display) {
+                        return [
+                            'id' => $display->id,
+                            'position' => $display->position,
+                            'title' => $display->title ?? $display->category?->name,
+                            'title_kh' => $display->title_kh ?? $display->category?->name_kh ?? $display->title ?? $display->category?->name,
+                            'description' => $display->description,
+                            'description_kh' => $display->description_kh ?? $display->description,
+                            'image' => $display->image_url ? (str_starts_with($display->image_url, 'http') ? $display->image_url : asset('storage/' . $display->image_url)) : null,
+                            'link' => $display->link,
+                            'button_text' => $display->button_text,
+                            'button_text_kh' => $display->button_text_kh ?? $display->button_text,
+                            'category' => $display->category,
+                        ];
+                    }),
             ];
         });
 
