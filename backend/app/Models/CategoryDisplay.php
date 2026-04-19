@@ -43,8 +43,8 @@ class CategoryDisplay extends Model
      */
     public function scopeActive($query)
     {
-        // Use string 'true' for Postgres compatibility
-        return $query->where('is_active', '=', 'true');
+        // Force raw boolean comparison for Postgres Transaction Pooler compatibility
+        return $query->whereRaw('is_active = true');
     }
 
     /**

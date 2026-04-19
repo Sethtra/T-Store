@@ -42,7 +42,7 @@ class Banner extends Model
      */
     public function scopeMain($query)
     {
-        return $query->where('type', '=', 'main');
+        return $query->whereRaw("type = 'main'");
     }
 
     /**
@@ -50,7 +50,7 @@ class Banner extends Model
      */
     public function scopeSection($query)
     {
-        return $query->where('type', '=', 'section');
+        return $query->whereRaw("type = 'section'");
     }
 
     /**
@@ -58,8 +58,8 @@ class Banner extends Model
      */
     public function scopeActive($query)
     {
-        // Use string 'true' for Postgres compatibility with emulated prepares
-        return $query->where('is_active', '=', 'true');
+        // Force raw boolean comparison for Postgres Transaction Pooler compatibility
+        return $query->whereRaw('is_active = true');
     }
 
     /**
