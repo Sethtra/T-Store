@@ -141,6 +141,21 @@ const CategoryTree = ({
   );
 };
 
+const BackgroundElements = () => (
+  <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <motion.div
+      animate={{ scale: [1, 1.1, 1], opacity: [0.05, 0.15, 0.05], rotate: [0, 45, 0] }}
+      transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+      className="absolute top-[-10%] right-[-5%] w-[50vw] h-[50vw] rounded-full bg-[var(--color-primary)] blur-[120px]"
+    />
+    <motion.div
+      animate={{ scale: [1, 1.2, 1], opacity: [0.03, 0.1, 0.03], rotate: [0, -45, 0] }}
+      transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+      className="absolute bottom-[-10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-purple-500 blur-[100px]"
+    />
+  </div>
+);
+
 const ProductsPage = () => {
   const { t, i18n } = useTranslation();
   const isKh = i18n.language === "kh";
@@ -263,7 +278,9 @@ const ProductsPage = () => {
   };
 
   return (
-    <div className="container pb-32" style={{ paddingTop: "128px" }}>
+    <div className="min-h-screen relative overflow-hidden bg-[var(--color-bg-base)] z-0 pb-32" style={{ paddingTop: "128px" }}>
+      <BackgroundElements />
+      <div className="container relative z-10">
       {/* Category Banner */}
       {currentCategoryObj?.banner_image && (
         <div className="w-full h-48 md:h-64 rounded-2xl md:rounded-[2rem] overflow-hidden relative mb-8 border border-[var(--color-border)] shadow-sm group">
@@ -287,14 +304,14 @@ const ProductsPage = () => {
       <div className={`flex flex-col md:flex-row ${!currentCategoryObj?.banner_image ? "md:items-center" : "md:items-end md:justify-end"} justify-between gap-4 mb-8`}>
         {!currentCategoryObj?.banner_image && (
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">{t("products.title")}</h1>
-            <p className="text-[var(--color-text-muted)] mt-1">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[var(--color-text-primary)]">{t("products.title")}</h1>
+            <p className="text-[var(--color-text-muted)] mt-1 text-base">
               {t("products.found_count", { count: productsData?.meta.total || 0 })}
             </p>
           </div>
         )}
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Sort Dropdown */}
           <select
             value={filters.sortBy || ""}
@@ -303,7 +320,7 @@ const ProductsPage = () => {
                 sortBy: e.target.value as ProductFilters["sortBy"],
               })
             }
-            className="px-4 py-2 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:border-[var(--color-primary)]"
+            className="px-4 py-2.5 bg-[var(--color-bg-elevated)]/70 backdrop-blur-sm border border-[var(--color-border)]/60 rounded-xl text-sm font-medium focus:outline-none focus:border-[var(--color-primary)] transition-colors"
           >
             <option value="">{t("products.sort_default")}</option>
             <option value="price_asc">{t("products.sort_price_asc")}</option>
@@ -313,27 +330,15 @@ const ProductsPage = () => {
           </select>
 
           {/* Mobile Filter Toggle */}
-          <Button
-            variant="secondary"
+          <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="lg:hidden"
+            className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg-elevated)]/70 backdrop-blur-sm border border-[var(--color-border)]/60 rounded-xl text-sm font-medium hover:bg-[var(--color-bg-surface)] transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-              />
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
-            Filters
-          </Button>
+            {t("products.filters")}
+          </button>
         </div>
       </div>
 
@@ -345,103 +350,101 @@ const ProductsPage = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className={`lg:w-64 flex-shrink-0 space-y-6 ${
+              className={`lg:w-72 flex-shrink-0 ${
                 isFilterOpen
-                  ? "fixed inset-0 z-50 bg-[var(--color-bg-primary)] p-6 lg:relative lg:p-0"
+                  ? "fixed inset-0 z-50 bg-[var(--color-bg-primary)]/95 backdrop-blur-xl p-6 lg:relative lg:p-0 overflow-y-auto"
                   : "hidden lg:block"
               }`}
             >
               {/* Mobile Close Button */}
               {isFilterOpen && (
-                <div className="flex items-center justify-between lg:hidden mb-4">
+                <div className="flex items-center justify-between lg:hidden mb-6">
                   <h2 className="text-xl font-bold">{t("products.filters")}</h2>
-                  <button onClick={() => setIsFilterOpen(false)}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
+                  <button onClick={() => setIsFilterOpen(false)} className="p-2 rounded-xl hover:bg-[var(--color-bg-elevated)] transition-colors">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
               )}
 
-              {/* Search */}
-              <div className="pb-6 border-b border-[var(--color-border)]">
-                <h3 className="font-semibold mb-3 text-lg">{t("products.search")}</h3>
-                <form onSubmit={handleSearch}>
-                  <Input
-                    placeholder={t("products.search") + "..."}
-                    value={localSearch}
-                    onChange={(e) => setLocalSearch(e.target.value)}
-                    className="bg-[var(--color-bg-secondary)] border-transparent text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] placeholder:text-[var(--color-text-muted)]"
-                  />
-                  <Button
-                    type="submit"
-                    fullWidth
-                    className="mt-3 bg-black text-white hover:bg-gray-800"
-                    size="sm"
-                  >
-                    {t("products.search")}
-                  </Button>
-                </form>
-              </div>
+              <div className="bg-[var(--color-bg-elevated)]/60 backdrop-blur-xl rounded-2xl border border-[var(--color-border)]/50 p-5 space-y-6">
+                {/* Search */}
+                <div>
+                  <h3 className="font-bold text-sm uppercase tracking-wider text-[var(--color-text-muted)] mb-3">{t("products.search")}</h3>
+                  <form onSubmit={handleSearch}>
+                    <div className="relative">
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <Input
+                        placeholder={t("products.search") + "..."}
+                        value={localSearch}
+                        onChange={(e) => setLocalSearch(e.target.value)}
+                        className="pl-10 bg-[var(--color-bg-surface)] border-[var(--color-border)]/50 rounded-xl text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] placeholder:text-[var(--color-text-muted)]"
+                      />
+                    </div>
+                  </form>
+                </div>
 
-              {/* Categories */}
-              {categories && categories.length > 0 && (
-                <div className="pb-6 border-b border-[var(--color-border)]">
-                  <h3 className="font-semibold mb-3 text-lg">{t("products.categories")}</h3>
-                  <div className="space-y-1">
+                {/* Divider */}
+                <div className="h-px bg-[var(--color-border)]/50" />
+
+                {/* Categories */}
+                {categories && categories.length > 0 && (
+                  <div>
+                    <h3 className="font-bold text-sm uppercase tracking-wider text-[var(--color-text-muted)] mb-3">{t("products.categories")}</h3>
                     <CategoryTree
                       categories={categories}
                       currentCategory={filters.category}
                       onSelect={(slug) => updateFilters({ category: slug })}
                     />
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Price Range */}
-              <div className="pb-6">
-                <h3 className="font-semibold mb-3 text-lg">{t("products.price_range")}</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <Input
-                    type="number"
-                    placeholder="Min"
-                    value={localMinPrice}
-                    onChange={(e) => setLocalMinPrice(e.target.value)}
-                    className="bg-[var(--color-bg-secondary)] border-transparent focus:bg-white transition-all"
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Max"
-                    value={localMaxPrice}
-                    onChange={(e) => setLocalMaxPrice(e.target.value)}
-                    className="bg-[var(--color-bg-secondary)] border-transparent focus:bg-white transition-all"
-                  />
+                {/* Divider */}
+                <div className="h-px bg-[var(--color-border)]/50" />
+
+                {/* Price Range */}
+                <div>
+                  <h3 className="font-bold text-sm uppercase tracking-wider text-[var(--color-text-muted)] mb-3">{t("products.price_range")}</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      type="number"
+                      placeholder="Min"
+                      value={localMinPrice}
+                      onChange={(e) => setLocalMinPrice(e.target.value)}
+                      className="bg-[var(--color-bg-surface)] border-[var(--color-border)]/50 rounded-xl transition-all focus:border-[var(--color-primary)]"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      value={localMaxPrice}
+                      onChange={(e) => setLocalMaxPrice(e.target.value)}
+                      className="bg-[var(--color-bg-surface)] border-[var(--color-border)]/50 rounded-xl transition-all focus:border-[var(--color-primary)]"
+                    />
+                  </div>
+                  <Button
+                    onClick={handlePriceFilter}
+                    fullWidth
+                    className="mt-3 rounded-xl"
+                    size="sm"
+                  >
+                    {t("products.apply")}
+                  </Button>
                 </div>
-                <Button
-                  onClick={handlePriceFilter}
-                  fullWidth
-                  className="mt-3 bg-black text-white hover:bg-gray-800"
-                  size="sm"
+
+                {/* Divider */}
+                <div className="h-px bg-[var(--color-border)]/50" />
+
+                {/* Clear Filters */}
+                <button
+                  onClick={clearFilters}
+                  className="w-full text-center text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors py-1"
                 >
-                  {t("products.apply")}
-                </Button>
+                  {t("products.clear_all")}
+                </button>
               </div>
-
-              {/* Clear Filters */}
-              <Button variant="ghost" fullWidth onClick={clearFilters}>
-                {t("products.clear_all")}
-              </Button>
             </motion.aside>
           )}
         </AnimatePresence>
@@ -451,65 +454,76 @@ const ProductsPage = () => {
           {isLoading ? (
             <ProductGridSkeleton count={12} />
           ) : productsData?.data.length === 0 ? (
-            <div className="text-center py-16">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-16 w-16 mx-auto text-[var(--color-text-muted)] mb-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <h3 className="text-xl font-semibold mb-2">{t("product.not_found")}</h3>
-              <p className="text-[var(--color-text-muted)] mb-4">
-                {isKh ? "សាកល្បងកែសម្រួលការកំណត់របស់អ្នក" : "Try adjusting your filters or search terms"}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-20 px-4 bg-[var(--color-bg-elevated)]/40 backdrop-blur-xl border border-[var(--color-border)]/50 rounded-[2.5rem] flex flex-col items-center justify-center max-w-2xl mx-auto mt-10"
+            >
+              <div className="w-24 h-24 mb-6 rounded-full bg-[var(--color-bg-surface)] flex items-center justify-center border border-[var(--color-border)]/50 shadow-inner">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-10 w-10 text-[var(--color-text-muted)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-[var(--color-text-primary)]">{t("product.not_found")}</h3>
+              <p className="text-[var(--color-text-muted)] mb-8 text-lg max-w-md">
+                {isKh ? "សាកល្បងកែសម្រួលការកំណត់របស់អ្នក ឬស្វែងរកពាក្យផ្សេង" : "We couldn't find any products matching your current filters. Try adjusting them or clear all filters to see more."}
               </p>
-              <Button onClick={clearFilters} variant="outline">
+              <Button onClick={clearFilters} variant="outline" className="rounded-xl px-8 hover:bg-[var(--color-bg-surface)] transition-colors border border-[var(--color-border)]">
                 {t("products.clear_all")}
               </Button>
-            </div>
+            </motion.div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                {productsData?.data.map((product) => (
-                  <ProductCard
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+                {productsData?.data.map((product, index) => (
+                  <motion.div
                     key={product.id}
-                    id={product.id}
-                    slug={product?.slug}
-                    title={product.title}
-                    title_kh={product.title_kh}
-                    description={product.description}
-                    description_kh={product.description_kh}
-                    price={product.price}
-                    image={product?.images?.[0] || "/placeholder.jpg"}
-                    category={product.category?.name}
-                    category_kh={product.category?.name_kh}
-                    stock={product.stock}
-                  />
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <ProductCard
+                      id={product.id}
+                      slug={product?.slug}
+                      title={product.title}
+                      title_kh={product.title_kh}
+                      description={product.description}
+                      description_kh={product.description_kh}
+                      price={product.price}
+                      image={product?.images?.[0] || "/placeholder.jpg"}
+                      category={product.category?.name}
+                      category_kh={product.category?.name_kh}
+                      stock={product.stock}
+                    />
+                  </motion.div>
                 ))}
               </div>
 
               {/* Pagination */}
               {productsData && productsData.meta.last_page > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-12">
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                <div className="flex items-center justify-center gap-1.5 mt-12">
+                  <button
                     disabled={productsData.meta.current_page === 1}
                     onClick={() =>
                       updateFilters({
                         page: productsData.meta.current_page - 1,
                       })
                     }
+                    className="px-4 py-2.5 rounded-xl text-sm font-medium bg-[var(--color-bg-elevated)]/60 border border-[var(--color-border)]/50 hover:bg-[var(--color-bg-surface)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    Previous
-                  </Button>
+                    ←
+                  </button>
 
                   <div className="flex items-center gap-1">
                     {Array.from({
@@ -520,10 +534,10 @@ const ProductsPage = () => {
                         <button
                           key={page}
                           onClick={() => updateFilters({ page })}
-                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                          className={`w-10 h-10 rounded-xl text-sm font-semibold transition-all ${
                             productsData.meta.current_page === page
-                              ? "bg-[var(--color-primary)] text-white"
-                              : "hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]"
+                              ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/25"
+                              : "hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]"
                           }`}
                         >
                           {page}
@@ -532,9 +546,7 @@ const ProductsPage = () => {
                     })}
                   </div>
 
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                  <button
                     disabled={
                       productsData.meta.current_page ===
                       productsData.meta.last_page
@@ -544,14 +556,16 @@ const ProductsPage = () => {
                         page: productsData.meta.current_page + 1,
                       })
                     }
+                    className="px-4 py-2.5 rounded-xl text-sm font-medium bg-[var(--color-bg-elevated)]/60 border border-[var(--color-border)]/50 hover:bg-[var(--color-bg-surface)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    Next
-                  </Button>
+                    →
+                  </button>
                 </div>
               )}
             </>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

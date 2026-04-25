@@ -17,6 +17,21 @@ import { useTranslation } from "react-i18next";
 
 import api from "../lib/api";
 
+const BackgroundElements = () => (
+  <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <motion.div
+      animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1], rotate: [0, 45, 0] }}
+      transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+      className="absolute top-[-10%] right-[-5%] w-[50vw] h-[50vw] rounded-full bg-[var(--color-primary)] blur-[120px]"
+    />
+    <motion.div
+      animate={{ scale: [1, 1.2, 1], opacity: [0.05, 0.15, 0.05], rotate: [0, -45, 0] }}
+      transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+      className="absolute bottom-[-10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-purple-500 blur-[100px]"
+    />
+  </div>
+);
+
 // Initialize Stripe outside component
 const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_placeholder",
@@ -111,20 +126,24 @@ const PaymentMethodCard = ({
   <button
     type="button"
     onClick={onSelect}
-    className={`w-full flex items-center p-4 rounded-[1.25rem] border-[1.5px] transition-all duration-300 ${
+    className={`w-full flex items-center p-5 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden group ${
       selected
-        ? `border-[${accentColor}] bg-[${accentColor}]/[0.08]`
-        : "border-[var(--color-border)] hover:border-[var(--color-border-hover)]"
+        ? `border-transparent bg-[var(--color-bg-surface)] shadow-md`
+        : "border-[var(--color-border)] bg-[var(--color-bg-elevated)] hover:border-[var(--color-border-hover)]"
     }`}
     style={selected ? {
+      boxShadow: `0 4px 20px -2px ${accentColor}30`,
       borderColor: accentColor,
-      backgroundColor: `${accentColor}1A`,
     } : {}}
   >
+    {selected && (
+      <div className="absolute inset-0 opacity-10" style={{ backgroundColor: accentColor }} />
+    )}
+    
     <div
-      className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 mr-4"
+      className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 mr-4 relative z-10 transition-transform group-hover:scale-105"
       style={{
-        background: selected ? accentColor : `${accentColor}20`,
+        background: selected ? accentColor : `${accentColor}15`,
         color: selected ? "white" : accentColor,
       }}
     >
@@ -133,28 +152,28 @@ const PaymentMethodCard = ({
       </div>
     </div>
     
-    <div className="flex-1 text-left">
+    <div className="flex-1 text-left relative z-10">
       <h4
-        className="font-bold text-sm tracking-wide mb-1"
+        className="font-bold text-base tracking-wide mb-1 transition-colors"
         style={selected ? { color: accentColor } : { color: 'var(--color-text-primary)' }}
       >
         {title}
       </h4>
-      <p className="text-[13px] text-[var(--color-text-muted)] line-clamp-1">
+      <p className="text-sm text-[var(--color-text-muted)] line-clamp-1">
         {description}
       </p>
     </div>
 
     <div
-      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ml-4 flex-shrink-0 transition-colors ${
-        selected ? 'border-[var(--color-bg-primary)] ring-2 ring-[var(--color-primary)]' : 'border-[var(--color-border)]'
+      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ml-4 flex-shrink-0 transition-all z-10 ${
+        selected ? 'border-transparent' : 'border-[var(--color-border)]'
       }`}
-      style={selected ? { backgroundColor: accentColor, boxShadow: `0 0 0 2px ${accentColor}` } : {}}
+      style={selected ? { backgroundColor: accentColor } : {}}
     >
       {selected && (
-        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M5 13l4 4L19 7" />
-        </svg>
+        <motion.svg initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+        </motion.svg>
       )}
     </div>
   </button>
@@ -175,73 +194,75 @@ const PaywayQRView = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col items-center justify-center p-2 sm:p-6 w-full">
-    <div className="bg-[var(--color-bg-elevated)] backdrop-blur-3xl border border-[var(--color-border)] rounded-[2rem] shadow-2xl overflow-hidden max-w-[26rem] w-full mx-auto relative group">
-       {/* Cut-out Red Ticket Header */}
-       <div className="bg-[#e21937] pt-5 pb-4 flex flex-col items-center justify-center relative z-10 w-full rounded-t-[2rem]" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 65%, 92% 100%, 0 100%)' }}>
-          <div className="h-6 flex items-center justify-center mb-1 drop-shadow-sm">
-             <span className="text-white font-[900] text-[1.4rem] tracking-[0.35em] font-sans ml-[0.35em]">KHQR</span>
-          </div>
-       </div>
-
-       {/* Background Glow */}
-       <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-transparent opacity-50 pointer-events-none" />
-       
-       <div className="pt-6 px-8 pb-2 text-center relative z-10">
-         <h3 className="text-2xl font-black mb-2 text-[var(--color-text-primary)]">{t("checkout.scan_to_pay")}</h3>
-         <p className="text-[var(--color-text-muted)] text-[15px] max-w-[16rem] mx-auto mb-6 leading-relaxed">
-           {t("checkout.pay_safe_desc")}
-         </p>
+    <div className="flex flex-col items-center justify-center p-4 w-full">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="bg-[var(--color-bg-elevated)]/80 backdrop-blur-3xl border border-[var(--color-border)]/60 rounded-[2.5rem] shadow-2xl shadow-red-500/10 overflow-hidden max-w-[28rem] w-full mx-auto relative group"
+      >
+         {/* Subtle red glow at top */}
+         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-400 via-[#e21937] to-red-400 opacity-80" />
          
-         <div className="inline-flex flex-col items-center bg-[var(--color-bg-surface)] px-8 py-4 rounded-[1.5rem] mb-6 shadow-sm border border-[var(--color-border)]/50">
-           <span className="text-[11px] font-bold tracking-widest uppercase text-[var(--color-text-muted)] mb-1">{t("checkout.order_total")}</span>
-           <span className="text-[2rem] font-black text-[var(--color-primary)] tracking-tight leading-none">${Number(totalAmount).toFixed(2)}</span>
-         </div>
-       </div>
-
-       <div className="px-8 pb-10 flex flex-col items-center relative z-10">
-         {/* QR Code Container */}
-         <div className="bg-white p-5 rounded-[2rem] shadow-[0_0_40px_rgba(0,0,0,0.06)] border border-gray-100 flex items-center justify-center w-[17rem] h-[17rem] relative mb-8 group-hover:scale-[1.02] transition-transform duration-500">
-            <img 
-               src={paywayData.qrImage} 
-               alt="Payment QR" 
-               className="w-full h-full object-contain mix-blend-multiply opacity-90 scale-110"
-               style={{ imageRendering: "pixelated" }}
-            />
-         </div>
-         
-         {/* Timer Component */}
-         <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-mono text-xl font-bold border-2 transition-all duration-300 w-full justify-center ${qrTimeLeft < 60 ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] border-[var(--color-border)]'}`}>
-           <svg className={`w-5 h-5 ${qrTimeLeft < 60 ? 'animate-pulse' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-           </svg>
-           {formatTime(qrTimeLeft)}
+         <div className="pt-8 px-8 pb-4 text-center relative z-10">
+           <div className="inline-flex items-center justify-center bg-[#e21937]/10 px-4 py-1.5 rounded-full mb-6 border border-[#e21937]/20">
+             <span className="text-[#e21937] font-bold text-sm tracking-[0.2em] uppercase">ABA KHQR</span>
+           </div>
+           <h3 className="text-3xl font-extrabold mb-3 text-[var(--color-text-primary)]">{t("checkout.scan_to_pay")}</h3>
+           <p className="text-[var(--color-text-muted)] text-[15px] mx-auto mb-8 leading-relaxed">
+             Open your ABA Mobile app or any KHQR supported app to scan.
+           </p>
+           
+           <div className="bg-[var(--color-bg-surface)]/50 backdrop-blur-sm px-8 py-5 rounded-[2rem] mb-8 border border-[var(--color-border)]/50 shadow-inner">
+             <span className="block text-xs font-bold tracking-widest uppercase text-[var(--color-text-muted)] mb-1">{t("checkout.order_total")}</span>
+             <span className="text-[2.5rem] font-black text-[var(--color-text-primary)] tracking-tight leading-none">${Number(totalAmount).toFixed(2)}</span>
+           </div>
          </div>
 
-         {paywayData.deeplink && (
-            <a
-              href={paywayData.deeplink}
-              className="mt-4 w-full flex justify-center items-center gap-2 bg-[var(--color-primary)] hover:brightness-110 !text-white px-6 py-[1.125rem] rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] text-[15px]"
-              style={{ color: 'white' }}
-            >
-              <svg className="w-5 h-5 !text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              <span>Pay on Phone</span>
-            </a>
-         )}
+         <div className="px-8 pb-10 flex flex-col items-center relative z-10">
+           {/* QR Code Container with animated border */}
+           <div className="relative mb-8 group-hover:scale-[1.02] transition-transform duration-500">
+             <div className="absolute -inset-1 bg-gradient-to-r from-[#e21937]/20 to-red-400/20 rounded-[2.2rem] blur-md opacity-70 group-hover:opacity-100 transition-opacity" />
+             <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-gray-100 flex items-center justify-center w-[18rem] h-[18rem] relative z-10">
+                <img 
+                   src={paywayData.qrImage} 
+                   alt="Payment QR" 
+                   className="w-full h-full object-contain mix-blend-multiply scale-[1.05]"
+                   style={{ imageRendering: "pixelated" }}
+                />
+             </div>
+           </div>
+           
+           {/* Timer */}
+           <div className={`flex items-center justify-center gap-3 px-8 py-3.5 rounded-2xl font-mono text-xl font-bold border-2 transition-all duration-300 w-full mb-4 ${qrTimeLeft < 60 ? 'bg-red-500/10 text-red-600 border-red-500/30 shadow-inner' : 'bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] border-[var(--color-border)]'}`}>
+             <svg className={`w-5 h-5 ${qrTimeLeft < 60 ? 'animate-pulse' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+             </svg>
+             {formatTime(qrTimeLeft)}
+           </div>
 
-        <button
-          onClick={async () => {
-            try { await api.post("/payment/payway/simulate", { order_id: createdOrderId }); } catch (e) {}
-          }}
-          className="mt-6 text-[11px] font-bold tracking-widest text-[var(--color-text-muted)] hover:text-[var(--color-primary)] opacity-60 transition-colors uppercase cursor-pointer"
-        >
-          {'>'} Simulate Payment {'<'}
-        </button>
-       </div>
+           {paywayData.deeplink && (
+              <a
+                href={paywayData.deeplink}
+                className="w-full flex justify-center items-center gap-2 bg-[#e21937] hover:bg-[#c91630] !text-white px-6 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-red-500/20 active:scale-[0.98] text-[15px]"
+              >
+                <svg className="w-5 h-5 !text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span>Pay on Phone</span>
+              </a>
+           )}
+
+          <button
+            onClick={async () => {
+              try { await api.post("/payment/payway/simulate", { order_id: createdOrderId }); } catch (e) {}
+            }}
+            className="mt-6 text-[11px] font-bold tracking-widest text-[var(--color-text-muted)] hover:text-[#e21937] opacity-60 transition-colors uppercase cursor-pointer"
+          >
+            {'>'} Simulate Payment {'<'}
+          </button>
+         </div>
+      </motion.div>
     </div>
-  </div>
   );
 };
 
@@ -568,20 +589,21 @@ const CheckoutPage = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="pb-12 md:pb-16"
+          className="pb-12 md:pb-16 min-h-screen relative overflow-hidden bg-[var(--color-bg-base)] z-0"
           style={{ paddingTop: "140px" }}
         >
-          <div className="container lg:px-8 max-w-2xl mx-auto">
+          <BackgroundElements />
+          <div className="container lg:px-8 max-w-2xl mx-auto relative z-10">
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold">Complete Payment</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight">Complete Payment</h1>
               <button
                 onClick={() => setCurrentStep(1)}
-                className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)]"
+                className="text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
               >
                 ← Change Method
               </button>
             </div>
-            <div className="bg-[var(--color-bg-elevated)] p-6 rounded-2xl border border-[var(--color-border)] shadow-sm">
+            <div className="bg-[var(--color-bg-elevated)]/70 backdrop-blur-2xl p-8 rounded-[2rem] border border-[var(--color-border)]/60 shadow-xl">
               {paymentMethod === "stripe" && stripeClientSecret && (
                 <Elements
                   stripe={stripePromise}
@@ -732,18 +754,19 @@ const CheckoutPage = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="pb-12 md:pb-16"
+      className="pb-12 md:pb-16 min-h-screen relative overflow-hidden bg-[var(--color-bg-base)] z-0"
       style={{ paddingTop: "140px" }}
     >
-      <div className="container lg:px-8">
+      <BackgroundElements />
+      <div className="container lg:px-8 relative z-10">
         <div className="flex items-center justify-between mb-8 md:mb-12">
-          <h1 className="text-3xl font-bold">{t("checkout.title")}</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight">{t("checkout.title")}</h1>
           <StepProgress currentStep={currentStep} />
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* Left Column: Form / Payment */}
-          <div className="lg:col-span-7 space-y-8">
+          <div className="lg:col-span-7 space-y-8 bg-[var(--color-bg-elevated)]/70 backdrop-blur-2xl p-8 rounded-[2rem] border border-[var(--color-border)]/60 shadow-xl">
             {paymentError && (
               <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl">
                 {paymentError}
@@ -992,7 +1015,7 @@ const CheckoutPage = () => {
 
           {/* Right Column: Order Summary */}
           <div className="lg:col-span-5">
-            <div className="bg-[var(--color-bg-elevated)]/50 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-[var(--color-border)]/50 sticky top-32">
+            <div className="bg-[var(--color-bg-elevated)]/70 backdrop-blur-2xl p-8 rounded-[2rem] border border-[var(--color-border)]/60 shadow-xl sticky top-32">
               <h2 className="text-xl font-bold mb-6">{t("checkout.summary")}</h2>
 
               <div className="space-y-4 mb-8 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">

@@ -79,6 +79,7 @@ You can use these accounts to explore the platform without signing up:
 - 🔍 **Smart Search & Filtering** — Filter by category, price range, and sort order with instant results.
 - 🛒 **Cloud-Synced Cart** — Cart persists across sessions and syncs between devices when logged in. Supports product variants (Size, Color).
 - 💳 **Dual Payment Gateways** — Stripe (Credit/Debit Card) and ABA PayWay (KHQR) with a branded 5-minute expiry timer.
+- 🎨 **Premium UI/UX** — Modern glassmorphic design system with Framer Motion spring physics for dynamic, tactile interactions.
 - 📱 **Mobile-First Design** — Dedicated bottom navigation bar, swipe-friendly layouts, and responsive breakpoints.
 - 🌙 **Dark/Light Theme** — Toggle between dark and light modes.
 - 🔔 **Order Notifications** — Real-time notification bell for order status updates.

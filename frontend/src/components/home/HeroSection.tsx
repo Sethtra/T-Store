@@ -4,15 +4,73 @@ import { useLandingData, type LandingSection } from "../../hooks/useLandingData"
 import { getImageUrl } from "../../utils/image";
 import { useTranslation } from "react-i18next";
 
+const HeroSkeleton = () => (
+  <section className="relative min-h-[85vh] flex items-center pt-32 pb-20 px-4 md:px-8">
+    <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="flex flex-col gap-6">
+        <div className="w-32 h-8 rounded-full bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
+        <div className="w-3/4 h-16 lg:h-20 rounded-2xl bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
+        <div className="w-1/2 h-16 rounded-2xl bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
+        <div className="w-full max-w-md h-24 rounded-2xl bg-[var(--color-bg-surface)] animate-pulse mt-4 border border-[var(--color-border)]/50" />
+        <div className="flex gap-4 mt-4">
+          <div className="w-40 h-14 rounded-full bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
+          <div className="w-40 h-14 rounded-full bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
+        </div>
+      </div>
+      <div className="hidden lg:flex items-center justify-center">
+        <div className="w-[400px] h-[400px] rounded-full bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
+      </div>
+    </div>
+  </section>
+);
+
+// SmallProductCard has been removed
+
+const MainProductDisplay = ({ mainProduct }: { mainProduct: LandingSection | undefined }) => {
+  const { i18n } = useTranslation();
+  
+  if (!mainProduct?.product) {
+     return (
+       <div className="aspect-square w-full max-w-[500px] mx-auto rounded-[3rem] bg-[var(--color-bg-surface)]/50 border border-[var(--color-border)]/50 flex items-center justify-center text-[var(--color-text-muted)] backdrop-blur-sm">
+         No featured product selected
+       </div>
+     );
+  }
+
+  const p = mainProduct.product;
+  const title = i18n.language === "kh" ? p.title_kh || p.title : p.title;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }} 
+      animate={{ opacity: 1, scale: 1 }} 
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="relative h-full min-h-[400px] lg:min-h-[600px] flex items-center justify-center mt-10 lg:mt-0"
+    >
+       {/* Background Glow specific to the product */}
+       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] rounded-full bg-[var(--color-primary)]/10 blur-[100px] pointer-events-none" />
+       
+       <Link to={`/products/${p.slug}`} className="relative block group w-full flex items-center justify-center">
+         <motion.img 
+           animate={{ y: [0, -15, 0] }}
+           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+           src={p.image_url || getImageUrl(p.images?.[0])}
+           alt={title}
+           className="w-[80%] lg:w-[90%] max-w-[600px] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-700 ease-out z-10 relative"
+         />
+       </Link>
+    </motion.div>
+  );
+};
+
 const HeroSection = () => {
   const { t, i18n } = useTranslation();
   const { data: landingData, isLoading } = useLandingData();
   const sections = landingData?.landing_sections;
 
   const mainProduct = sections?.find((s) => s.section_type === "hero_main" && s.product);
-  const smallProduct = sections?.find((s) => s.section_type === "hero_small" && s.product);
 
-  // Read hero text from localStorage (set by admin LandingSectionPage)
+
   const isKh = i18n.language === "kh";
   const heroTitle = isKh
     ? localStorage.getItem("hero_title_kh") || t("hero.default_title")
@@ -26,200 +84,59 @@ const HeroSection = () => {
     ? localStorage.getItem("hero_description_kh") || t("hero.default_description")
     : localStorage.getItem("hero_description") || t("hero.default_description");
 
-  if (isLoading) {
-    return (
-      <section className="bg-[var(--color-bg-primary)] px-4 md:px-8 pt-24 md:pt-[140px] min-h-screen">
-        <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          {/* Left Column Skeleton */}
-          <div className="bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[3rem] p-6 md:p-14 border border-[var(--color-border)] space-y-8">
-            <div className="space-y-4">
-              <div className="h-12 md:h-16 w-3/4 bg-[var(--color-bg-elevated)] rounded-xl animate-pulse" />
-              <div className="h-8 md:h-12 w-1/2 bg-[var(--color-bg-elevated)] rounded-xl opacity-60 animate-pulse" />
-              <div className="h-20 w-full bg-[var(--color-bg-elevated)] rounded-xl opacity-40 animate-pulse" />
-            </div>
-            <div className="flex gap-4">
-              <div className="h-12 w-40 bg-[var(--color-bg-elevated)] rounded-full animate-pulse" />
-              <div className="h-12 w-12 bg-[var(--color-bg-elevated)] rounded-full animate-pulse" />
-            </div>
-            <div className="mt-12 h-32 w-full bg-[var(--color-bg-elevated)] rounded-[2rem] animate-pulse" />
-          </div>
-          {/* Right Column Skeleton */}
-          <div className="bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[2.5rem] h-[400px] md:h-full border border-[var(--color-border)] animate-pulse" />
-        </div>
-      </section>
-    );
-  }
+  if (isLoading) return <HeroSkeleton />;
 
   return (
-    <section className="bg-[var(--color-bg-primary)] transition-colors duration-300 px-4 md:px-8 font-sans pb-8 md:pb-12 flex flex-col items-center relative min-h-screen pt-24 md:pt-[140px]">
-      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 flex-1 w-full">
-        {/* Left Column - Single Grey Container */}
-        <div className="bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[3rem] p-6 md:p-14 flex flex-col justify-between relative overflow-hidden transition-colors duration-300 border border-[var(--color-border)]">
-          {/* Top Content: Headings & Buttons */}
-          <div className="space-y-8 z-10 pt-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <h1 className="text-[var(--color-text-primary)] leading-[1.1] tracking-tight">
-                <span className="block text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mb-2">
-                  {heroTitle}
-                </span>
-                <span className="block text-xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-[var(--color-text-secondary)]">
-                  {heroSubtitle}
-                </span>
-              </h1>
-              <p className="text-[var(--color-text-muted)] text-sm md:text-base leading-relaxed max-w-md mt-6 font-light">
-                {heroDescription}
-              </p>
-            </motion.div>
+    <section className="relative min-h-[85vh] flex items-center pt-32 pb-16 md:pt-44 md:pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-transparent">
+      <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
+        
+        {/* Left Content Area */}
+        <div className="flex flex-col gap-6 lg:gap-8 lg:pr-10 relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.6 }} 
+            className="flex flex-col gap-5 sm:gap-6"
+          >
+            {/* Pill Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--color-text-primary)]/[0.04] border border-[var(--color-text-primary)]/[0.1] text-[var(--color-text-primary)] text-xs sm:text-sm font-bold uppercase tracking-wider w-fit backdrop-blur-md">
+               <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
+               {isKh ? "ការប្រមូលថ្មី" : "NEW COLLECTION"}
+            </div>
+            
+            {/* Main Headlines */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-[var(--color-text-primary)] leading-[1.1] tracking-tight">
+              <span className="inline-block whitespace-nowrap">{heroTitle}</span>
+              <span className="block text-[var(--color-primary)] mt-2">{heroSubtitle}</span>
+            </h1>
+            
+            <p className="text-base sm:text-lg text-[var(--color-text-muted)] max-w-lg leading-relaxed font-normal">
+              {heroDescription}
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex items-center gap-4 pb-8"
-            >
-              <Link
-                to="/products"
-                className="bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] px-8 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-all shadow-lg border border-[var(--color-border)]"
+            {/* CTAs */}
+            <div className="flex flex-wrap items-center gap-3 mt-4">
+              <Link 
+                to="/products" 
+                className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-full font-bold text-[var(--color-text-primary)] bg-[var(--color-text-primary)]/[0.08] border border-[var(--color-text-primary)]/[0.12] hover:bg-[var(--color-text-primary)]/[0.12] transition-all backdrop-blur-md text-sm sm:text-base flex items-center justify-center active:scale-95 shadow-sm"
               >
-                {t("nav.categories")}
+                {isKh ? "ទិញឥឡូវនេះ" : "Shop Now"}
               </Link>
-              <Link
-                to="/products"
-                className="bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] w-12 h-12 rounded-full flex items-center justify-center hover:opacity-90 transition-all shadow-lg border border-[var(--color-border)]"
+              <Link 
+                to="/products" 
+                className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-full font-bold text-[var(--color-text-primary)] bg-transparent border border-[var(--color-text-primary)]/[0.12] hover:bg-[var(--color-text-primary)]/[0.04] transition-all backdrop-blur-md text-sm sm:text-base flex items-center justify-center active:scale-95"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="transform -rotate-45"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
+                {t("nav.categories", "Categories")}
               </Link>
-            </motion.div>
-          </div>
-
-          {/* Bottom Content: Small Product Card (White) */}
-          {smallProduct && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="mt-8"
-            >
-              <SmallProductCard product={smallProduct} />
-            </motion.div>
-          )}
+            </div>
+          </motion.div>
         </div>
 
-        {/* Right Column: Main Product (Grey) */}
-        <motion.div
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="h-full"
-        >
-          {mainProduct ? (
-            <MainProductCard product={mainProduct} />
-          ) : (
-            <div className="bg-[var(--color-bg-surface)] rounded-[2.5rem] p-12 h-full min-h-[600px] flex items-center justify-center transition-colors duration-300 border border-[var(--color-border)]" />
-          )}
-        </motion.div>
+        {/* Right Product Area */}
+        <MainProductDisplay mainProduct={mainProduct} />
+        
       </div>
     </section>
-  );
-};
-
-// Main Product Card (Right Column)
-const MainProductCard = ({ product }: { product: LandingSection }) => {
-  const { t, i18n } = useTranslation();
-  return (
-    <Link
-      to={`/products/${product?.product?.slug || ""}`}
-      className="bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[2.5rem] relative h-full min-h-[350px] md:min-h-[600px] group block overflow-hidden transition-colors duration-300 border border-[var(--color-border)]"
-    >
-      {/* Featured Badge */}
-      <span className="absolute top-8 left-8 z-20 bg-[var(--color-bg-elevated)] backdrop-blur-md text-[var(--color-text-primary)] text-[11px] uppercase font-bold tracking-wider px-4 py-2 rounded-full shadow-sm border border-[var(--color-border)]">
-        {t("hero.featured")}
-      </span>
-
-      {/* Product Image - Massive & Centered */}
-      {(product.product?.image_url || product.product?.images?.[0]) && (
-        <div className="absolute inset-x-0 top-0 bottom-[120px] md:bottom-0 flex items-center justify-center p-6 md:p-0 overflow-hidden md:rounded-[2.5rem]">
-          <img
-            src={product.product?.image_url || getImageUrl(product.product?.images?.[0])}
-            className="w-full h-full md:w-[110%] md:h-[110%] object-contain drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-105"
-            alt={product.title}
-          />
-        </div>
-      )}
-
-      {/* Bottom Info - Glass Effect */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 md:p-10 bg-[var(--color-bg-elevated)]/60 backdrop-blur-md border-t border-[var(--color-border)] flex flex-col sm:flex-row sm:items-end justify-between gap-2 transition-colors duration-300">
-        <div className="relative z-10">
-          <h3 className="text-xl md:text-3xl font-semibold text-[var(--color-text-primary)] tracking-tight">
-            {i18n.language === "kh" ? product.title_kh || product.title : product.title}
-          </h3>
-          <p className="text-[var(--color-text-muted)] text-xs md:text-sm mt-1 md:mt-3 max-w-sm leading-relaxed line-clamp-2">
-            {i18n.language === "kh" ? product.description_kh || product.description : product.description}
-          </p>
-        </div>
-        <p className="relative z-10 font-bold text-lg md:text-2xl text-[var(--color-text-primary)]">
-          {t("common.usd")} {product?.product?.price ?? "0.00"}
-        </p>
-      </div>
-    </Link>
-  );
-};
-
-// Small Product Card (Left Column Bottom)
-const SmallProductCard = ({ product }: { product: LandingSection }) => {
-  const { t, i18n } = useTranslation();
-  return (
-    <Link
-      to={`/products/${product?.product?.slug || ""}`}
-      className="bg-[var(--color-bg-elevated)] rounded-xl md:rounded-[2rem] p-3 md:p-6 relative flex flex-row items-center sm:items-stretch gap-4 md:gap-6 group hover:shadow-xl transition-all duration-300 border border-[var(--color-border)]"
-    >
-      <span className="absolute top-6 left-6 bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full hidden sm:block">
-        {t("hero.featured")}
-      </span>
-
-      {/* Left Text Info */}
-      <div className="flex-1 min-w-0 py-1 flex flex-col justify-center sm:justify-between sm:pt-12 order-2 sm:order-1">
-        <div>
-          <h3 className="text-base sm:text-3xl font-bold text-[var(--color-text-primary)] truncate leading-tight">
-            {i18n.language === "kh" ? product.title_kh || product.title : product.title}
-          </h3>
-          <p className="text-[var(--color-text-muted)] text-xs md:text-sm mt-1 sm:mt-3 line-clamp-1 sm:line-clamp-2 leading-relaxed">
-            {i18n.language === "kh" ? product.description_kh || product.description : product.description}
-          </p>
-        </div>
-        <p className="font-bold text-sm sm:text-xl text-[var(--color-text-primary)] mt-1 sm:mt-0">
-          {t("common.usd")} {product?.product?.price ?? "0.00"}
-        </p>
-      </div>
-
-      {/* Right Image Container */}
-      <div className="w-20 h-20 sm:w-52 sm:h-52 bg-[var(--color-bg-surface)] rounded-xl md:rounded-2xl flex items-center justify-center p-2 sm:p-4 transition-colors duration-300 order-1 sm:order-2 shrink-0">
-        {(product.product?.image_url || product.product?.images?.[0]) && (
-          <img
-            src={product.product?.image_url || getImageUrl(product.product?.images?.[0])}
-            className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-110 transition-transform duration-500"
-            alt={product.title}
-          />
-        )}
-      </div>
-    </Link>
   );
 };
 
