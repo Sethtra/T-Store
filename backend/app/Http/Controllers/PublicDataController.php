@@ -30,7 +30,7 @@ class PublicDataController extends Controller
                             'name' => $category->name,
                             'name_kh' => $category->name_kh ?? $category->name,
                             'slug' => $category->slug,
-                            'banner_image' => $category->banner_image 
+                            'banner_image' => $category->banner_image
                                 ? (str_starts_with($category->banner_image, 'http') ? $category->banner_image : asset('storage/' . $category->banner_image))
                                 : null,
                             'children' => $category->children->map(function ($child) {
@@ -58,7 +58,7 @@ class PublicDataController extends Controller
         $data = Cache::remember('landing_data_all', 3600, function () {
             return [
                 'banners' => [
-                    'main' => Banner::main()->active()->ordered()->get()->map(function($banner) {
+                    'main' => Banner::main()->active()->ordered()->get()->map(function ($banner) {
                         return [
                             'id' => $banner->id,
                             'title' => $banner->title,
@@ -71,7 +71,7 @@ class PublicDataController extends Controller
                             'link' => $banner->primary_button_link ?? $banner->button_link,
                         ];
                     }),
-                    'section' => Banner::section()->active()->ordered()->get()->map(function($banner) {
+                    'section' => Banner::section()->active()->ordered()->get()->map(function ($banner) {
                         return [
                             'id' => $banner->id,
                             'title' => $banner->title,
@@ -129,7 +129,7 @@ class PublicDataController extends Controller
                     ->get()
                     ->map(function ($display) {
                         $categoryBanner = $display->category?->banner_image;
-                        
+
                         $firstProductImage = null;
                         if ($display->category && $display->category->products->count() > 0) {
                             $productImages = $display->category->products->first()->images;

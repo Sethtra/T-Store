@@ -7,9 +7,10 @@ import { useLandingData } from "../../hooks/useLandingData";
 
 const CuratedExcellence = () => {
   const { data: landingData } = useLandingData();
-  const galleryItems = landingData?.landing_sections
-    ?.filter((section) => section.section_type === "curated_excellence")
-    ?.sort((a, b) => a.order - b.order) || [];
+  const galleryItems =
+    landingData?.landing_sections
+      ?.filter((section) => section.section_type === "curated_excellence")
+      ?.sort((a, b) => a.order - b.order) || [];
 
   const horizontalScrollRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -80,71 +81,82 @@ const CuratedExcellence = () => {
               className="w-[85vw] sm:w-[50vw] md:w-[40vw] h-[60vh] shrink-0 relative rounded-[3rem] overflow-hidden group"
             >
               <img
-                src={item.image ? (item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL?.replace('/api', '')}/storage/${item.image}`) : item.product?.image_url || "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&q=80&w=1200"}
+                src={
+                  item.image
+                    ? item.image.startsWith("http")
+                      ? item.image
+                      : `${import.meta.env.VITE_API_URL?.replace("/api", "")}/storage/${item.image}`
+                    : item.product?.image_url ||
+                      "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&q=80&w=1200"
+                }
                 alt={item.title || item.product?.title || "Gallery Image"}
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
               />
-              {/* Keep gradient dark so the white text is always visible regardless of theme */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-500" />
               <div className="absolute bottom-0 left-0 p-10 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                <p className="text-indigo-400 font-bold uppercase tracking-widest text-sm mb-3">
+                <p className="text-[var(--color-primary)] font-bold uppercase tracking-widest text-sm mb-3">
                   {item.description || item.product?.category || "Featured"}
                 </p>
-                <h3 className="text-4xl md:text-5xl font-black text-white mb-6">
+                <h3 className="text-4xl md:text-5xl font-black text-[var(--color-text-primary)] mb-6">
                   {item.title || item.product?.title}
                 </h3>
-                <Link to={item.product ? `/products/${item.product.slug}` : "/products"}>
-                  <button className="opacity-0 group-hover:opacity-100 px-8 py-4 bg-white text-black rounded-full font-bold flex items-center gap-2 hover:bg-zinc-200 transition-all duration-500 delay-100">
+                <Link
+                  to={
+                    item.product
+                      ? `/products/${item.product.slug}`
+                      : "/products"
+                  }
+                >
+                  <button className="opacity-0 group-hover:opacity-100 px-8 py-4 bg-[var(--color-text-primary)] text-[var(--color-bg-primary)] rounded-full font-bold flex items-center gap-2 hover:opacity-80 transition-all duration-500 delay-100">
                     Explore <ArrowRight className="w-5 h-5" />
                   </button>
                 </Link>
               </div>
             </div>
           ))}
-          
+
           {/* Fallback items if none are configured in admin yet */}
-          {galleryItems.length === 0 && [
-            {
-              img: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&q=80&w=1200",
-              title: "Urban Noir",
-              sub: "Streetwear",
-            },
-            {
-              img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=1200",
-              title: "Minimalist",
-              sub: "Accessories",
-            },
-            {
-              img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=1200",
-              title: "Sonic Purity",
-              sub: "Audio",
-            },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="w-[85vw] sm:w-[50vw] md:w-[40vw] h-[60vh] shrink-0 relative rounded-[3rem] overflow-hidden group"
-            >
-              <img
-                src={item.img}
-                alt={item.title}
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-500" />
-              <div className="absolute bottom-0 left-0 p-10 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                <p className="text-indigo-400 font-bold uppercase tracking-widest text-sm mb-3">
-                  {item.sub}
-                </p>
-                <h3 className="text-4xl md:text-5xl font-black text-white mb-6">
-                  {item.title}
-                </h3>
-                <Link to="/products">
-                  <button className="opacity-0 group-hover:opacity-100 px-8 py-4 bg-white text-black rounded-full font-bold flex items-center gap-2 hover:bg-zinc-200 transition-all duration-500 delay-100">
-                    Explore <ArrowRight className="w-5 h-5" />
-                  </button>
-                </Link>
+          {galleryItems.length === 0 &&
+            [
+              {
+                img: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&q=80&w=1200",
+                title: "Urban Noir",
+                sub: "Streetwear",
+              },
+              {
+                img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=1200",
+                title: "Minimalist",
+                sub: "Accessories",
+              },
+              {
+                img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=1200",
+                title: "Sonic Purity",
+                sub: "Audio",
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="w-[85vw] sm:w-[50vw] md:w-[40vw] h-[60vh] shrink-0 relative rounded-[3rem] overflow-hidden group"
+              >
+                <img
+                  src={item.img}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                />
+                <div className="absolute bottom-0 left-0 p-10 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                  <p className="text-[var(--color-primary)] font-bold uppercase tracking-widest text-sm mb-3">
+                    {item.sub}
+                  </p>
+                  <h3 className="text-4xl md:text-5xl font-black text-[var(--color-text-primary)] mb-6">
+                    {item.title}
+                  </h3>
+                  <Link to="/products">
+                    <button className="opacity-0 group-hover:opacity-100 px-8 py-4 bg-[var(--color-text-primary)] text-[var(--color-bg-primary)] rounded-full font-bold flex items-center gap-2 hover:opacity-80 transition-all duration-500 delay-100">
+                      Explore <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </motion.div>
       </div>
     </section>
