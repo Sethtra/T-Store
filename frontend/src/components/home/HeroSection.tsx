@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useLandingData } from "../../hooks/useLandingData";
 import { getImageUrl } from "../../utils/image";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Zap, ShoppingBag } from "lucide-react";
+import { ArrowRight, Zap, ShoppingBag, Star } from "lucide-react";
 
 const HeroSkeleton = () => (
   <section className="relative min-h-[85vh] flex items-center pt-32 pb-20 px-4 md:px-8">
@@ -53,8 +53,9 @@ const HeroSection = () => {
   const productImage = p ? (p.image_url || getImageUrl(p.images?.[0])) : "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=1000";
 
   return (
-    <section className="relative z-10 pt-20 lg:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 min-h-[85vh]">
-      <motion.div 
+    <>
+      <section className="relative z-10 pt-20 lg:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 min-h-[85vh]">
+        <motion.div 
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
@@ -79,11 +80,11 @@ const HeroSection = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <Link to="/products" className="group relative px-8 py-4 bg-[var(--color-text)] text-[var(--color-bg)] rounded-full font-bold text-lg overflow-hidden flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow-xl">
+          <Link to="/products" className="group relative px-8 py-4 bg-white text-black rounded-full font-bold text-lg overflow-hidden flex items-center justify-center gap-2 transition-transform hover:scale-105">
             {isKh ? "មេីលទាំងអស់" : "Shop Collection"}
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
-          <Link to={p ? `/products/${p.slug}` : "/products"} className="px-8 py-4 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-elevated)] backdrop-blur-md font-bold text-[var(--color-text)] text-lg flex items-center justify-center gap-2 transition-all hover:scale-105 shadow-sm">
+          <Link to={p ? `/products/${p.slug}` : "/products"} className="px-8 py-4 rounded-full border border-white/20 bg-transparent hover:bg-white/5 backdrop-blur-md font-bold text-white text-lg flex items-center justify-center gap-2 transition-all hover:border-white/40">
             <ShoppingBag className="w-5 h-5" /> {isKh ? "ទិញឥឡូវនេះ" : "Buy Now"}
           </Link>
         </div>
@@ -121,7 +122,7 @@ const HeroSection = () => {
                  <Zap className="w-6 h-6 text-white" />
                </div>
                <div className="overflow-hidden">
-                 <p className="text-xs text-[var(--color-text-muted)] uppercase font-bold tracking-widest mb-1 truncate">{productCategory}</p>
+                 <p className="text-xs text-[var(--color-text-muted)] uppercase font-bold tracking-widest mb-1 truncate">{isKh ? "ទំនិញថ្មី" : "New Drop"}</p>
                  <p className="font-black text-lg text-[var(--color-text)] truncate">{productTitle}</p>
                </div>
              </motion.div>
@@ -132,7 +133,28 @@ const HeroSection = () => {
           </div>
         )}
       </motion.div>
-    </section>
+      </section>
+
+      {/* Connected Marquee */}
+      <div className="relative z-10 w-full py-8 bg-gradient-to-r from-transparent via-[var(--color-text)]/5 to-transparent border-y border-[var(--color-text)]/5 overflow-hidden">
+        <motion.div 
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
+          className="flex gap-16 px-8 items-center whitespace-nowrap"
+        >
+          {[...Array(2)].map((_, idx) => (
+             <div key={idx} className="flex gap-16 items-center">
+                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-text)]/20 to-[var(--color-text)]/40 uppercase tracking-widest">{isKh ? "គុណភាពល្អឥតខ្ចោះ" : "Premium Quality"}</span>
+                <Star className="w-6 h-6 text-[var(--color-text)]/20" />
+                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-text)]/20 to-[var(--color-text)]/40 uppercase tracking-widest">{isKh ? "ដឹកជញ្ជូនរហ័ស" : "Fast Delivery"}</span>
+                <Star className="w-6 h-6 text-[var(--color-text)]/20" />
+                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-text)]/20 to-[var(--color-text)]/40 uppercase tracking-widest">{isKh ? "ការទូទាត់សុវត្ថិភាព" : "Secure Checkout"}</span>
+                <Star className="w-6 h-6 text-[var(--color-text)]/20" />
+             </div>
+          ))}
+        </motion.div>
+      </div>
+    </>
   );
 };
 
