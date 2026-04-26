@@ -136,7 +136,7 @@ const HeroSection = () => {
       </section>
 
       {/* Connected Marquee */}
-      <div className="relative z-10 w-full py-8 overflow-hidden">
+      <div className="relative z-10 w-full py-8 bg-gradient-to-r from-transparent via-white/5 to-transparent border-y border-white/5 overflow-hidden">
         <motion.div 
           animate={{ x: ["0%", "-50%"] }}
           transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
@@ -144,12 +144,12 @@ const HeroSection = () => {
         >
           {[...Array(2)].map((_, idx) => (
              <div key={idx} className="flex gap-16 items-center">
-                <span className="text-3xl font-black uppercase tracking-widest opacity-15" style={{ color: 'var(--color-text)' }}>{isKh ? "គុណភាពល្អឥតខ្ចោះ" : "Premium Quality"}</span>
-                <Star className="w-6 h-6 opacity-15" style={{ color: 'var(--color-text)' }} />
-                <span className="text-3xl font-black uppercase tracking-widest opacity-15" style={{ color: 'var(--color-text)' }}>{isKh ? "ដឹកជញ្ជូនរហ័ស" : "Fast Delivery"}</span>
-                <Star className="w-6 h-6 opacity-15" style={{ color: 'var(--color-text)' }} />
-                <span className="text-3xl font-black uppercase tracking-widest opacity-15" style={{ color: 'var(--color-text)' }}>{isKh ? "ការទូទាត់សុវត្ថិភាព" : "Secure Checkout"}</span>
-                <Star className="w-6 h-6 opacity-15" style={{ color: 'var(--color-text)' }} />
+                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/40 uppercase tracking-widest">{isKh ? "គុណភាពល្អឥតខ្ចោះ" : "Premium Quality"}</span>
+                <Star className="w-6 h-6 text-white/20" />
+                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/40 uppercase tracking-widest">{isKh ? "ដឹកជញ្ជូនរហ័ស" : "Fast Delivery"}</span>
+                <Star className="w-6 h-6 text-white/20" />
+                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/40 uppercase tracking-widest">{isKh ? "ការទូទាត់សុវត្ថិភាព" : "Secure Checkout"}</span>
+                <Star className="w-6 h-6 text-white/20" />
              </div>
           ))}
         </motion.div>
