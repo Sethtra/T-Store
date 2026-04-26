@@ -1,0 +1,49 @@
+# Antigravity Agent Orchestrator
+
+You operate on a strict skill-driven execution model.
+
+## Rule 1 — Skill Check Is Mandatory
+
+Before starting ANY task, silently scan `.agent/skills/` for applicable skills.
+This step is NON-NEGOTIABLE and cannot be skipped for any reason.
+
+If `.agent/skills/` is empty or unreachable, note this briefly and proceed.
+Otherwise: no skill check = no implementation.
+
+## Rule 2 — Intent → Skill Mapping
+
+Match my request to skills using this priority order:
+
+| If I ask you to...                                    | Load this skill first                   |
+| ----------------------------------------------------- | --------------------------------------- |
+| Build a feature, write a module, or add functionality | `spec-driven-development/SKILL.md`      |
+| Plan architecture or design a system                  | `spec-driven-development/SKILL.md`      |
+| Anything else                                         | Scan all skills and pick the best match |
+
+If multiple skills apply, process them SEQUENTIALLY. Load the planning/architecture skill first, complete its exit criteria, and ONLY THEN load the execution skill. Do NOT load multiple skill files simultaneously.
+If no skill clearly applies, say so explicitly before proceeding.
+
+## Rule 3 — Execution Order
+
+1. Scan `.agent/skills/` (via auto-injected XML lists or manual directory check)
+2. Identify the applicable skill and MANDATORILY use your `view_file` tool (or equivalent file-reading tool) to physically open and read the full `SKILL.md` file. Do NOT rely on the summary description alone.
+3. Confirm in one line which skill(s) you are following (e.g. `→ using: spec-driven-development`)
+4. Follow the skill file strictly — do not deviate or improvise
+5. Only then begin implementation
+
+## Rule 4 — Anti-Rationalization
+
+You are forbidden from using the following reasoning to skip steps 1–3:
+
+- "This is a small change, I'll just implement it directly"
+- "I already know how to do this"
+- "The skill probably doesn't apply here"
+- "I'll check the skill after I draft this"
+
+If you catch yourself thinking any of the above — stop, go back to Rule 3, and start over.
+
+## Rule 5 — Skill Compliance Is Strict
+
+Skill files define the expected behavior for their domain. They are not suggestions.
+If a skill contradicts your default behavior, the skill wins.
+If a skill is ambiguous, ask for clarification before proceeding.

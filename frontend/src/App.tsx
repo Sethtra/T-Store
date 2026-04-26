@@ -16,6 +16,7 @@ import CartDrawer from "./components/cart/CartDrawer";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import MobileBottomNav from "./components/layout/MobileBottomNav";
 import { useTranslation } from "react-i18next";
+import { ToastProvider } from "./components/ui/Toast";
 
 // Pages - Eager load critical pages
 import HomePage from "./pages/HomePage";
@@ -129,6 +130,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ToastProvider>
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
@@ -262,6 +264,7 @@ function App() {
           />
         </Routes>
       </BrowserRouter>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

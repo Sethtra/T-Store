@@ -7,11 +7,13 @@ import Button from "../components/ui/Button";
 import ProductCard from "../components/product/ProductCard";
 import { getImageUrl } from "../utils/image";
 import { useTranslation } from "react-i18next";
+import { useToast } from "../components/ui/Toast";
 
 const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { showToast } = useToast();
   const isKh = i18n.language === "kh";
   const { data, isLoading, error } = useProduct(slug || "");
   const product = data?.product;
@@ -75,11 +77,11 @@ const ProductDetailPage = () => {
     const sizes = getAttributeValues("Size");
 
     if (colors.length > 0 && !selectedColor) {
-      alert("Please select a color");
+      showToast(isKh ? "សូមជ្រើសរើសព័ណ៌" : "Please select a color", "warning");
       return false;
     }
     if (sizes.length > 0 && !selectedSize) {
-      alert("Please select a size");
+      showToast(isKh ? "សូមជ្រើសរើសទំហំ" : "Please select a size", "warning");
       return false;
     }
 

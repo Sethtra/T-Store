@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useToast } from "../../components/ui/Toast";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Button from "../../components/ui/Button";
 import Skeleton from "../../components/ui/Skeleton";
@@ -15,6 +16,7 @@ import { useProducts, type Product } from "../../hooks/useProducts";
 import imageCompression from "browser-image-compression";
 
 const LandingSectionPage = () => {
+  const { showToast } = useToast();
   const { data: sections, isLoading } = useAdminLandingSections();
   const { data: productsData } = useProducts({ limit: 100 });
   const createMutation = useCreateLandingSection();
@@ -278,13 +280,13 @@ const LandingSectionPage = () => {
                   const description = (document.getElementById("hero-description-input") as HTMLTextAreaElement)?.value;
                   const descriptionKh = (document.getElementById("hero-description-kh-input") as HTMLTextAreaElement)?.value;
 
-                  if (title) localStorage.setItem("hero_title", title);
-                  if (titleKh) localStorage.setItem("hero_title_kh", titleKh);
-                  if (subtitle) localStorage.setItem("hero_subtitle", subtitle);
-                  if (subtitleKh) localStorage.setItem("hero_subtitle_kh", subtitleKh);
-                  if (description) localStorage.setItem("hero_description", description);
-                  if (descriptionKh) localStorage.setItem("hero_description_kh", descriptionKh);
-                  alert("✨ Hero text updated successfully!");
+                  if (title !== undefined) localStorage.setItem("hero_title", title);
+                  if (titleKh !== undefined) localStorage.setItem("hero_title_kh", titleKh);
+                  if (subtitle !== undefined) localStorage.setItem("hero_subtitle", subtitle);
+                  if (subtitleKh !== undefined) localStorage.setItem("hero_subtitle_kh", subtitleKh);
+                  if (description !== undefined) localStorage.setItem("hero_description", description);
+                  if (descriptionKh !== undefined) localStorage.setItem("hero_description_kh", descriptionKh);
+                  showToast("Hero text updated successfully!", "success");
                 }}
                 className="w-full sm:w-auto px-8"
               >
@@ -584,7 +586,7 @@ const LandingSectionPage = () => {
                               setImagePreview(URL.createObjectURL(newFile));
                             } catch (error) {
                               console.error("Error compressing image:", error);
-                              alert("Failed to compress image. Please try another one.");
+                              showToast("Failed to compress image. Please try another one.", "error");
                             }
                           }
                         }}
