@@ -56,7 +56,7 @@ You can use these accounts to explore the platform without signing up:
    - 🗂️ **Categories** — Manage parent/child category trees.
    - 📋 **Orders** — View all orders, update statuses (Processing, Shipped), and see payment details.
    - 📈 **Inventory** — Track stock movements for every product with full audit logs.
-   - 🏷️ **Landing Sections** — Configure the hero banners and featured sections on the homepage.
+   - 🏷️ **Landing Sections** — Configure the hero banners, featured sections, and **Section 3 gallery** on the homepage with per-card **text color customization** for light and dark themes.
    - 👥 **Users** — Manage customer accounts and roles.
    - 📤 **Reports** — Export Orders, Products, or Users as CSV files.
 
@@ -90,6 +90,7 @@ You can use these accounts to explore the platform without signing up:
 - 📦 **Full Product CRUD** — Multi-image gallery, drag-and-drop ordering, automatic orphaned image cleanup.
 - 📋 **Order Management** — Status workflow (Pending → Processing → Shipped) with inventory auto-adjustment.
 - 📈 **Inventory Ledger** — Full audit trail of every stock movement (sales, adjustments, restocks).
+- 🎨 **Section 3 Color Customization** — Per-card title and subtitle colors with separate light/dark theme support.
 - 📤 **CSV Export** — One-click export for Orders, Products, and Users.
 
 ### Security
@@ -204,7 +205,8 @@ The following environment variables must be configured in `backend/.env`:
 | `GET` | `/api/products/featured` | Featured products for homepage |
 | `GET` | `/api/categories` | Category tree |
 | `GET` | `/api/category-displays` | Homepage category display sections |
-| `GET` | `/api/landing-sections` | Hero banner configuration |
+| `GET` | `/api/landing-data` | All homepage data (banners, sections, categories) |
+| `GET` | `/api/landing-sections` | Hero banner and Section 3 gallery configuration |
 | `POST` | `/api/login` | User login |
 | `POST` | `/api/register` | User registration |
 
@@ -228,6 +230,9 @@ The following environment variables must be configured in `backend/.env`:
 | `DELETE` | `/api/admin/products/{id}` | Delete product |
 | `PUT` | `/api/admin/orders/{id}/status` | Update order status |
 | `GET` | `/api/admin/inventory` | Inventory & stock movements |
+| `POST` | `/api/admin/landing-sections` | Create landing section (hero/Section 3) |
+| `POST` | `/api/admin/landing-sections/{id}` | Update landing section (`_method=PUT`) |
+| `DELETE` | `/api/admin/landing-sections/{id}` | Delete landing section |
 
 ---
 
