@@ -53,7 +53,7 @@ class LandingSectionController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'section_type' => 'required|in:hero_main,hero_featured,hero_small',
+            'section_type' => 'required|in:hero_main,hero_featured,hero_small,curated_excellence',
             'product_id' => 'required|exists:products,id',
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -89,7 +89,7 @@ class LandingSectionController extends Controller
     public function update(Request $request, LandingSection $landingSection): JsonResponse
     {
         $validated = $request->validate([
-            'section_type' => 'sometimes|in:hero_main,hero_featured,hero_small',
+            'section_type' => 'sometimes|in:hero_main,hero_featured,hero_small,curated_excellence',
             'product_id' => 'sometimes|exists:products,id',
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
