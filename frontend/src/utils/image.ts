@@ -1,5 +1,5 @@
 export const getImageUrl = (path?: string) => {
-  if (!path) return '/placeholder.jpg';
+  if (!path) return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=1000';
   
   // If it's already a full URL, return it
   if (path.startsWith('http')) return path;
