@@ -1,10 +1,10 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, ShoppingBag, Star, Zap, Play } from "lucide-react";
+import { ArrowRight, Star, Zap, Play } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 
 const TestPlaygroundPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
+  useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });

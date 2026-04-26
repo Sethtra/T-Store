@@ -49,7 +49,7 @@ const HeroSection = () => {
   if (isLoading) return <HeroSkeleton />;
 
   const productTitle = p ? (isKh ? p.title_kh || p.title : p.title) : "";
-  const productCategory = p?.category ? (isKh ? p.category.name_kh || p.category.name : p.category.name) : "New Drop";
+  const productCategory = p?.category ? (isKh ? p.category_kh || p.category : p.category) : "New Drop";
   const productImage = p ? (p.image_url || getImageUrl(p.images?.[0])) : "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=1000";
 
   return (
