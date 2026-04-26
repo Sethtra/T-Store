@@ -69,6 +69,7 @@ export const useCreateLandingSection = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminLandingSections"] });
       queryClient.invalidateQueries({ queryKey: ["landingSections"] });
+      queryClient.invalidateQueries({ queryKey: ["landing-data"] });
     },
   });
 };
@@ -86,6 +87,7 @@ export const useUpdateLandingSection = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminLandingSections"] });
       queryClient.invalidateQueries({ queryKey: ["landingSections"] });
+      queryClient.invalidateQueries({ queryKey: ["landing-data"] });
     },
   });
 };
@@ -100,6 +102,7 @@ export const useDeleteLandingSection = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminLandingSections"] });
       queryClient.invalidateQueries({ queryKey: ["landingSections"] });
+      queryClient.invalidateQueries({ queryKey: ["landing-data"] });
     },
   });
 };

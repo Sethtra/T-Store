@@ -28,6 +28,7 @@ import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrdersPage from "./pages/OrdersPage";
 import AboutPage from "./pages/AboutPage";
+import TestPlaygroundPage from "./pages/TestPlaygroundPage";
 
 // Admin Pages - Lazy load for code splitting
 const AdminDashboard = lazy(() => import("./pages/admin/DashboardPage"));
@@ -137,6 +138,7 @@ function App() {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:slug" element={<ProductDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/test" element={<TestPlaygroundPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
