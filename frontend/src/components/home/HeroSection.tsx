@@ -9,17 +9,17 @@ const HeroSkeleton = () => (
   <section className="relative min-h-[85vh] flex items-center pt-32 pb-20 px-4 md:px-8">
     <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       <div className="flex flex-col gap-6">
-        <div className="w-32 h-8 rounded-full bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
-        <div className="w-3/4 h-16 lg:h-20 rounded-2xl bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
-        <div className="w-1/2 h-16 rounded-2xl bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
-        <div className="w-full max-w-md h-24 rounded-2xl bg-[var(--color-bg-surface)] animate-pulse mt-4 border border-[var(--color-border)]/50" />
+        <div className="w-32 h-8 rounded-full bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
+        <div className="w-3/4 h-16 lg:h-20 rounded-2xl bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
+        <div className="w-1/2 h-16 rounded-2xl bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
+        <div className="w-full max-w-md h-24 rounded-2xl bg-[var(--color-text-primary)]/10 animate-pulse mt-4 border border-[var(--color-border)]/50" />
         <div className="flex gap-4 mt-4">
-          <div className="w-40 h-14 rounded-full bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
-          <div className="w-40 h-14 rounded-full bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
+          <div className="w-40 h-14 rounded-full bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
+          <div className="w-40 h-14 rounded-full bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
         </div>
       </div>
       <div className="hidden lg:flex items-center justify-center">
-        <div className="w-[400px] h-[400px] rounded-full bg-[var(--color-bg-surface)] animate-pulse border border-[var(--color-border)]/50" />
+        <div className="w-[400px] h-[400px] rounded-full bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
       </div>
     </div>
   </section>
