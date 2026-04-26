@@ -109,6 +109,10 @@ class PublicDataController extends Controller
                             'title_kh' => $section->title_kh ?? $section->product?->title_kh,
                             'description' => $section->description ?? $section->product?->description,
                             'description_kh' => $section->description_kh ?? $section->product?->description_kh,
+                            'title_color' => $section->title_color,
+                            'description_color' => $section->description_color,
+                            'title_color_dark' => $section->title_color_dark,
+                            'description_color_dark' => $section->description_color_dark,
                             'image' => $section->image,
                             'order' => $section->order,
                             'product' => $section->product ? [

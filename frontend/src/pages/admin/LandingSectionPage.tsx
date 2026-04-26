@@ -88,6 +88,8 @@ const LandingSectionPage = () => {
         description_kh: "",
         title_color: "",
         description_color: "",
+        title_color_dark: "",
+        description_color_dark: "",
         is_active: true,
         order: 0,
       });
@@ -108,6 +110,8 @@ const LandingSectionPage = () => {
       description_kh: section.description_kh || "",
       title_color: section.title_color || "",
       description_color: section.description_color || "",
+      title_color_dark: section.title_color_dark || "",
+      description_color_dark: section.description_color_dark || "",
       is_active: true,
       order: section.order,
     });
@@ -128,6 +132,8 @@ const LandingSectionPage = () => {
         submitData.append("description_kh", formData.description_kh);
       if (formData.title_color) submitData.append("title_color", formData.title_color);
       if (formData.description_color) submitData.append("description_color", formData.description_color);
+      if (formData.title_color_dark) submitData.append("title_color_dark", formData.title_color_dark);
+      if (formData.description_color_dark) submitData.append("description_color_dark", formData.description_color_dark);
       submitData.append("is_active", formData.is_active ? "1" : "0");
       submitData.append("order", formData.order?.toString() || "0");
       if (selectedImage) submitData.append("image", selectedImage);
@@ -840,53 +846,55 @@ const LandingSectionPage = () => {
 
                 {/* Text Color Pickers - Only for Section 3 */}
                 {formData.section_type === "curated_excellence" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-5">
+                    {/* Light Theme Colors */}
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                        Title Color
-                        <span className="text-[var(--color-text-muted)] font-normal ml-2">(Optional)</span>
-                      </label>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="color"
-                          value={formData.title_color || "#1a1a2e"}
-                          onChange={(e) => setFormData({ ...formData, title_color: e.target.value })}
-                          className="w-12 h-12 rounded-xl border border-[var(--color-border)] cursor-pointer p-1 bg-[var(--color-bg-primary)]"
-                        />
-                        <input
-                          type="text"
-                          value={formData.title_color || ""}
-                          onChange={(e) => setFormData({ ...formData, title_color: e.target.value })}
-                          placeholder="e.g. #ffffff"
-                          className="flex-1 px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] font-mono text-sm"
-                        />
-                        {formData.title_color && (
-                          <button type="button" onClick={() => setFormData({ ...formData, title_color: "" })} className="text-xs text-[var(--color-text-muted)] hover:text-red-500 transition-colors">Reset</button>
-                        )}
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-3 flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-white border border-gray-300 inline-block"></span>
+                        Light Theme Colors
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Title Color</label>
+                          <div className="flex items-center gap-3">
+                            <input type="color" value={formData.title_color || "#1a1a2e"} onChange={(e) => setFormData({ ...formData, title_color: e.target.value })} className="w-10 h-10 rounded-lg border border-[var(--color-border)] cursor-pointer p-0.5 bg-[var(--color-bg-primary)]" />
+                            <input type="text" value={formData.title_color || ""} onChange={(e) => setFormData({ ...formData, title_color: e.target.value })} placeholder="#1a1a2e" className="flex-1 px-3 py-2 rounded-lg bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] font-mono text-sm" />
+                            {formData.title_color && <button type="button" onClick={() => setFormData({ ...formData, title_color: "" })} className="text-xs text-[var(--color-text-muted)] hover:text-red-500">Reset</button>}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Subtitle Color</label>
+                          <div className="flex items-center gap-3">
+                            <input type="color" value={formData.description_color || "#6366f1"} onChange={(e) => setFormData({ ...formData, description_color: e.target.value })} className="w-10 h-10 rounded-lg border border-[var(--color-border)] cursor-pointer p-0.5 bg-[var(--color-bg-primary)]" />
+                            <input type="text" value={formData.description_color || ""} onChange={(e) => setFormData({ ...formData, description_color: e.target.value })} placeholder="#6366f1" className="flex-1 px-3 py-2 rounded-lg bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] font-mono text-sm" />
+                            {formData.description_color && <button type="button" onClick={() => setFormData({ ...formData, description_color: "" })} className="text-xs text-[var(--color-text-muted)] hover:text-red-500">Reset</button>}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    {/* Dark Theme Colors */}
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                        Subtitle Color
-                        <span className="text-[var(--color-text-muted)] font-normal ml-2">(Optional)</span>
-                      </label>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="color"
-                          value={formData.description_color || "#6366f1"}
-                          onChange={(e) => setFormData({ ...formData, description_color: e.target.value })}
-                          className="w-12 h-12 rounded-xl border border-[var(--color-border)] cursor-pointer p-1 bg-[var(--color-bg-primary)]"
-                        />
-                        <input
-                          type="text"
-                          value={formData.description_color || ""}
-                          onChange={(e) => setFormData({ ...formData, description_color: e.target.value })}
-                          placeholder="e.g. #6366f1"
-                          className="flex-1 px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] font-mono text-sm"
-                        />
-                        {formData.description_color && (
-                          <button type="button" onClick={() => setFormData({ ...formData, description_color: "" })} className="text-xs text-[var(--color-text-muted)] hover:text-red-500 transition-colors">Reset</button>
-                        )}
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-3 flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-gray-800 border border-gray-600 inline-block"></span>
+                        Dark Theme Colors
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Title Color</label>
+                          <div className="flex items-center gap-3">
+                            <input type="color" value={formData.title_color_dark || "#ffffff"} onChange={(e) => setFormData({ ...formData, title_color_dark: e.target.value })} className="w-10 h-10 rounded-lg border border-[var(--color-border)] cursor-pointer p-0.5 bg-[var(--color-bg-primary)]" />
+                            <input type="text" value={formData.title_color_dark || ""} onChange={(e) => setFormData({ ...formData, title_color_dark: e.target.value })} placeholder="#ffffff" className="flex-1 px-3 py-2 rounded-lg bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] font-mono text-sm" />
+                            {formData.title_color_dark && <button type="button" onClick={() => setFormData({ ...formData, title_color_dark: "" })} className="text-xs text-[var(--color-text-muted)] hover:text-red-500">Reset</button>}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Subtitle Color</label>
+                          <div className="flex items-center gap-3">
+                            <input type="color" value={formData.description_color_dark || "#818cf8"} onChange={(e) => setFormData({ ...formData, description_color_dark: e.target.value })} className="w-10 h-10 rounded-lg border border-[var(--color-border)] cursor-pointer p-0.5 bg-[var(--color-bg-primary)]" />
+                            <input type="text" value={formData.description_color_dark || ""} onChange={(e) => setFormData({ ...formData, description_color_dark: e.target.value })} placeholder="#818cf8" className="flex-1 px-3 py-2 rounded-lg bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] font-mono text-sm" />
+                            {formData.description_color_dark && <button type="button" onClick={() => setFormData({ ...formData, description_color_dark: "" })} className="text-xs text-[var(--color-text-muted)] hover:text-red-500">Reset</button>}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

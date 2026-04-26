@@ -4,9 +4,12 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useLandingData } from "../../hooks/useLandingData";
+import { useThemeStore } from "../../stores/themeStore";
 
 const CuratedExcellence = () => {
   const { data: landingData } = useLandingData();
+  const { theme } = useThemeStore();
+  const isDark = theme === "dark";
   const galleryItems =
     landingData?.landing_sections
       ?.filter((section) => section.section_type === "curated_excellence")
@@ -93,10 +96,10 @@ const CuratedExcellence = () => {
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
               />
               <div className="absolute bottom-0 left-0 p-10 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                <p className="text-[var(--color-primary)] font-bold uppercase tracking-widest text-sm mb-3">
+                <p className="font-bold uppercase tracking-widest text-sm mb-3" style={{ color: isDark ? (item.description_color_dark || 'var(--color-primary)') : (item.description_color || 'var(--color-primary)') }}>
                   {item.description || item.product?.category || "Featured"}
                 </p>
-                <h3 className="text-4xl md:text-5xl font-black text-[var(--color-text-primary)] mb-6">
+                <h3 className="text-4xl md:text-5xl font-black mb-6" style={{ color: isDark ? (item.title_color_dark || 'var(--color-text-primary)') : (item.title_color || 'var(--color-text-primary)') }}>
                   {item.title || item.product?.title}
                 </h3>
                 <Link
