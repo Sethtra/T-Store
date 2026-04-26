@@ -87,16 +87,16 @@ const HeroSection = () => {
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Link
               to="/products"
-              style={{ color: "#000" }}
-              className="group relative px-8 py-4 bg-white rounded-full font-bold text-lg overflow-hidden flex items-center justify-center gap-2 transition-transform hover:scale-105"
+              style={{ color: "var(--color-bg-primary)" }}
+              className="group relative px-8 py-4 bg-[var(--color-text-primary)] rounded-full font-bold text-lg overflow-hidden flex items-center justify-center gap-2 transition-transform hover:scale-105"
             >
               {isKh ? "មេីលទាំងអស់" : "Shop Collection"}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               to={p ? `/products/${p.slug}` : "/products"}
-              style={{ color: "#fff" }}
-              className="px-8 py-4 rounded-full border border-white/20 bg-transparent hover:bg-white/5 backdrop-blur-md font-bold text-lg flex items-center justify-center gap-2 transition-all hover:border-white/40"
+              style={{ color: "var(--color-text-primary)" }}
+              className="px-8 py-4 rounded-full border border-[var(--color-text-primary)]/20 bg-transparent hover:bg-[var(--color-text-primary)]/5 backdrop-blur-md font-bold text-lg flex items-center justify-center gap-2 transition-all hover:border-[var(--color-text-primary)]/40"
             >
               <ShoppingBag className="w-5 h-5" />{" "}
               {isKh ? "ទិញឥឡូវនេះ" : "Buy Now"}
@@ -165,7 +165,7 @@ const HeroSection = () => {
       </section>
 
       {/* Connected Marquee */}
-      <div className="relative z-10 w-full py-8 bg-gradient-to-r from-transparent via-white/5 to-transparent border-y border-white/5 overflow-hidden">
+      <div className="relative z-10 w-full py-8 bg-gradient-to-r from-transparent via-[var(--color-text-primary)]/5 to-transparent border-y border-[var(--color-border)] overflow-hidden">
         <motion.div
           animate={{ x: ["0%", "-50%"] }}
           transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
@@ -173,18 +173,18 @@ const HeroSection = () => {
         >
           {[...Array(2)].map((_, idx) => (
             <div key={idx} className="flex gap-16 items-center">
-              <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/40 uppercase tracking-widest">
+              <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-text-primary)]/20 to-[var(--color-text-primary)]/40 uppercase tracking-widest">
                 {isKh ? "គុណភាពល្អឥតខ្ចោះ" : "Premium Quality"}
               </span>
-              <Star className="w-6 h-6 text-white/20" />
-              <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/40 uppercase tracking-widest">
+              <Star className="w-6 h-6 text-[var(--color-text-primary)]/20" />
+              <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-text-primary)]/20 to-[var(--color-text-primary)]/40 uppercase tracking-widest">
                 {isKh ? "ដឹកជញ្ជូនរហ័ស" : "Fast Delivery"}
               </span>
-              <Star className="w-6 h-6 text-white/20" />
-              <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/40 uppercase tracking-widest">
+              <Star className="w-6 h-6 text-[var(--color-text-primary)]/20" />
+              <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-text-primary)]/20 to-[var(--color-text-primary)]/40 uppercase tracking-widest">
                 {isKh ? "ការទូទាត់សុវត្ថិភាព" : "Secure Checkout"}
               </span>
-              <Star className="w-6 h-6 text-white/20" />
+              <Star className="w-6 h-6 text-[var(--color-text-primary)]/20" />
             </div>
           ))}
         </motion.div>
