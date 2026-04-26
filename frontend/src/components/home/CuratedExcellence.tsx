@@ -15,6 +15,11 @@ const CuratedExcellence = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [scrollRange, setScrollRange] = useState(0);
 
+  // Total items = intro panel + gallery cards (dynamic or fallback 3)
+  const totalItems = Math.max(galleryItems.length, 3) + 1;
+  // Each card needs ~100vh of scroll height to feel smooth
+  const sectionHeight = `${totalItems * 100}vh`;
+
   useEffect(() => {
     const handleResize = () => {
       if (scrollContainerRef.current) {
@@ -23,31 +28,32 @@ const CuratedExcellence = () => {
         );
       }
     };
-    // Small delay to ensure styles and fonts are loaded before calculating width
-    const timeout = setTimeout(handleResize, 100);
+    // Delay to ensure DOM has rendered the dynamic items
+    const timeout = setTimeout(handleResize, 300);
     window.addEventListener("resize", handleResize);
     return () => {
       clearTimeout(timeout);
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [galleryItems.length]);
 
   const { scrollYProgress: horizontalProgress } = useScroll({
     target: horizontalScrollRef,
     offset: ["start start", "end end"],
   });
 
-  // Pause the scroll for the last 20% of the container height so the user can look at the last item
+  // Pause the scroll for the last 15% of the container height so the user can look at the last item
   const xTransform = useTransform(
     horizontalProgress,
-    [0, 0.8],
+    [0, 0.85],
     [0, -scrollRange],
   );
 
   return (
     <section
       ref={horizontalScrollRef}
-      className="relative z-10 h-[300vh] bg-[var(--color-bg-primary)]"
+      className="relative z-10 bg-[var(--color-bg-primary)]"
+      style={{ height: sectionHeight }}
     >
       <div className="sticky top-0 h-screen flex items-center overflow-hidden">
         <motion.div
