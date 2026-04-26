@@ -53,9 +53,9 @@ const HeroSection = () => {
 
   const productTitle = p ? (isKh ? p.title_kh || p.title : p.title) : "";
 
-  const productImage = p
-    ? getImageUrl(p.image_url || p.images?.[0])
-    : "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=1000";
+  const productImage = getImageUrl(
+    mainProduct?.custom_image || p?.image_url || p?.images?.[0]
+  ) || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=1000";
 
   return (
     <>
