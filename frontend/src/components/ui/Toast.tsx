@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, createContext, useContext } from "react";
+import React, { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type ToastType = "success" | "error" | "warning" | "info";
@@ -22,7 +22,7 @@ export const useToast = () => {
   return context;
 };
 
-const toastIcons: Record<ToastType, JSX.Element> = {
+const toastIcons: Record<ToastType, React.ReactNode> = {
   success: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
