@@ -35,7 +35,7 @@ const HomePage = () => {
   const products = landingData?.featured_products;
 
   return (
-    <div className="space-y-12 pb-16 min-h-screen relative overflow-hidden bg-[var(--color-bg-base)]">
+    <div className="space-y-12 pb-16 min-h-screen relative bg-[var(--color-bg-base)]">
       <BackgroundElements />
       
       {/* Hero Section */}
