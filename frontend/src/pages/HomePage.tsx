@@ -6,6 +6,7 @@ import ProductCardSkeleton from "../components/product/ProductCardSkeleton";
 import Button from "../components/ui/Button";
 import HeroSection from "../components/home/HeroSection";
 import BrowseByCategories from "../components/home/BrowseByCategories";
+import CuratedExcellence from "../components/home/CuratedExcellence";
 import { useTranslation } from "react-i18next";
 
 const BackgroundElements = () => (
@@ -146,6 +147,9 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* Curated Excellence Horizontal Gallery */}
+      <CuratedExcellence />
 
       {/* Browse by Categories */}
       <div className="relative z-10">
