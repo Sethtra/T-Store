@@ -86,6 +86,8 @@ const LandingSectionPage = () => {
         title_kh: "",
         description: "",
         description_kh: "",
+        title_color: "",
+        description_color: "",
         is_active: true,
         order: 0,
       });
@@ -104,6 +106,8 @@ const LandingSectionPage = () => {
       title_kh: section.title_kh || "",
       description: section.description || "",
       description_kh: section.description_kh || "",
+      title_color: section.title_color || "",
+      description_color: section.description_color || "",
       is_active: true,
       order: section.order,
     });
@@ -122,6 +126,8 @@ const LandingSectionPage = () => {
         submitData.append("description", formData.description);
       if (formData.description_kh)
         submitData.append("description_kh", formData.description_kh);
+      if (formData.title_color) submitData.append("title_color", formData.title_color);
+      if (formData.description_color) submitData.append("description_color", formData.description_color);
       submitData.append("is_active", formData.is_active ? "1" : "0");
       submitData.append("order", formData.order?.toString() || "0");
       if (selectedImage) submitData.append("image", selectedImage);
@@ -831,6 +837,60 @@ const LandingSectionPage = () => {
                     />
                   </div>
                 </div>
+
+                {/* Text Color Pickers - Only for Section 3 */}
+                {formData.section_type === "curated_excellence" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                        Title Color
+                        <span className="text-[var(--color-text-muted)] font-normal ml-2">(Optional)</span>
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={formData.title_color || "#1a1a2e"}
+                          onChange={(e) => setFormData({ ...formData, title_color: e.target.value })}
+                          className="w-12 h-12 rounded-xl border border-[var(--color-border)] cursor-pointer p-1 bg-[var(--color-bg-primary)]"
+                        />
+                        <input
+                          type="text"
+                          value={formData.title_color || ""}
+                          onChange={(e) => setFormData({ ...formData, title_color: e.target.value })}
+                          placeholder="e.g. #ffffff"
+                          className="flex-1 px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] font-mono text-sm"
+                        />
+                        {formData.title_color && (
+                          <button type="button" onClick={() => setFormData({ ...formData, title_color: "" })} className="text-xs text-[var(--color-text-muted)] hover:text-red-500 transition-colors">Reset</button>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                        Subtitle Color
+                        <span className="text-[var(--color-text-muted)] font-normal ml-2">(Optional)</span>
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={formData.description_color || "#6366f1"}
+                          onChange={(e) => setFormData({ ...formData, description_color: e.target.value })}
+                          className="w-12 h-12 rounded-xl border border-[var(--color-border)] cursor-pointer p-1 bg-[var(--color-bg-primary)]"
+                        />
+                        <input
+                          type="text"
+                          value={formData.description_color || ""}
+                          onChange={(e) => setFormData({ ...formData, description_color: e.target.value })}
+                          placeholder="e.g. #6366f1"
+                          className="flex-1 px-4 py-3 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] font-mono text-sm"
+                        />
+                        {formData.description_color && (
+                          <button type="button" onClick={() => setFormData({ ...formData, description_color: "" })} className="text-xs text-[var(--color-text-muted)] hover:text-red-500 transition-colors">Reset</button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Custom Image */}
                 <div>

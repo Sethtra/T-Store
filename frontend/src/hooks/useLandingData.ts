@@ -22,6 +22,8 @@ export interface LandingSection {
   title_kh: string;
   description: string;
   description_kh: string;
+  title_color?: string;
+  description_color?: string;
   image?: string;
   custom_image?: string;
   order: number;
