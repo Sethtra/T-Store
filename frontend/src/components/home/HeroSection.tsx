@@ -80,11 +80,11 @@ const HeroSection = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <Link to="/products" className="group relative px-8 py-4 bg-white text-black rounded-full font-bold text-lg overflow-hidden flex items-center justify-center gap-2 transition-transform hover:scale-105">
+          <Link to="/products" style={{ color: '#000' }} className="group relative px-8 py-4 bg-white rounded-full font-bold text-lg overflow-hidden flex items-center justify-center gap-2 transition-transform hover:scale-105">
             {isKh ? "មេីលទាំងអស់" : "Shop Collection"}
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
-          <Link to={p ? `/products/${p.slug}` : "/products"} className="px-8 py-4 rounded-full border border-white/20 bg-transparent hover:bg-white/5 backdrop-blur-md font-bold text-lg flex items-center justify-center gap-2 transition-all hover:border-white/40">
+          <Link to={p ? `/products/${p.slug}` : "/products"} style={{ color: '#fff' }} className="px-8 py-4 rounded-full border border-white/20 bg-transparent hover:bg-white/5 backdrop-blur-md font-bold text-lg flex items-center justify-center gap-2 transition-all hover:border-white/40">
             <ShoppingBag className="w-5 h-5" /> {isKh ? "ទិញឥឡូវនេះ" : "Buy Now"}
           </Link>
         </div>
