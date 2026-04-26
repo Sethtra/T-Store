@@ -56,7 +56,7 @@ const LandingSectionPage = () => {
       description: "Smaller product card displayed below the CTA buttons",
     },
     curated_excellence: {
-      title: "Curated Excellence Card",
+      title: "Section 3 Card",
       description: "Gallery card in the horizontal scrolling section",
     },
   };
@@ -423,7 +423,7 @@ const LandingSectionPage = () => {
           </div>
         </div>
         
-        {/* Curated Excellence Horizontal Gallery Editor */}
+        {/* Section 3 - Horizontal Gallery Editor */}
         <div className="bg-[var(--color-bg-secondary)] rounded-3xl border border-[var(--color-border)] shadow-sm overflow-hidden mt-10">
           <div className="p-6 md:p-8 border-b border-[var(--color-border)] flex items-center justify-between">
             <div>
@@ -431,7 +431,7 @@ const LandingSectionPage = () => {
                 <svg className="w-5 h-5 text-[var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Curated Excellence Gallery
+                Section 3
               </h3>
               <p className="text-sm text-[var(--color-text-muted)] mt-1">
                 Manage the horizontal scrolling gallery cards on the homepage. Link cards to products.

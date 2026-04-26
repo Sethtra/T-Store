@@ -60,10 +60,12 @@ class LandingSection extends Model
     {
         static::saved(function () {
             Cache::forget('landing_sections_index');
+            Cache::forget('landing_data_all');
         });
 
         static::deleted(function () {
             Cache::forget('landing_sections_index');
+            Cache::forget('landing_data_all');
         });
     }
 }
