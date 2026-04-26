@@ -55,14 +55,19 @@ const LandingSectionPage = () => {
       title: "Small Featured Product",
       description: "Smaller product card displayed below the CTA buttons",
     },
+    curated_excellence: {
+      title: "Curated Excellence Card",
+      description: "Gallery card in the horizontal scrolling section",
+    },
   };
 
   const openCreateModal = (
-    sectionType: "hero_main" | "hero_featured" | "hero_small",
+    sectionType: "hero_main" | "hero_featured" | "hero_small" | "curated_excellence",
   ) => {
-    const existingSection = sections?.find(
-      (s) => s.section_type === sectionType,
-    );
+    const existingSection = sectionType !== "curated_excellence" 
+      ? sections?.find((s) => s.section_type === sectionType)
+      : null;
+      
     if (existingSection) {
       openEditModal(existingSection);
     } else {
@@ -140,6 +145,10 @@ const LandingSectionPage = () => {
 
   const getSectionByType = (type: string) => {
     return sections?.find((s) => s.section_type === type);
+  };
+
+  const getCuratedExcellenceSections = () => {
+    return sections?.filter((s) => s.section_type === "curated_excellence")?.sort((a, b) => a.order - b.order) || [];
   };
 
   const getSelectedProduct = () => {
@@ -409,6 +418,60 @@ const LandingSectionPage = () => {
                 </div>
               ) : (
                 <EmptyProductSlot onAdd={() => openCreateModal("hero_small")} />
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Curated Excellence Horizontal Gallery Editor */}
+        <div className="bg-[var(--color-bg-secondary)] rounded-3xl border border-[var(--color-border)] shadow-sm overflow-hidden mt-10">
+          <div className="p-6 md:p-8 border-b border-[var(--color-border)] flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-[var(--color-text-primary)] text-lg flex items-center gap-2">
+                <svg className="w-5 h-5 text-[var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Curated Excellence Gallery
+              </h3>
+              <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                Manage the horizontal scrolling gallery cards on the homepage. Link cards to products.
+              </p>
+            </div>
+            <Button onClick={() => openCreateModal("curated_excellence")} className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+              Add Card
+            </Button>
+          </div>
+          <div className="p-6 md:p-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {getCuratedExcellenceSections().map((section) => (
+                <div key={section.id} className="group relative bg-[var(--color-bg-primary)] rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-sm hover:shadow-md transition-all">
+                  <div className="aspect-[4/3] relative bg-black">
+                    <img 
+                      src={section.custom_image ? (section.custom_image.startsWith('http') ? section.custom_image : `${import.meta.env.VITE_API_URL?.replace('/api', '')}/storage/${section.custom_image}`) : section.product?.image_url || "/placeholder.jpg"} 
+                      alt={section.title || section.product?.title} 
+                      className="w-full h-full object-cover opacity-80"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <p className="text-indigo-400 font-bold uppercase tracking-widest text-xs mb-1">{section.description || section.product?.category}</p>
+                      <h4 className="text-white font-black text-xl truncate">{section.title || section.product?.title}</h4>
+                    </div>
+                  </div>
+                  <div className="p-4 flex gap-2">
+                    <Button variant="outline" className="flex-1" onClick={() => openEditModal(section)}>
+                      Edit
+                    </Button>
+                    <button onClick={() => handleDelete(section.id)} className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-[var(--color-border)]">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {getCuratedExcellenceSections().length === 0 && (
+                <div className="col-span-full">
+                  <EmptyProductSlot onAdd={() => openCreateModal("curated_excellence")} />
+                </div>
               )}
             </div>
           </div>

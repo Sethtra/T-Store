@@ -17,7 +17,7 @@ export interface LandingSectionProduct {
 
 export interface LandingSection {
   id: number;
-  section_type: "hero_main" | "hero_featured" | "hero_small";
+  section_type: "hero_main" | "hero_featured" | "hero_small" | "curated_excellence";
   title: string;
   title_kh: string;
   description: string;

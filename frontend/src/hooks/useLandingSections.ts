@@ -5,6 +5,8 @@ import api from "../lib/api";
 export interface LandingSectionProduct {
   id: number;
   name: string;
+  title?: string;
+  title_kh?: string;
   slug: string;
   price: number;
   image_url: string;
@@ -14,7 +16,7 @@ export interface LandingSectionProduct {
 
 export interface LandingSection {
   id: number;
-  section_type: "hero_main" | "hero_featured" | "hero_small";
+  section_type: "hero_main" | "hero_featured" | "hero_small" | "curated_excellence";
   title: string;
   title_kh: string;
   description: string;
@@ -26,7 +28,7 @@ export interface LandingSection {
 }
 
 export interface LandingSectionFormData {
-  section_type: "hero_main" | "hero_featured" | "hero_small";
+  section_type: "hero_main" | "hero_featured" | "hero_small" | "curated_excellence";
   product_id: number;
   title?: string;
   title_kh?: string;
