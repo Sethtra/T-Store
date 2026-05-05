@@ -1,25 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
-import type { Category } from './useProducts';
-
-export interface CategoryDisplay {
-  id: number;
-  position: 'main' | 'featured' | 'small_1' | 'small_2';
-  category_id: number | null;
-  category?: Category;
-  title: string;
-  title_kh: string | null;
-  description: string | null;
-  description_kh: string | null;
-  image_url: string | null;
-  button_text: string;
-  button_text_kh: string | null;
-  link: string | null;
-  is_active: boolean;
-  order: number;
-  created_at: string;
-  updated_at: string;
-}
+import type { Category } from '../types/product';
+import type { CategoryDisplay } from '../types/landing';
+export type { CategoryDisplay };
 
 // Public: Fetch all active category displays
 export const useCategoryDisplays = () => {

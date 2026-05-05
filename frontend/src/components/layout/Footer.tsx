@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Facebook, Twitter, Instagram, Github } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import SiteLogo from "../ui/SiteLogo";
 
 const Footer = () => {
   const { t, i18n } = useTranslation();
@@ -35,12 +36,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="md:col-span-4 lg:col-span-5 space-y-6">
             <Link to="/" className="inline-flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-[var(--color-primary)] to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-[var(--color-primary)]/20 transition-transform group-hover:scale-105">
-                <span className="text-white font-bold text-xl">T</span>
-              </div>
-              <span className="font-bold text-2xl tracking-tight text-[var(--color-text-primary)]">
-                T-Store
-              </span>
+              <SiteLogo size="md" showName={true} nameClassName="text-[var(--color-text-primary)]" />
             </Link>
             <p className="text-[var(--color-text-secondary)] leading-relaxed max-w-sm">
               {t("footer.brand_desc")}

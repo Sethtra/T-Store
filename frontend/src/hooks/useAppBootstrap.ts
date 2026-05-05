@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
-import type { Category } from './useProducts';
+import type { Category } from '../types/product';
 
 export interface AppBootstrapData {
   categories: Category[];

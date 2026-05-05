@@ -1,50 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
 
-// Types
-export interface LandingSectionProduct {
-  id: number;
-  name: string;
-  title?: string;
-  title_kh?: string;
-  slug: string;
-  price: number;
-  image_url: string;
-  images: string[];
-  category?: string;
-}
-
-export interface LandingSection {
-  id: number;
-  section_type: "hero_main" | "hero_featured" | "hero_small" | "curated_excellence";
-  title: string;
-  title_kh: string;
-  description: string;
-  description_kh: string;
-  title_color?: string;
-  description_color?: string;
-  title_color_dark?: string;
-  description_color_dark?: string;
-  image?: string;
-  custom_image?: string;
-  order: number;
-  product: LandingSectionProduct;
-}
-
-export interface LandingSectionFormData {
-  section_type: "hero_main" | "hero_featured" | "hero_small" | "curated_excellence";
-  product_id: number;
-  title?: string;
-  title_kh?: string;
-  description?: string;
-  description_kh?: string;
-  title_color?: string;
-  description_color?: string;
-  title_color_dark?: string;
-  description_color_dark?: string;
-  is_active?: boolean;
-  order?: number;
-}
+// Types — imported from centralized types directory, re-exported for backward compatibility
+import type { LandingSection, LandingSectionProduct, LandingSectionFormData } from '../types/landing';
+export type { LandingSection, LandingSectionProduct, LandingSectionFormData };
 
 // Public hook to fetch landing sections
 export const useLandingSections = () => {

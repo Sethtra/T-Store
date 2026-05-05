@@ -7,11 +7,14 @@ use App\Models\Category;
 use App\Models\CategoryDisplay;
 use App\Models\LandingSection;
 use App\Models\Product;
+use App\Traits\ResolvesStorageUrls;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class PublicDataController extends Controller
 {
+    use ResolvesStorageUrls;
+
     /**
      * Get global application data (Bootstrap).
      * Used by Navbar and Layout.
@@ -30,9 +33,7 @@ class PublicDataController extends Controller
                             'name' => $category->name,
                             'name_kh' => $category->name_kh ?? $category->name,
                             'slug' => $category->slug,
-                            'banner_image' => $category->banner_image
-                                ? (str_starts_with($category->banner_image, 'http') ? $category->banner_image : asset('storage/' . $category->banner_image))
-                                : null,
+                            'banner_image' => $this->resolveStorageUrl($category->banner_image),
                             'children' => $category->children->map(function ($child) {
                                 return [
                                     'id' => $child->id,
@@ -65,7 +66,7 @@ class PublicDataController extends Controller
                             'title_kh' => $banner->title_kh,
                             'description' => $banner->description,
                             'description_kh' => $banner->description_kh,
-                            'image_url' => $banner->image ? (str_starts_with($banner->image, 'http') ? $banner->image : asset('storage/' . $banner->image)) : null,
+                            'image_url' => $this->resolveStorageUrl($banner->image),
                             'type' => $banner->type,
                             'order' => $banner->order,
                             'link' => $banner->primary_button_link ?? $banner->button_link,
@@ -78,7 +79,7 @@ class PublicDataController extends Controller
                             'title_kh' => $banner->title_kh,
                             'description' => $banner->description,
                             'description_kh' => $banner->description_kh,
-                            'image_url' => $banner->image ? (str_starts_with($banner->image, 'http') ? $banner->image : asset('storage/' . $banner->image)) : null,
+                            'image_url' => $this->resolveStorageUrl($banner->image),
                             'type' => $banner->type,
                             'order' => $banner->order,
                             'link' => $banner->primary_button_link ?? $banner->button_link,
@@ -98,9 +99,8 @@ class PublicDataController extends Controller
                         $productImages = $section->product ? $section->product->images : [];
                         $firstProductImage = (is_array($productImages) && count($productImages) > 0) ? $productImages[0] : null;
 
-                        $imageUrl = $section->image
-                            ? (str_starts_with($section->image, 'http') ? $section->image : asset('storage/' . $section->image))
-                            : ($firstProductImage ? (str_starts_with($firstProductImage, 'http') ? $firstProductImage : asset('storage/' . $firstProductImage)) : null);
+                        $imageUrl = $this->resolveStorageUrl($section->image)
+                            ?? $this->resolveStorageUrl($firstProductImage);
 
                         return [
                             'id' => $section->id,
@@ -140,14 +140,9 @@ class PublicDataController extends Controller
                             $firstProductImage = (is_array($productImages) && count($productImages) > 0) ? $productImages[0] : null;
                         }
 
-                        $finalImageUrl = null;
-                        if ($display->image_url) {
-                            $finalImageUrl = str_starts_with($display->image_url, 'http') ? $display->image_url : asset('storage/' . $display->image_url);
-                        } elseif ($categoryBanner) {
-                            $finalImageUrl = str_starts_with($categoryBanner, 'http') ? $categoryBanner : asset('storage/' . $categoryBanner);
-                        } elseif ($firstProductImage) {
-                            $finalImageUrl = str_starts_with($firstProductImage, 'http') ? $firstProductImage : asset('storage/' . $firstProductImage);
-                        }
+                        $finalImageUrl = $this->resolveStorageUrl($display->image_url)
+                            ?? $this->resolveStorageUrl($categoryBanner)
+                            ?? $this->resolveStorageUrl($firstProductImage);
 
                         return [
                             'id' => $display->id,
@@ -169,3 +164,4 @@ class PublicDataController extends Controller
         return response()->json($data);
     }
 }
+

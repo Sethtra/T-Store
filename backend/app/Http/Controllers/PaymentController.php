@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\StockMovement;
+use App\Services\OrderFulfillmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -16,9 +17,12 @@ use Stripe\Exception\SignatureVerificationException;
 
 class PaymentController extends Controller
 {
-    public function __construct()
+    private OrderFulfillmentService $fulfillment;
+
+    public function __construct(OrderFulfillmentService $fulfillment)
     {
         Stripe::setApiKey(config('services.stripe.secret'));
+        $this->fulfillment = $fulfillment;
     }
 
     // ─── Stripe ───────────────────────────────────────────────
@@ -271,32 +275,12 @@ class PaymentController extends Controller
 
         // Status "0" = Approved per ABA PayWay docs
         if ($status == '0') {
-            if ($order->payment_status !== 'paid') {
-                $order->update([
-                    'payment_status' => 'paid',
-                    'status' => 'processing',
-                ]);
-
-                // Decrement stock
-                foreach ($order->items as $item) {
-                    $product = Product::find($item->product_id);
-                    if ($product) {
-                        $product->decrement('stock', $item->quantity);
-                        StockMovement::create([
-                            'product_id' => $product->id,
-                            'quantity_change' => -$item->quantity,
-                            'type' => 'sale',
-                            'reference' => 'Order #' . $order->tracking_id,
-                        ]);
-                    }
-                }
-            }
-
+            $this->fulfillment->fulfillPayment($order);
             return response()->json(['message' => 'Payment processed successfully']);
         }
 
         // Payment failed
-        $order->update(['payment_status' => 'failed']);
+        $this->fulfillment->failPayment($order);
         return response()->json(['message' => 'Payment failed', 'status' => $status]);
     }
 
@@ -332,24 +316,8 @@ class PaymentController extends Controller
     {
         $order = Order::where('payment_intent', $paymentIntentId)->first();
 
-        if ($order && $order->payment_status !== 'paid') {
-            $order->update([
-                'payment_status' => 'paid',
-                'status' => 'processing',
-            ]);
-
-            foreach ($order->items as $item) {
-                $product = Product::find($item->product_id);
-                if ($product) {
-                    $product->decrement('stock', $item->quantity);
-                    StockMovement::create([
-                        'product_id' => $product->id,
-                        'quantity_change' => -$item->quantity,
-                        'type' => 'sale',
-                        'reference' => 'Order #' . $order->tracking_id,
-                    ]);
-                }
-            }
+        if ($order) {
+            $this->fulfillment->fulfillPayment($order);
         }
     }
 
@@ -361,9 +329,7 @@ class PaymentController extends Controller
         $order = Order::where('payment_intent', $paymentIntentId)->first();
 
         if ($order) {
-            $order->update([
-                'payment_status' => 'failed',
-            ]);
+            $this->fulfillment->failPayment($order);
         }
     }
 
@@ -382,26 +348,10 @@ class PaymentController extends Controller
         $order = Order::where('id', $request->order_id)
             ->where('user_id', $request->user()->id)
             ->firstOrFail();
-        
-        // Mark as paid
-        $order->payment_status = 'paid';
-        $order->status = 'processing';
-        $order->save();
 
-        // Decrement product stock for this sandbox purchase
-        foreach ($order->items as $item) {
-            $product = Product::find($item->product_id);
-            if ($product && !empty($item->quantity)) {
-                $product->decrement('stock', $item->quantity);
-                StockMovement::create([
-                    'product_id' => $product->id,
-                    'quantity_change' => -$item->quantity,
-                    'type' => 'sale',
-                    'reference' => 'Order #' . $order->tracking_id . ' (simulated)',
-                ]);
-            }
-        }
+        $this->fulfillment->fulfillPayment($order, '(simulated)');
 
         return response()->json(['message' => 'Simulated successfully.']);
     }
 }
+

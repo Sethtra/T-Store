@@ -3,13 +3,9 @@ import { persist } from 'zustand/middleware';
 import api from '../lib/api';
 import { useCartStore } from './cartStore';
 
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: 'customer' | 'admin';
-  created_at: string;
-}
+// User type — imported from centralized types directory, re-exported for backward compatibility
+import type { User } from '../types/user';
+export type { User };
 
 interface AuthState {
   user: User | null;

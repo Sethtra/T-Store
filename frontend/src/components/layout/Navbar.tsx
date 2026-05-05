@@ -9,6 +9,7 @@ import { useOrders } from "../../hooks/useOrders";
 import { useTranslation } from "react-i18next";
 import Button from "../ui/Button";
 import CustomerNotificationBell from "../notifications/CustomerNotificationBell";
+import SiteLogo from "../ui/SiteLogo";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -58,12 +59,7 @@ const Navbar = () => {
         <nav className="flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group shrink-0">
-            <div className="relative w-10 h-10 flex items-center justify-center bg-gradient-to-br from-[var(--color-primary)] to-purple-600 rounded-xl shadow-lg shadow-[var(--color-primary)]/20 transition-all duration-300 group-hover:shadow-[var(--color-primary)]/40 group-hover:scale-105">
-              <span className="text-white font-bold text-xl">T</span>
-            </div>
-            <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-[var(--color-text-primary)] to-[var(--color-text-secondary)] bg-clip-text text-transparent group-hover:to-[var(--color-primary)] transition-all duration-300">
-              T-Store
-            </span>
+            <SiteLogo size="md" showName={true} nameClassName="bg-gradient-to-r from-[var(--color-text-primary)] to-[var(--color-text-secondary)] bg-clip-text text-transparent group-hover:to-[var(--color-primary)] transition-all duration-300" />
           </Link>
 
           {/* Desktop Navigation */}

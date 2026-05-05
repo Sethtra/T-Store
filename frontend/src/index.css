@@ -91,43 +91,6 @@
   color-scheme: dark;
 }
 
-/* Light Theme (Duralux) */
-[data-theme="light"] {
-  /* Background Colors */
-  --color-bg-primary: #f0f2f8; /* Duralux Body BG */
-  --color-bg-secondary: #ffffff; /* Duralux Card/Sidebar BG */
-  --color-bg-elevated: #ffffff;
-  --color-bg-surface: #eff0f6; /* Soft gray for inputs/hovers */
-
-  /* Text Colors */
-  --color-text-primary: #283c50; /* Duralux Dark Text */
-  --color-text-secondary: #6b7885; /* Duralux Gray Text */
-  --color-text-muted: #91a1b6; /* Duralux Muted Text */
-
-  /* Brand Colors */
-  --color-primary: #3454d1; /* Duralux Blue */
-  --color-primary-hover: #2c47b2;
-  --color-primary-light: #c6cff2; /* Soft Primary */
-
-  /* Accent Colors */
-  --color-success: #17c666;
-  --color-warning: #ffa21d;
-  --color-error: #ea4d4d;
-  --color-info: #3dc7be;
-
-  /* Border Colors */
-  --color-border: #e5e7eb;
-  --color-border-hover: #dcdee4;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 5px 15px rgba(40, 60, 80, 0.15); /* Duralux Shadow */
-  --shadow-lg: 0 10px 25px rgba(40, 60, 80, 0.15);
-  --shadow-glow: 0 0 20px rgba(52, 84, 209, 0.3);
-
-  color-scheme: light;
-}
-
 /* Theme Transition */
 html {
   transition:

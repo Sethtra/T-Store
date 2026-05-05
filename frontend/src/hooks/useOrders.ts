@@ -1,42 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 
-// Types
-export interface OrderItem {
-  id: number;
-  product_id: number;
-  product_title: string;
-  quantity: number;
-  price: number;
-  product?: {
-    image_url?: string;
-    images?: string[];
-  };
-  attributes?: Record<string, string>;
-}
-
-export interface Order {
-  id: number;
-  user_id: number;
-  tracking_id?: string;
-  status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled';
-  payment_status?: 'pending' | 'paid' | 'failed' | 'cancelled';
-  total: number;
-  payment_intent?: string;
-  items: OrderItem[];
-  shipping_email?: string;
-  shipping_name?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateOrderData {
-  items: {
-    product_id: number;
-    quantity: number;
-  }[];
-  payment_method: 'stripe' | 'payway';
-}
+// Types — imported from centralized types directory, re-exported for backward compatibility
+import type { Order, OrderItem, CreateOrderData } from '../types/order';
+export type { Order, OrderItem, CreateOrderData };
 
 // Customer: Fetch own orders
 export const useOrders = () => {

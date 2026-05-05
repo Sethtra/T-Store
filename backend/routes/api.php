@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\AdminInventoryController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminExportController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\Admin\SiteSettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,6 +62,9 @@ Route::middleware('throttle:60,1')->group(function () {
     // Consolidated Public Data
     Route::get('/app-bootstrap', [PublicDataController::class, 'getAppBootstrap']);
     Route::get('/landing-data', [PublicDataController::class, 'getLandingData']);
+
+    // Site Settings (public - for logo/name display)
+    Route::get('/site-settings', [SiteSettingsController::class, 'index']);
 });
 
 
@@ -185,5 +189,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/export/orders', [AdminExportController::class, 'exportOrders']);
         Route::get('/export/products', [AdminExportController::class, 'exportProducts']);
         Route::get('/export/users', [AdminExportController::class, 'exportUsers']);
+
+        // Site Settings (Logo, Favicon & Name)
+        Route::post('/site-settings/logo', [SiteSettingsController::class, 'updateLogo']);
+        Route::delete('/site-settings/logo', [SiteSettingsController::class, 'deleteLogo']);
+        Route::post('/site-settings/favicon', [SiteSettingsController::class, 'updateFavicon']);
+        Route::delete('/site-settings/favicon', [SiteSettingsController::class, 'deleteFavicon']);
+        Route::put('/site-settings/name', [SiteSettingsController::class, 'updateName']);
     });
 });

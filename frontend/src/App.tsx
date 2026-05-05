@@ -17,6 +17,7 @@ import ScrollToTop from "./components/layout/ScrollToTop";
 import MobileBottomNav from "./components/layout/MobileBottomNav";
 import { useTranslation } from "react-i18next";
 import { ToastProvider } from "./components/ui/Toast";
+import DynamicHead from "./components/ui/DynamicHead";
 
 // Pages - Eager load critical pages
 import HomePage from "./pages/HomePage";
@@ -47,6 +48,7 @@ const AdminNotifications = lazy(
 const AdminUsers = lazy(() => import("./pages/admin/UsersPage"));
 const AdminInventory = lazy(() => import("./pages/admin/InventoryPage"));
 const AdminReports = lazy(() => import("./pages/admin/ReportsPage"));
+const AdminSettings = lazy(() => import("./pages/admin/SettingsPage"));
 
 // Create QueryClient
 const queryClient = new QueryClient({
@@ -133,6 +135,7 @@ function App() {
       <ToastProvider>
       <BrowserRouter>
         <ScrollToTop />
+        <DynamicHead />
         <Routes>
           {/* Public Routes */}
           <Route element={<MainLayout />}>
@@ -241,6 +244,14 @@ function App() {
               element={
                 <Suspense fallback={<PageLoader />}>
                   <AdminUsers />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <AdminSettings />
                 </Suspense>
               }
             />
