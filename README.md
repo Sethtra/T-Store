@@ -1,308 +1,253 @@
-# T-Store
+# 🛒 T-Store — Modern E-Commerce Platform
 
-Modern full-stack e-commerce platform built with React, TypeScript, Vite, Laravel, Sanctum, Stripe, ABA PayWay, and Supabase.
+<div align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+  <br />
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs Welcome" />
+</div>
 
-Repository: https://github.com/Sethtra/T-Store<br>
-Live site: https://t-store.site<br>
-API: https://api.t-store.site
+<br />
 
-## Overview
+T-Store is a **full-stack e-commerce platform** built for a premium shopping experience. It features a sleek, dark-themed storefront with real-time product filtering, a cloud-synced shopping cart, multi-gateway payments (Stripe & ABA PayWay KHQR), and a full admin dashboard for managing products, orders, inventory, and analytics.
 
-T-Store provides a customer storefront, cloud-synced cart, checkout, order tracking, and a full admin dashboard for managing products, categories, orders, inventory, users, reports, landing sections, site branding, and homepage messaging.
+🔗 **Live Demo:** [https://t-store.site](https://t-store.site)  
+🔗 **API Endpoint:** [https://api.t-store.site](https://api.t-store.site)
 
-The frontend is a React SPA hosted separately from the Laravel API. The backend exposes JSON API endpoints, handles authentication with Laravel Sanctum, stores uploaded assets through Supabase/local storage configuration, and processes payments through Stripe and ABA PayWay.
+---
 
-## Demo Accounts
+## 🧪 Demo Accounts
 
-| Role | Email | Password | Access |
-| --- | --- | --- | --- |
-| Admin | `admin@tstore.com` | `password` | Admin dashboard and storefront |
-| Customer | `john@example.com` | `password` | Storefront, cart, checkout, orders |
+You can use these accounts to explore the platform without signing up:
 
-## Main Features
+| Role         | Email              | Password   | Access                            |
+| :----------- | :----------------- | :--------- | :-------------------------------- |
+| **Admin**    | `admin@tstore.com` | `password` | Full admin dashboard + storefront |
+| **Customer** | `test@example.com` | `password` | Storefront, cart, orders          |
+
+> **💡 Tip:** You can also sign up with your own email or use **Google Sign-In** for a quick start.
+
+---
+
+## 📖 How to Use the Website
+
+### 🛍️ Shopping (Customer)
+
+1. **Browse Products** — Visit the homepage to see featured products, or go to `/products` to browse by category, price range, or search by name.
+2. **Product Details** — Click any product to see full images, description, and available variants (Size, Color, etc.).
+3. **Add to Cart** — Select your preferred variant and click "Add to Cart". The cart drawer will slide open from the right.
+4. **Review Cart** — Click the Cart icon (bottom nav on mobile, top nav on desktop) to review items. Each item shows its selected attributes (e.g., Size: L, Color: Black).
+5. **Checkout** — Click "Proceed to Checkout", fill in your shipping details, and choose a payment method:
+   - **Stripe** — Pay with Credit/Debit Card (test mode, use card `4242 4242 4242 4242`).
+   - **ABA PayWay** — Generates a KHQR code that expires in 5 minutes.
+6. **Track Orders** — After payment, visit `/orders` to track your order status (Pending → Processing → Shipped).
+
+### 🎛️ Admin Dashboard
+
+1. **Login** with the admin account above.
+2. Navigate to `/admin` or click "Admin Dashboard" in the menu.
+3. From here you can:
+   - 📊 **Dashboard** — View revenue, total orders, visitors, and top-selling products.
+   - 📦 **Products** — Create, edit, delete products with multi-image uploads and category assignment.
+   - 🗂️ **Categories** — Manage parent/child category trees.
+   - 📋 **Orders** — View all orders, update statuses (Processing, Shipped), and see payment details.
+   - 📈 **Inventory** — Track stock movements for every product with full audit logs.
+   - 🏷️ **Landing Sections** — Configure the hero banners, featured sections, and **Section 3 gallery** on the homepage with per-card **text color customization** for light and dark themes.
+   - 👥 **Users** — Manage customer accounts and roles.
+   - 📤 **Reports** — Export Orders, Products, or Users as CSV files.
+
+---
+
+## ⚠️ Known Quirks & Notes
+
+| Issue                                                     | Explanation                                                                                                                                                            |
+| :-------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Featured products sometimes don't load on first visit** | The backend runs on a free-tier cloud instance that may cold-start. Refresh the page once and it will load.                                                            |
+| **Login occasionally requires two attempts**              | The first login request wakes up the API server from its idle state. The second attempt succeeds instantly. This only happens if the server has been idle for a while. |
+| **Payment is in test/sandbox mode**                       | Stripe uses test keys — no real money is charged. ABA PayWay uses the sandbox environment.                                                                             |
+
+---
+
+## ✨ Key Features
 
 ### Storefront
 
-- Product listing with search, category filtering, price filtering, sorting, and pagination.
-- Product detail pages with multi-image galleries, variants, related products, and lightbox view.
-- Cloud-synced cart for authenticated users.
-- Checkout with Stripe card payments and ABA PayWay KHQR flow.
-- Customer order history, invoice view, payment retry, and order status tracking.
-- English and Khmer localization with theme support.
-- Mobile-focused navigation and responsive storefront pages.
+- 🌍 **Full Localization** — Complete dual-language support for English and Khmer (i18n) across the entire UI, including checkout and notifications.
+- 🔍 **Smart Search & Filtering** — Filter by category, price range, and sort order with instant results.
+- 🛒 **Cloud-Synced Cart** — Cart persists across sessions and syncs between devices when logged in. Supports product variants (Size, Color).
+- 💳 **Dual Payment Gateways** — Stripe (Credit/Debit Card) and ABA PayWay (KHQR) with a branded 5-minute expiry timer.
+- 🎨 **Premium UI/UX** — Modern glassmorphic design system with Framer Motion spring physics for dynamic, tactile interactions.
+- 📱 **Mobile-First Design** — Dedicated bottom navigation bar, swipe-friendly layouts, and responsive breakpoints.
+- 🌙 **Dark/Light Theme** — Toggle between dark and light modes.
+- 🔔 **Order Notifications** — Real-time notification bell for order status updates.
+- 🔐 **Secure Auth** — Email/password login, Google OAuth, and "Remember Me" support.
 
-### Admin
+### Admin Dashboard
 
-- Dashboard with revenue, order, visitor, and product metrics.
-- Product CRUD with multiple images, category assignment, stock, attributes, and localization fields.
-- Category and category-display management.
-- Landing section management for hero/product showcase and curated homepage sections.
-- Site settings for logo, favicon, site name, and hero messaging.
-- Order management with status updates.
-- Inventory ledger with stock adjustments and movement history.
-- User management with role and account-status controls.
-- CSV exports for orders, products, and users.
+- 📊 **Analytics Dashboard** — Revenue charts, sales velocity, top SKUs, and visitor counts.
+- 📦 **Full Product CRUD** — Multi-image gallery, drag-and-drop ordering, automatic orphaned image cleanup.
+- 📋 **Order Management** — Status workflow (Pending → Processing → Shipped) with inventory auto-adjustment.
+- 📈 **Inventory Ledger** — Full audit trail of every stock movement (sales, adjustments, restocks).
+- 🎨 **Section 3 Color Customization** — Per-card title and subtitle colors with separate light/dark theme support.
+- 📤 **CSV Export** — One-click export for Orders, Products, and Users.
 
-### Security And Account Behavior
+### Security
 
-- Laravel Sanctum bearer-token authentication.
-- Admin API routes protected by role middleware.
-- Suspended users are blocked from login and protected API access.
-- Suspending a user revokes existing access tokens.
-- Customer order endpoints are scoped to the authenticated user.
-- Stripe webhooks verify Stripe signatures.
-- ABA PayWay callbacks verify HMAC signatures.
+- 🛡️ **Token-Based Auth** — Laravel Sanctum with automatic session expiry.
+- 🔒 **Admin Route Protection** — All admin endpoints are middleware-protected; non-admins cannot access.
+- ✅ **Payment Verification** — Stripe webhooks with signature validation, PayWay callbacks with HMAC-SHA512.
+- 🚫 **Error Hardening** — No internal server details leak to the client in production.
 
-## Tech Stack
+---
+
+## 🏗️ Tech Stack
 
 ### Frontend
 
-| Technology | Purpose |
-| --- | --- |
-| React 19 | SPA UI framework |
-| TypeScript 5 | Static typing |
-| Vite / rolldown-vite | Build and dev server |
-| React Router 7 | Client-side routing |
-| TanStack Query 5 | Server-state cache and API synchronization |
-| Zustand 5 | Auth, cart, and theme state |
-| Tailwind CSS 4 | Styling |
-| Framer Motion | UI animation |
-| i18next | Localization |
-| Recharts | Admin charts |
-| Stripe React SDK | Stripe checkout UI |
+| Technology                  | Purpose                               |
+| :-------------------------- | :------------------------------------ |
+| **React 19** + TypeScript 5 | Core SPA framework                    |
+| **Vite**                    | Build tool & dev server               |
+| **TanStack Query v5**       | Server-state management & caching     |
+| **Zustand**                 | Client-side store (auth, cart, theme) |
+| **Tailwind CSS v4**         | Utility-first styling                 |
+| **Framer Motion**           | Page transitions & micro-animations   |
+| **React Router v6**         | Client-side routing                   |
 
 ### Backend
 
-| Technology | Purpose |
-| --- | --- |
-| PHP 8.2+ | Runtime |
-| Laravel 12 | API framework |
-| Laravel Sanctum | Token authentication |
-| Laravel Socialite | Google OAuth |
-| Eloquent ORM | Database access |
-| Stripe PHP SDK | Stripe payments |
-| PHPUnit | Backend tests |
-| Laravel Pint | Backend formatting |
+| Technology                | Purpose                          |
+| :------------------------ | :------------------------------- |
+| **Laravel 12** (PHP 8.2+) | RESTful API framework            |
+| **Laravel Sanctum**       | Stateless token authentication   |
+| **Eloquent ORM**          | Database queries & relationships |
+| **Stripe PHP SDK**        | Credit/debit card processing     |
+| **ABA PayWay API**        | KHQR mobile payments             |
+| **Laravel Socialite**     | Google OAuth integration         |
 
 ### Infrastructure
 
-| Service | Purpose |
-| --- | --- |
-| Vercel | Frontend hosting |
-| AWS EC2 / Nginx | Backend hosting |
-| Supabase PostgreSQL | Production database |
-| Supabase Storage | Product and branding assets |
+| Service                      | Purpose                             |
+| :--------------------------- | :---------------------------------- |
+| **AWS EC2** (Ubuntu + Nginx) | Backend hosting                     |
+| **Vercel**                   | Frontend hosting & CDN              |
+| **Supabase PostgreSQL**      | Primary database (Singapore region) |
+| **Supabase Storage**         | Product image hosting               |
 
-## Project Structure
+---
 
-```text
-T-Store/
-  backend/              Laravel API
-    app/
-    config/
-    database/
-    routes/
-    tests/
-  frontend/             React SPA
-    public/
-    src/
-      components/
-      hooks/
-      pages/
-      stores/
-      types/
+## 🚀 Architecture
+
+```
+┌──────────────┐     HTTPS/JSON    ┌──────────────┐     SQL (6543)  ┌──────────────┐
+│   Frontend   │ ────────────────► │   Backend    │ ──────────────► │   Supabase   │
+│   (Vercel)   │                   │  (AWS EC2)   │                 │  PostgreSQL  │
+│  React SPA   │ ◄──────────────── │  Laravel API │ ──────────────► │   Storage    │
+└──────────────┘     JSON Response └──────────────┘   Image Upload  └──────────────┘
 ```
 
-## Local Development
+---
+
+## 🔧 Local Development Setup
 
 ### Prerequisites
 
-- Node.js 18+
-- PHP 8.2+
-- Composer 2+
-- PostgreSQL or a Supabase database
+- **Node.js** `v18.0+`
+- **PHP** `v8.2+`
+- **Composer** `v2.x`
+- **PostgreSQL** (or a Supabase project)
 
-### Backend
+### 1️⃣ Backend
 
 ```bash
 cd backend
 composer install
-cp .env.example .env
+cp .env.example .env    # Then fill in your DB, Stripe, PayWay, and Supabase credentials
 php artisan key:generate
 php artisan migrate
-php artisan serve
+php artisan serve        # Starts at http://localhost:8000
 ```
 
-The backend runs at:
-
-```text
-http://localhost:8000
-```
-
-### Frontend
+### 2️⃣ Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev
+cp .env.example .env    # Set VITE_API_URL=http://localhost:8000/api
+npm run dev             # Starts at http://localhost:5173
 ```
 
-The frontend dev server runs at:
+### Environment Variables Required
 
-```text
-http://localhost:3000
-```
+The following environment variables must be configured in `backend/.env`:
 
-On Windows PowerShell, if `npm` is blocked by execution policy, use:
+| Variable                         | Description                                                                                   |
+| :------------------------------- | :-------------------------------------------------------------------------------------------- |
+| `APP_ENV`                        | `local` for dev, `production` for live                                                        |
+| `APP_DEBUG`                      | `true` for dev (shows errors), `false` for production                                         |
+| `DB_*`                           | PostgreSQL connection details                                                                 |
+| `FRONTEND_URL`                   | Your frontend URL (for CORS)                                                                  |
+| `GOOGLE_CLIENT_ID` / `SECRET`    | Google OAuth credentials                                                                      |
+| `STRIPE_KEY` / `SECRET`          | Stripe publishable & secret keys                                                              |
+| `STRIPE_WEBHOOK_SECRET`          | Stripe webhook signing secret                                                                 |
+| `PAYWAY_MERCHANT_ID` / `API_KEY` | ABA PayWay credentials                                                                        |
+| `PAYWAY_BASE_URL`                | `https://checkout-sandbox.payway.com.kh` (sandbox) or `https://checkout.payway.com.kh` (live) |
+| `SUPABASE_URL` / `KEY`           | Supabase project URL & service key                                                            |
 
-```powershell
-npm.cmd run dev
-npm.cmd run build
-npm.cmd run lint
-```
+> **⚠️ Never commit your `.env` file.** It is already in `.gitignore`.
 
-## Environment Variables
+---
 
-The backend requires a configured `backend/.env`.
-
-Important variables:
-
-| Variable | Purpose |
-| --- | --- |
-| `APP_ENV` | Application environment |
-| `APP_DEBUG` | Debug mode |
-| `APP_URL` | Backend base URL |
-| `FRONTEND_URL` | Frontend origin for redirects and CORS |
-| `DB_*` | Database connection |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth secret |
-| `STRIPE_KEY` | Stripe publishable key |
-| `STRIPE_SECRET` | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `PAYWAY_MERCHANT_ID` | ABA PayWay merchant ID |
-| `PAYWAY_API_KEY` | ABA PayWay API key |
-| `PAYWAY_BASE_URL` | ABA PayWay sandbox or live URL |
-| `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_KEY` | Supabase service key |
-| `SUPABASE_STORAGE_BUCKET` | Storage bucket name |
-
-The frontend commonly uses:
-
-| Variable | Purpose |
-| --- | --- |
-| `VITE_API_URL` | API base URL, for example `http://localhost:8000/api` |
-| `VITE_STRIPE_PUBLIC_KEY` | Stripe publishable key |
-
-Do not commit real `.env` files.
-
-## Useful Commands
-
-### Frontend
-
-```bash
-cd frontend
-npm run dev
-npm run build
-npm run lint
-npm run preview
-```
-
-### Backend
-
-```bash
-cd backend
-php artisan serve
-php artisan test
-vendor/bin/pint --test
-```
-
-## API Summary
+## 📡 API Endpoints
 
 ### Public
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/api/products` | Paginated product listing |
-| `GET` | `/api/products/featured` | Featured products |
-| `GET` | `/api/products/{slug}` | Product detail and related products |
-| `GET` | `/api/categories` | Category tree |
-| `GET` | `/api/app-bootstrap` | Shared app bootstrap data |
-| `GET` | `/api/landing-data` | Homepage content data |
-| `GET` | `/api/site-settings` | Public logo, favicon, site name, and hero text |
-| `POST` | `/api/register` | Register customer |
-| `POST` | `/api/login` | Login |
-| `GET` | `/api/auth/google` | Start Google OAuth |
-| `GET` | `/api/auth/google/callback` | Google OAuth callback |
-| `POST` | `/api/webhooks/stripe` | Stripe webhook |
-| `POST` | `/api/payment/payway/callback` | ABA PayWay callback |
+| Method | Endpoint                 | Description                                       |
+| :----- | :----------------------- | :------------------------------------------------ |
+| `GET`  | `/api/products`          | Paginated product list with filters               |
+| `GET`  | `/api/products/{slug}`   | Single product details                            |
+| `GET`  | `/api/products/featured` | Featured products for homepage                    |
+| `GET`  | `/api/categories`        | Category tree                                     |
+| `GET`  | `/api/category-displays` | Homepage category display sections                |
+| `GET`  | `/api/landing-data`      | All homepage data (banners, sections, categories) |
+| `GET`  | `/api/landing-sections`  | Hero banner and Section 3 gallery configuration   |
+| `POST` | `/api/login`             | User login                                        |
+| `POST` | `/api/register`          | User registration                                 |
 
-### Authenticated Customer
+### Authenticated (Requires Bearer Token)
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/api/user` | Current user |
-| `POST` | `/api/logout` | Logout and revoke current token |
-| `GET` | `/api/cart` | Get cloud cart |
-| `POST` | `/api/cart/sync` | Sync guest cart |
-| `POST` | `/api/cart/items` | Add cart item |
-| `PUT` | `/api/cart/items/{id}` | Update cart item quantity |
-| `DELETE` | `/api/cart/items/{id}` | Remove cart item |
-| `DELETE` | `/api/cart` | Clear cart |
-| `GET` | `/api/orders` | Current user's orders |
-| `GET` | `/api/orders/{id}` | Current user's single order |
-| `POST` | `/api/orders` | Create order |
-| `POST` | `/api/orders/{id}/retry-payment` | Retry payment |
-| `POST` | `/api/payment/stripe/create-intent` | Create Stripe PaymentIntent |
-| `POST` | `/api/payment/payway/create` | Create ABA PayWay transaction |
-| `GET` | `/api/payment/payway/status` | Check ABA PayWay status |
+| Method | Endpoint                                 | Description                    |
+| :----- | :--------------------------------------- | :----------------------------- |
+| `GET`  | `/api/user`                              | Current user profile           |
+| `POST` | `/api/orders`                            | Create a new order             |
+| `GET`  | `/api/orders`                            | List user's orders             |
+| `POST` | `/api/payment/stripe/create-intent`      | Create Stripe PaymentIntent    |
+| `POST` | `/api/payment/payway/create-transaction` | Create PayWay KHQR transaction |
+| `GET`  | `/api/cart`                              | Get user's cloud cart          |
+| `POST` | `/api/cart/sync`                         | Sync guest cart to user cart   |
 
-### Admin
+### Admin Only (Requires Admin Role)
 
-Admin routes require a valid token and admin role.
+| Method   | Endpoint                           | Description                             |
+| :------- | :--------------------------------- | :-------------------------------------- |
+| `GET`    | `/api/admin/dashboard`             | Analytics data                          |
+| `POST`   | `/api/admin/products`              | Create product                          |
+| `POST`   | `/api/admin/products/{id}`         | Update product (`_method=PUT`)          |
+| `DELETE` | `/api/admin/products/{id}`         | Delete product                          |
+| `PUT`    | `/api/admin/orders/{id}/status`    | Update order status                     |
+| `GET`    | `/api/admin/inventory`             | Inventory & stock movements             |
+| `POST`   | `/api/admin/landing-sections`      | Create landing section (hero/Section 3) |
+| `POST`   | `/api/admin/landing-sections/{id}` | Update landing section (`_method=PUT`)  |
+| `DELETE` | `/api/admin/landing-sections/{id}` | Delete landing section                  |
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/api/admin/dashboard` | Dashboard summary |
-| `GET` | `/api/admin/dashboard-data` | Dashboard data |
-| `GET` | `/api/admin/products` | Product list |
-| `POST` | `/api/admin/products` | Create product |
-| `PUT` | `/api/admin/products/{id}` | Update product |
-| `POST` | `/api/admin/products/{id}` | Update product with multipart form data |
-| `DELETE` | `/api/admin/products/{id}` | Delete product |
-| `GET` | `/api/admin/categories` | Category list |
-| `POST` | `/api/admin/categories` | Create category |
-| `PUT` | `/api/admin/categories/{category}` | Update category |
-| `DELETE` | `/api/admin/categories/{category}` | Delete category |
-| `GET` | `/api/admin/orders` | Admin order list |
-| `GET` | `/api/admin/orders/{id}` | Admin order detail |
-| `PATCH` | `/api/admin/orders/{id}/status` | Update order status |
-| `GET` | `/api/admin/users` | User list |
-| `GET` | `/api/admin/users/{id}` | User detail |
-| `PUT` | `/api/admin/users/{id}` | Update user role or status |
-| `GET` | `/api/admin/inventory` | Inventory list |
-| `POST` | `/api/admin/inventory/adjust` | Adjust stock |
-| `POST` | `/api/admin/inventory/bulk-adjust` | Bulk adjust stock |
-| `GET` | `/api/admin/reports/summary` | Sales summary |
-| `GET` | `/api/admin/reports/revenue` | Revenue chart |
-| `GET` | `/api/admin/reports/top-products` | Top products |
-| `GET` | `/api/admin/export/orders` | Export orders CSV |
-| `GET` | `/api/admin/export/products` | Export products CSV |
-| `GET` | `/api/admin/export/users` | Export users CSV |
-| `PUT` | `/api/admin/site-settings/name` | Update site name |
-| `PUT` | `/api/admin/site-settings/hero` | Update hero text |
-| `POST` | `/api/admin/site-settings/logo` | Upload logo |
-| `DELETE` | `/api/admin/site-settings/logo` | Delete logo |
-| `POST` | `/api/admin/site-settings/favicon` | Upload favicon |
-| `DELETE` | `/api/admin/site-settings/favicon` | Delete favicon |
+---
 
-## Development Notes
+## 📄 License
 
-- The storefront uses user-scoped query keys for customer orders to avoid leaking cached order data between accounts in the same browser.
-- Admin user suspension is enforced by backend login checks, protected-route middleware, and token revocation.
-- Hero text is stored in site settings so it syncs across devices.
-- `frontend/dist` is generated output and should be rebuilt after frontend source changes.
-- The production API may cold start if hosted on low-cost infrastructure.
+Released under the **MIT License**.
 
-## License
-
-MIT License. Copyright 2026 T-Store.
+Copyright © 2026 T-Store
