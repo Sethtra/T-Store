@@ -90,7 +90,7 @@ Route::post('/payment/payway/callback', [PaymentController::class, 'paywayCallba
 
 
 // Protected Routes (Authenticated Users)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     // Auth
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);

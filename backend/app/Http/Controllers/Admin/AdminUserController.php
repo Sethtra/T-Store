@@ -139,7 +139,17 @@ class AdminUserController extends Controller
             ], 403);
         }
 
+        if ($request->has('status') && $user->id === $request->user()->id && $request->status !== 'active') {
+            return response()->json([
+                'message' => 'You cannot suspend your own account.',
+            ], 403);
+        }
+
         $user->update($request->only(['role', 'status']));
+
+        if ($request->status === 'inactive') {
+            $user->tokens()->delete();
+        }
 
         return response()->json([
             'message' => 'User updated successfully.',

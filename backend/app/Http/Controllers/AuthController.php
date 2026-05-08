@@ -53,6 +53,20 @@ class AuthController extends Controller
 
             if (Auth::attempt($credentials, $remember)) {
                 $user = Auth::user();
+
+                if (($user->status ?? 'active') !== 'active') {
+                    $user->tokens()->delete();
+                    Auth::guard('web')->logout();
+
+                    if ($request->hasSession()) {
+                        $request->session()->invalidate();
+                        $request->session()->regenerateToken();
+                    }
+
+                    return response()->json([
+                        'message' => 'Your account has been suspended. Please contact support.',
+                    ], 403);
+                }
                 
                 // Ensure old session is cleared (if they exist)
                 if ($request->hasSession()) {

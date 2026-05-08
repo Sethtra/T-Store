@@ -54,6 +54,13 @@ class GoogleAuthController extends Controller
                 ]);
             }
 
+            if (($user->status ?? 'active') !== 'active') {
+                $user->tokens()->delete();
+
+                $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+                return redirect($frontendUrl . '/login?google=error&message=' . urlencode('Your account has been suspended. Please contact support.'));
+            }
+
             // Create Sanctum token directly (no Cache intermediary)
             $sanctumToken = $user->createToken('auth-token')->plainTextToken;
 
