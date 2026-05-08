@@ -5,10 +5,11 @@ import {
   Navigate,
   Outlet,
 } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect } from "react";
 import { useAuthStore } from "./stores/authStore";
 import api from "./lib/api";
+import { queryClient } from "./lib/queryClient";
 
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
@@ -49,17 +50,6 @@ const AdminUsers = lazy(() => import("./pages/admin/UsersPage"));
 const AdminInventory = lazy(() => import("./pages/admin/InventoryPage"));
 const AdminReports = lazy(() => import("./pages/admin/ReportsPage"));
 const AdminSettings = lazy(() => import("./pages/admin/SettingsPage"));
-
-// Create QueryClient
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
 
 // Layout wrapper
 const MainLayout = () => {

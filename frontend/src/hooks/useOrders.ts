@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
+import { useAuthStore } from '../stores/authStore';
 
 // Types — imported from centralized types directory, re-exported for backward compatibility
 import type { Order, OrderItem, CreateOrderData } from '../types/order';
@@ -7,34 +8,45 @@ export type { Order, OrderItem, CreateOrderData };
 
 // Customer: Fetch own orders
 export const useOrders = () => {
+  const userId = useAuthStore((state) => state.user?.id);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   return useQuery({
-    queryKey: ['orders'],
+    queryKey: ['orders', userId],
     queryFn: async (): Promise<Order[]> => {
       const response = await api.get('/orders');
       return response.data;
     },
-    enabled: !!localStorage.getItem('auth_token'),
+    enabled: isAuthenticated && !!userId,
   });
 };
 
 // Customer: Fetch single order
 export const useOrder = (id: number) => {
+  const userId = useAuthStore((state) => state.user?.id);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   return useQuery({
-    queryKey: ['order', id],
+    queryKey: ['order', userId, id],
     queryFn: async (): Promise<Order> => {
       const response = await api.get(`/orders/${id}`);
       return response.data;
     },
-    enabled: !!id,
+    enabled: isAuthenticated && !!userId && !!id,
   });
 };
 
 // Customer: Create order (checkout)
 export const useCreateOrder = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (data: CreateOrderData) => {
       const response = await api.post('/orders', data);
       return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
   });
 };

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '../lib/api';
+import { clearUserScopedQueryCache } from '../lib/queryClient';
 import { useCartStore } from './cartStore';
 
 // User type — imported from centralized types directory, re-exported for backward compatibility
@@ -28,6 +29,10 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
 
       setUser: (user) => {
+        if (get().user?.id !== user?.id) {
+          clearUserScopedQueryCache();
+        }
+
         set({ user, isAuthenticated: !!user });
         useCartStore.getState().syncCartWithUser(user ? String(user.id) : null);
       },
@@ -35,6 +40,7 @@ export const useAuthStore = create<AuthState>()(
       login: async (email, password, remember) => {
         set({ isLoading: true });
         try {
+          clearUserScopedQueryCache();
            // ... existing implementation remains here but we await fetchUser which handles the sync ...
           const response = await api.post('/login', { email, password, remember: remember || false });
           if (response.data.token) {
@@ -49,6 +55,7 @@ export const useAuthStore = create<AuthState>()(
       register: async (name, email, password, password_confirmation) => {
         set({ isLoading: true });
         try {
+          clearUserScopedQueryCache();
           const response = await api.post('/register', { name, email, password, password_confirmation });
           if (response.data.token) {
             localStorage.setItem('auth_token', response.data.token);
@@ -67,6 +74,7 @@ export const useAuthStore = create<AuthState>()(
           // Ignore failures on logout (e.g. 401)
         } finally {
           localStorage.removeItem('auth_token');
+          clearUserScopedQueryCache();
           set({ user: null, isAuthenticated: false, isLoading: false });
           // Dettach from user cart and switch back to an empty guest cart
           useCartStore.getState().syncCartWithUser(null);
@@ -77,9 +85,14 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const response = await api.get('/user');
+          if (get().user?.id !== response.data.id) {
+            clearUserScopedQueryCache();
+          }
+
           set({ user: response.data, isAuthenticated: true });
           useCartStore.getState().syncCartWithUser(String(response.data.id));
         } catch {
+          clearUserScopedQueryCache();
           set({ user: null, isAuthenticated: false });
           useCartStore.getState().syncCartWithUser(null);
         } finally {
