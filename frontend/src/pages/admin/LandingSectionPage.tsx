@@ -14,14 +14,17 @@ import {
 } from "../../hooks/useLandingSections";
 import { useProducts, type Product } from "../../hooks/useProducts";
 import imageCompression from "browser-image-compression";
+import { useSiteSettings, useUpdateHeroText } from "../../hooks/useSiteSettings";
 
 const LandingSectionPage = () => {
   const { showToast } = useToast();
   const { data: sections, isLoading } = useAdminLandingSections();
   const { data: productsData } = useProducts({ limit: 100 });
+  const { data: siteSettings } = useSiteSettings();
   const createMutation = useCreateLandingSection();
   const updateMutation = useUpdateLandingSection();
   const deleteMutation = useDeleteLandingSection();
+  const updateHeroTextMutation = useUpdateHeroText();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<LandingSection | null>(
@@ -259,7 +262,7 @@ const LandingSectionPage = () => {
                   <input
                     type="text"
                     defaultValue={
-                      localStorage.getItem("hero_title") ||
+                      siteSettings?.hero_title ||
                       "Elevate your lifestyle"
                     }
                     id="hero-title-input"
@@ -274,7 +277,7 @@ const LandingSectionPage = () => {
                   <input
                     type="text"
                     defaultValue={
-                      localStorage.getItem("hero_subtitle") ||
+                      siteSettings?.hero_subtitle ||
                       "with premium essentials."
                     }
                     id="hero-subtitle-input"
@@ -291,7 +294,7 @@ const LandingSectionPage = () => {
                   <input
                     type="text"
                     defaultValue={
-                      localStorage.getItem("hero_title_kh") ||
+                      siteSettings?.hero_title_kh ||
                       "លើកកម្ពស់របៀបរស់នៅរបស់អ្នក"
                     }
                     id="hero-title-kh-input"
@@ -306,7 +309,7 @@ const LandingSectionPage = () => {
                   <input
                     type="text"
                     defaultValue={
-                      localStorage.getItem("hero_subtitle_kh") ||
+                      siteSettings?.hero_subtitle_kh ||
                       "ជាមួយនឹងរបស់របរចាំបាច់លំដាប់ខ្ពស់"
                     }
                     id="hero-subtitle-kh-input"
@@ -322,7 +325,7 @@ const LandingSectionPage = () => {
                   </label>
                   <textarea
                     defaultValue={
-                      localStorage.getItem("hero_description") ||
+                      siteSettings?.hero_description ||
                       "Elevate your routine with premium goods and curated essentials..."
                     }
                     id="hero-description-input"
@@ -337,7 +340,7 @@ const LandingSectionPage = () => {
                   </label>
                   <textarea
                     defaultValue={
-                      localStorage.getItem("hero_description_kh") ||
+                      siteSettings?.hero_description_kh ||
                       "បង្កើនទម្លាប់របស់អ្នកជាមួយនឹងទំនិញលំដាប់ខ្ពស់..."
                     }
                     id="hero-description-kh-input"
@@ -370,7 +373,8 @@ const LandingSectionPage = () => {
               </div>
               <Button
                 variant="primary"
-                onClick={() => {
+                disabled={updateHeroTextMutation.isPending}
+                onClick={async () => {
                   const title = (
                     document.getElementById(
                       "hero-title-input",
@@ -402,23 +406,23 @@ const LandingSectionPage = () => {
                     ) as HTMLTextAreaElement
                   )?.value;
 
-                  if (title !== undefined)
-                    localStorage.setItem("hero_title", title);
-                  if (titleKh !== undefined)
-                    localStorage.setItem("hero_title_kh", titleKh);
-                  if (subtitle !== undefined)
-                    localStorage.setItem("hero_subtitle", subtitle);
-                  if (subtitleKh !== undefined)
-                    localStorage.setItem("hero_subtitle_kh", subtitleKh);
-                  if (description !== undefined)
-                    localStorage.setItem("hero_description", description);
-                  if (descriptionKh !== undefined)
-                    localStorage.setItem("hero_description_kh", descriptionKh);
-                  showToast("Hero text updated successfully!", "success");
+                  try {
+                    await updateHeroTextMutation.mutateAsync({
+                      hero_title: title,
+                      hero_title_kh: titleKh,
+                      hero_subtitle: subtitle,
+                      hero_subtitle_kh: subtitleKh,
+                      hero_description: description,
+                      hero_description_kh: descriptionKh
+                    });
+                    showToast("Hero text updated successfully!", "success");
+                  } catch (error) {
+                    showToast("Failed to update hero text.", "error");
+                  }
                 }}
                 className="w-full sm:w-auto px-8"
               >
-                Save Messaging
+                {updateHeroTextMutation.isPending ? "Saving..." : "Save Messaging"}
               </Button>
             </div>
           </div>

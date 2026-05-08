@@ -145,4 +145,38 @@ class SiteSettingsController extends Controller
             'message' => 'Favicon removed. Default will be used.',
         ]);
     }
+
+    /**
+     * Update hero section messaging.
+     */
+    public function updateHeroText(Request $request)
+    {
+        $request->validate([
+            'hero_title' => 'nullable|string|max:255',
+            'hero_title_kh' => 'nullable|string|max:255',
+            'hero_subtitle' => 'nullable|string|max:255',
+            'hero_subtitle_kh' => 'nullable|string|max:255',
+            'hero_description' => 'nullable|string',
+            'hero_description_kh' => 'nullable|string',
+        ]);
+
+        $keys = [
+            'hero_title', 'hero_title_kh',
+            'hero_subtitle', 'hero_subtitle_kh',
+            'hero_description', 'hero_description_kh'
+        ];
+
+        foreach ($keys as $key) {
+            if ($request->has($key)) {
+                SiteSetting::setValue($key, $request->$key);
+            }
+        }
+
+        Cache::forget('site_settings');
+        Cache::forget('app_bootstrap');
+
+        return response()->json([
+            'message' => 'Hero messaging updated successfully.',
+        ]);
+    }
 }

@@ -196,5 +196,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/site-settings/favicon', [SiteSettingsController::class, 'updateFavicon']);
         Route::delete('/site-settings/favicon', [SiteSettingsController::class, 'deleteFavicon']);
         Route::put('/site-settings/name', [SiteSettingsController::class, 'updateName']);
+        Route::put('/site-settings/hero', [SiteSettingsController::class, 'updateHeroText']);
     });
 });

@@ -4,6 +4,7 @@ import { useLandingData } from "../../hooks/useLandingData";
 import { getImageUrl } from "../../utils/image";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, Zap, ShoppingBag, Star } from "lucide-react";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
 
 const HeroSkeleton = () => (
   <section className="relative min-h-[85vh] flex items-center pt-32 pb-20 px-4 md:px-8">
@@ -27,7 +28,8 @@ const HeroSkeleton = () => (
 
 const HeroSection = () => {
   const { t, i18n } = useTranslation();
-  const { data: landingData, isLoading } = useLandingData();
+  const { data: landingData, isLoading: landingLoading } = useLandingData();
+  const { data: siteSettings, isLoading: settingsLoading } = useSiteSettings();
   const sections = landingData?.landing_sections;
 
   const mainProduct = sections?.find(
@@ -36,20 +38,20 @@ const HeroSection = () => {
   const p = mainProduct?.product;
 
   const isKh = i18n.language === "kh";
+  
   const heroTitle = isKh
-    ? localStorage.getItem("hero_title_kh") || t("hero.default_title")
-    : localStorage.getItem("hero_title") || t("hero.default_title");
+    ? siteSettings?.hero_title_kh || t("hero.default_title")
+    : siteSettings?.hero_title || t("hero.default_title");
 
   const heroSubtitle = isKh
-    ? localStorage.getItem("hero_subtitle_kh") || t("hero.default_subtitle")
-    : localStorage.getItem("hero_subtitle") || t("hero.default_subtitle");
+    ? siteSettings?.hero_subtitle_kh || t("hero.default_subtitle")
+    : siteSettings?.hero_subtitle || t("hero.default_subtitle");
 
   const heroDescription = isKh
-    ? localStorage.getItem("hero_description_kh") ||
-      t("hero.default_description")
-    : localStorage.getItem("hero_description") || t("hero.default_description");
+    ? siteSettings?.hero_description_kh || t("hero.default_description")
+    : siteSettings?.hero_description || t("hero.default_description");
 
-  if (isLoading) return <HeroSkeleton />;
+  if (landingLoading || settingsLoading) return <HeroSkeleton />;
 
   const productTitle = p ? (isKh ? p.title_kh || p.title : p.title) : "";
 

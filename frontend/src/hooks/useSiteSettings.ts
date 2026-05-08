@@ -7,6 +7,12 @@ export interface SiteSettings {
   site_favicon: string | null;
   site_favicon_url: string | null;
   site_name: string;
+  hero_title?: string;
+  hero_title_kh?: string;
+  hero_subtitle?: string;
+  hero_subtitle_kh?: string;
+  hero_description?: string;
+  hero_description_kh?: string;
 }
 
 /**
@@ -112,6 +118,33 @@ export const useDeleteFavicon = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['site-settings'] });
+    },
+  });
+};
+
+export interface UpdateHeroTextPayload {
+  hero_title?: string;
+  hero_title_kh?: string;
+  hero_subtitle?: string;
+  hero_subtitle_kh?: string;
+  hero_description?: string;
+  hero_description_kh?: string;
+}
+
+/**
+ * Admin: Update hero section messaging text.
+ */
+export const useUpdateHeroText = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: UpdateHeroTextPayload) => {
+      const response = await api.put('/admin/site-settings/hero', payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['site-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['app-bootstrap'] });
     },
   });
 };
