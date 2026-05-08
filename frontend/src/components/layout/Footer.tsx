@@ -4,6 +4,8 @@ import { Facebook, Twitter, Instagram, Github } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import SiteLogo from "../ui/SiteLogo";
 
+const GITHUB_REPO_URL = "https://github.com/Sethtra/T-Store";
+
 const Footer = () => {
   const { t, i18n } = useTranslation();
   const currentYear = new Date().getFullYear();
@@ -60,13 +62,19 @@ const Footer = () => {
                   href: "https://instagram.com",
                   label: "Instagram",
                 },
-                { icon: Github, href: "https://github.com", label: "Github" },
+                { icon: Github, href: GITHUB_REPO_URL, label: "GitHub" },
               ].map((social) => (
                 <motion.a
                   key={social.label}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(event) => {
+                    if (social.label !== "GitHub") return;
+
+                    event.preventDefault();
+                    window.open(GITHUB_REPO_URL, "_blank", "noopener,noreferrer");
+                  }}
                   whileHover={{ y: -3 }}
                   className="w-10 h-10 rounded-full bg-[var(--color-bg-elevated)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors group"
                 >
