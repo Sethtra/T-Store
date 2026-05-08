@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { loadStripe } from "@stripe/stripe-js";
@@ -8,6 +8,7 @@ import {
   useCreateOrder,
   useCreateStripeIntent,
   useCreatePaywayTransaction,
+  type Order,
 } from "../hooks/useOrders";
 import { useAuthStore } from "../stores/authStore";
 import Button from "../components/ui/Button";
@@ -16,6 +17,12 @@ import StripeForm from "../components/checkout/StripeForm";
 import { useTranslation } from "react-i18next";
 
 import api from "../lib/api";
+import { getApiErrorMessage } from "../lib/errors";
+
+type PaywayData = {
+  qrImage: string;
+  deeplink?: string;
+};
 
 const BackgroundElements = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -107,7 +114,7 @@ const StepProgress = ({ currentStep }: { currentStep: number }) => {
 
 // Payment Method Card Component
 const PaymentMethodCard = ({
-  id: _id,
+  id,
   selected,
   onSelect,
   icon,
@@ -125,6 +132,7 @@ const PaymentMethodCard = ({
 }) => (
   <button
     type="button"
+    data-payment-method={id}
     onClick={onSelect}
     className={`w-full flex items-center p-5 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden group ${
       selected
@@ -186,7 +194,7 @@ const PaywayQRView = ({
   formatTime,
   createdOrderId,
 }: {
-  paywayData: any;
+  paywayData: PaywayData;
   totalAmount: number;
   qrTimeLeft: number;
   formatTime: (t: number) => string;
@@ -254,7 +262,12 @@ const PaywayQRView = ({
 
           <button
             onClick={async () => {
-              try { await api.post("/payment/payway/simulate", { order_id: createdOrderId }); } catch (e) {}
+              if (!createdOrderId) return;
+              try {
+                await api.post("/payment/payway/simulate", { order_id: createdOrderId });
+              } catch (err) {
+                console.error("PayWay simulation failed", err);
+              }
             }}
             className="mt-6 text-[11px] font-bold tracking-widest text-[var(--color-text-muted)] hover:text-[#e21937] opacity-60 transition-colors uppercase cursor-pointer"
           >
@@ -299,15 +312,12 @@ const CheckoutPage = () => {
 
   // Payment Flow State
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
-  const [retryOrder, setRetryOrder] = useState<any>(null);
+  const [retryOrder, setRetryOrder] = useState<Order | null>(null);
   const [isRetryMode, setIsRetryMode] = useState(false);
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(
     null,
   );
-  const [paywayData, setPaywayData] = useState<{
-    qrImage?: string;
-    deeplink?: string;
-  } | null>(null);
+  const [paywayData, setPaywayData] = useState<PaywayData | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -321,7 +331,7 @@ const CheckoutPage = () => {
       setCreatedOrderId(Number(retryOrderId));
       // Load order details
       api
-        .get(`/orders/${retryOrderId}`)
+        .get<Order>(`/orders/${retryOrderId}`)
         .then((res) => {
           setRetryOrder(res.data);
         })
@@ -341,6 +351,12 @@ const CheckoutPage = () => {
       setOrderSuccess(true);
     }
   }, [searchParams, clearCart]);
+
+  // Step 2: Handle Successful Payment
+  const handlePaymentSuccess = useCallback(() => {
+    clearCart(); // Clear cart only when payment succeeds
+    setOrderSuccess(true);
+  }, [clearCart]);
 
   // Polling for PayWay Status and QR Timer
   useEffect(() => {
@@ -378,7 +394,7 @@ const CheckoutPage = () => {
       clearInterval(statusInterval);
       clearInterval(timerInterval);
     };
-  }, [currentStep, paymentMethod, createdOrderId, orderSuccess, navigate]);
+  }, [currentStep, paymentMethod, createdOrderId, orderSuccess, navigate, handlePaymentSuccess]);
 
   // Format QR time into MM:SS
   const formatTime = (seconds: number) => {
@@ -458,21 +474,14 @@ const CheckoutPage = () => {
           );
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       setPaymentError(
-        error.response?.data?.message ||
-          "Failed to create order. Please try again.",
+        getApiErrorMessage(error, "Failed to create order. Please try again."),
       );
       console.error("Order creation failed", error);
     } finally {
       setIsCreatingOrder(false);
     }
-  };
-
-  // Step 2: Handle Successful Payment
-  const handlePaymentSuccess = () => {
-    clearCart(); // Clear cart only when payment succeeds
-    setOrderSuccess(true);
   };
 
   const subtotal = totalPrice();
@@ -573,10 +582,9 @@ const CheckoutPage = () => {
             );
           }
         }
-      } catch (error: any) {
+      } catch (error) {
         setPaymentError(
-          error.response?.data?.message ||
-            "Failed to process payment. Please try again.",
+          getApiErrorMessage(error, "Failed to process payment. Please try again."),
         );
       } finally {
         setIsCreatingOrder(false);
@@ -660,7 +668,7 @@ const CheckoutPage = () => {
           <div className="bg-[var(--color-bg-elevated)]/50 backdrop-blur-xl p-6 rounded-2xl border border-[var(--color-border)]/50 mb-8">
             <h3 className="font-bold mb-4">Order Items</h3>
             <div className="space-y-3">
-              {retryOrder.items?.map((item: any) => (
+              {retryOrder.items?.map((item) => (
                 <div
                   key={item.id}
                   className="flex justify-between items-center text-sm"

@@ -2,9 +2,30 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../../stores/authStore";
+import api from "../../lib/api";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { useTranslation } from "react-i18next";
+import type { User } from "../../types/user";
+
+type GoogleExchangeResponse = {
+  token: string;
+  user: User;
+};
+
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+};
+
+const getErrorMessage = (err: unknown, fallback: string) => {
+  const apiError = err as ApiError;
+  return apiError.response?.data?.message || apiError.message || fallback;
+};
 
 const BackgroundElements = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -37,49 +58,60 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [searchParams] = useSearchParams();
 
-  // Ref guard to prevent React double-firing the Google token handling
+  // Ref guard to prevent React double-firing the Google callback handling.
   const googleHandled = useRef(false);
 
-  // Handle Google OAuth callback — direct token flow (no API call needed)
+  // Handle Google OAuth callback code exchange.
   useEffect(() => {
     const googleStatus = searchParams.get("google");
 
     if (googleStatus === "success") {
-      // Guard: only run once even if React re-fires useEffect
+      // Guard: only run once even if React re-fires useEffect.
       if (googleHandled.current) return;
       googleHandled.current = true;
 
-      const token = searchParams.get("token");
-      const userParam = searchParams.get("user");
+      const code = searchParams.get("code");
 
-      if (!token || !userParam) {
+      if (!code) {
         setError(t("auth.error_google_missing", "Google login failed: missing credentials."));
+        window.history.replaceState({}, document.title, "/login");
         return;
       }
 
-      try {
-        // Decode user data from base64
-        const userData = JSON.parse(atob(userParam));
+      const exchangeGoogleCode = async () => {
+        setIsGoogleLoading(true);
+        setError("");
 
-        // Store the Sanctum token and set user state directly — zero API calls
-        localStorage.setItem("auth_token", token);
-        setUser(userData);
+        try {
+          const response = await api.post<GoogleExchangeResponse>("/auth/google/exchange", { code });
+          const { token, user } = response.data;
 
-        // Navigate to the correct page based on role
-        if (userData.role === "admin") {
-          window.location.href = "/admin";
-        } else {
-          window.location.href = "/";
+          if (!token || !user) {
+            setError(t("auth.error_google_invalid", "Google login failed: invalid response."));
+            window.history.replaceState({}, document.title, "/login");
+            return;
+          }
+
+          localStorage.setItem("auth_token", token);
+          setUser(user);
+          navigate(user.role === "admin" ? "/admin" : "/", { replace: true });
+        } catch (err) {
+          setError(getErrorMessage(err, t("auth.error_google_invalid", "Google login failed: invalid response.")));
+          window.history.replaceState({}, document.title, "/login");
+        } finally {
+          setIsGoogleLoading(false);
         }
-      } catch {
-        setError(t("auth.error_google_invalid", "Google login failed: invalid response."));
-      }
+      };
+
+      void exchangeGoogleCode();
     } else if (googleStatus === "error") {
       setError(searchParams.get("message") || t("auth.error_google_failed", "Google login failed."));
+      window.history.replaceState({}, document.title, "/login");
     }
-  }, [searchParams, setUser]);
+  }, [navigate, searchParams, setUser, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,13 +126,10 @@ const LoginPage = () => {
       } else {
         navigate("/");
       }
-    } catch (err: any) {
-      console.error("Backend Error Details:", err?.response?.data || err);
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        t("auth.error_invalid_credentials", "Invalid email or password");
-      setError(errorMessage);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error("Backend Error Details:", apiError.response?.data || err);
+      setError(getErrorMessage(err, t("auth.error_invalid_credentials", "Invalid email or password")));
     }
   };
 
@@ -248,7 +277,7 @@ const LoginPage = () => {
                 type="submit" 
                 fullWidth 
                 size="lg" 
-                isLoading={isLoading}
+                isLoading={isLoading || isGoogleLoading}
                 className="h-12 text-base font-semibold shadow-lg shadow-[var(--color-primary)]/20 hover:shadow-[var(--color-primary)]/40 transition-all rounded-xl mt-4"
               >
                 {t("auth.sign_in")}
@@ -270,11 +299,12 @@ const LoginPage = () => {
             {/* Google Sign In */}
             <button
               type="button"
+              disabled={isGoogleLoading}
               onClick={() => {
-                const backendUrl = import.meta.env.VITE_API_URL || '/api';
+                const backendUrl = import.meta.env.VITE_API_URL || "/api";
                 window.location.href = `${backendUrl}/auth/google`;
               }}
-              className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl border-2 border-[var(--color-border)]/60 bg-[var(--color-bg-surface)]/50 text-[var(--color-text-primary)] font-semibold transition-all duration-200 hover:bg-[var(--color-bg-surface)] hover:border-[var(--color-border)] hover:shadow-md group"
+              className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl border-2 border-[var(--color-border)]/60 bg-[var(--color-bg-surface)]/50 text-[var(--color-text-primary)] font-semibold transition-all duration-200 hover:bg-[var(--color-bg-surface)] hover:border-[var(--color-border)] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />

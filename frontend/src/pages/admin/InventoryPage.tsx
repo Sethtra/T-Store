@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { useAdminInventory, useStockHistory, useAdjustStock } from '../../hooks/useInventory';
+import { useAdminInventory, useStockHistory, useAdjustStock, type ProductInventory } from '../../hooks/useInventory';
 import Button from '../../components/ui/Button';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { TableRowSkeleton } from '../../components/admin/AdminSkeletons';
@@ -11,7 +11,7 @@ const InventoryPage = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductInventory | null>(null);
   const [adjustAmount, setAdjustAmount] = useState<number | ''>('');
   const [adjustNotes, setAdjustNotes] = useState('');
   const debouncedSearch = useDebounce(search, 500);
@@ -22,7 +22,7 @@ const InventoryPage = () => {
     status: statusFilter || undefined,
   });
 
-  const { data: historyData, isLoading: historyLoading } = useStockHistory(selectedProduct?.id);
+  const { data: historyData, isLoading: historyLoading } = useStockHistory(selectedProduct?.id ?? null);
   const adjustMutation = useAdjustStock();
 
   const handleAdjustSubmit = async (e: React.FormEvent) => {
@@ -143,7 +143,7 @@ const InventoryPage = () => {
                     </td>
                   </tr>
                 ) : (
-                  inventoryData?.data.map((product: any) => (
+                  inventoryData?.data.map((product) => (
                     <tr 
                       key={product.id} 
                       onClick={() => setSelectedProduct(product)}
@@ -314,7 +314,7 @@ const InventoryPage = () => {
                   
                   {historyData?.movements && historyData.movements.length > 0 ? (
                     <div className="relative border-l border-[var(--color-border)] ml-3 space-y-6 pb-4">
-                      {historyData.movements.map((movement: any) => (
+                      {historyData.movements.map((movement) => (
                         <div key={movement.id} className="relative pl-6">
                           {/* Timeline dot */}
                           <div className={`absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--color-bg-elevated)] ${

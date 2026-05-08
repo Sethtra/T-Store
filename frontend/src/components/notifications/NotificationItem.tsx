@@ -2,9 +2,10 @@ import React from "react";
 import { type Order } from "../../hooks/useOrders";
 import { timeAgo } from "../../utils/time";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
 // Map order status to notification display
-const statusConfig = (t: any) => ({
+const statusConfig = (t: TFunction) => ({
   pending: {
     title: t("notifications.pending_title"),
     message: t("notifications.pending_msg"),

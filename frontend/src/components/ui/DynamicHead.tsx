@@ -8,13 +8,11 @@ import { useSiteSettings } from "../../hooks/useSiteSettings";
  */
 const DynamicHead = () => {
   const { data: settings } = useSiteSettings();
+  const faviconUrl = settings?.site_favicon_url;
+  const siteName = settings?.site_name;
 
   // Update favicon
   useEffect(() => {
-    if (!settings) return;
-
-    const faviconUrl = settings.site_favicon_url;
-    
     // Find or create the favicon link tag
     let link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
     if (!link) {
@@ -31,18 +29,18 @@ const DynamicHead = () => {
       link.type = "image/svg+xml";
       link.href = "/vite.svg";
     }
-  }, [settings?.site_favicon_url]);
+  }, [faviconUrl]);
 
   // Update page title with site name
   useEffect(() => {
-    if (!settings?.site_name) return;
+    if (!siteName) return;
 
     const currentTitle = document.title;
     // Replace "T-Store" in the title with the actual site name
     if (currentTitle.includes("T-Store")) {
-      document.title = currentTitle.replace("T-Store", settings.site_name);
+      document.title = currentTitle.replace("T-Store", siteName);
     }
-  }, [settings?.site_name]);
+  }, [siteName]);
 
   return null; // This component renders nothing
 };

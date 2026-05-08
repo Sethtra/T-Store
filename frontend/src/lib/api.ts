@@ -31,14 +31,13 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // NEVER wipe auth state for the Google verify endpoint.
-      // A 401 from that endpoint means "expired one-time token",
-      // NOT "your session has expired". The LoginPage handles this error itself.
+      // Do not wipe auth state for the Google exchange endpoint.
+      // The LoginPage handles exchange failures itself.
       const requestUrl = error.config?.url || '';
-      const isGoogleVerify = requestUrl.includes('/auth/google/verify');
+      const isGoogleExchange = requestUrl.includes('/auth/google/exchange');
       const isOnLoginPage = window.location.pathname.includes('/login');
 
-      if (!isGoogleVerify && !isOnLoginPage) {
+      if (!isGoogleExchange && !isOnLoginPage) {
         // Only redirect to login if user was previously authenticated (session expired)
         const hadToken = localStorage.getItem('auth_token');
         const hadAuth = localStorage.getItem('t-store-auth');

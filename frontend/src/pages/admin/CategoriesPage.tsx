@@ -17,6 +17,7 @@ import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Badge from "../../components/ui/Badge";
 import { TableRowSkeleton } from "../../components/admin/AdminSkeletons";
+import { getApiErrorMessage } from "../../lib/errors";
 
 const CategoriesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -81,10 +82,9 @@ const CategoriesPage = () => {
 
       setIsModalOpen(false);
       setFormData({ name: "", name_kh: "", parent_id: "" });
-    } catch (error: any) {
+    } catch (error) {
       alert(
-        error.response?.data?.message ||
-          "Failed to save category. Please try again.",
+        getApiErrorMessage(error, "Failed to save category. Please try again."),
       );
     }
   };

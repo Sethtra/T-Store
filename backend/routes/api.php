@@ -77,6 +77,7 @@ Route::middleware('throttle:10,1')->group(function () {
     
     // Google OAuth (callback)
     Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
+    Route::post('/auth/google/exchange', [GoogleAuthController::class, 'exchange']);
 });
 
 // Google OAuth (redirect - higher limit as it's a redirect)

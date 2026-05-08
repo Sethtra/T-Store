@@ -5,6 +5,7 @@ import { useAuthStore } from "../../stores/authStore";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { useTranslation } from "react-i18next";
+import { getApiErrorMessage } from "../../lib/errors";
 
 const RegisterPage = () => {
   const { t } = useTranslation();
@@ -28,12 +29,8 @@ const RegisterPage = () => {
     try {
       await register(name, email, password, passwordConfirmation);
       navigate("/");
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        "Registration failed. Please try again.";
-      setError(errorMessage);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Registration failed. Please try again."));
     }
   };
 

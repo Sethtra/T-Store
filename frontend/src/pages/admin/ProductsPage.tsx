@@ -13,6 +13,7 @@ import imageCompression from "browser-image-compression";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
+import { getApiErrorMessage } from "../../lib/errors";
 
 // Helper for status
 const getStockStatus = (stock: number) => {
@@ -401,15 +402,15 @@ const ProductsPage = () => {
           data.append("_method", "PUT");
           await updateProduct.mutateAsync({
             id: editingProduct.id,
-            data: data as any,
+            data,
           });
         } else {
-          await createProduct.mutateAsync(data as any);
+          await createProduct.mutateAsync(data);
         }
         setIsModalOpen(false);
-      } catch (error: any) {
+      } catch (error) {
         console.error("Failed", error);
-        alert(error.response?.data?.message || "Failed to save product.");
+        alert(getApiErrorMessage(error, "Failed to save product."));
       }
     },
     [

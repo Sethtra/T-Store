@@ -103,11 +103,6 @@ const NotificationsPage = () => {
     page * ITEMS_PER_PAGE,
   );
 
-  // Reset page when filter changes
-  useEffect(() => {
-    setPage(1);
-  }, [filter]);
-
   const handleNotificationClick = (notification: Notification) => {
     if (notification.type === "new_order" && notification.order_id) {
       navigate(`/admin/orders/${notification.order_id}`);
@@ -159,7 +154,10 @@ const NotificationsPage = () => {
           {filterButtons.map((btn) => (
             <button
               key={btn.key}
-              onClick={() => setFilter(btn.key)}
+              onClick={() => {
+                setFilter(btn.key);
+                setPage(1);
+              }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 flex-shrink-0 snap-start whitespace-nowrap ${
                 filter === btn.key
                   ? btn.activeBg

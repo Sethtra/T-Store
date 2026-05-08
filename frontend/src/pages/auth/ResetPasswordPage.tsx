@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import api from "../../lib/api";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
+import { getApiErrorMessage } from "../../lib/errors";
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
@@ -34,13 +35,8 @@ const ResetPasswordPage = () => {
       setMessage(res.data.message);
       // Redirect to login after 2 seconds
       setTimeout(() => navigate("/login"), 2000);
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message ||
-        err.response?.data?.errors?.email?.[0] ||
-        err.response?.data?.errors?.password?.[0] ||
-        "Something went wrong. Please try again.";
-      setError(errorMessage);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Something went wrong. Please try again.", ["email", "password"]));
     } finally {
       setIsLoading(false);
     }

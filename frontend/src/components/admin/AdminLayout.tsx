@@ -516,9 +516,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Auto-close sidebar on route change (mobile)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    setIsSidebarOpen(false);
+    const timeout = window.setTimeout(() => setIsSidebarOpen(false), 0);
+    return () => window.clearTimeout(timeout);
   }, [location.pathname]);
 
   const handleLogout = () => {

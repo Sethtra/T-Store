@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useToast } from "../../components/ui/Toast";
+import { useToast } from "../../components/ui/toastContext";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Button from "../../components/ui/Button";
 import Skeleton from "../../components/ui/Skeleton";
@@ -416,7 +416,7 @@ const LandingSectionPage = () => {
                       hero_description_kh: descriptionKh
                     });
                     showToast("Hero text updated successfully!", "success");
-                  } catch (error) {
+                  } catch {
                     showToast("Failed to update hero text.", "error");
                   }
                 }}

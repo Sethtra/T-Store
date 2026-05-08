@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,7 +28,6 @@ const CategoryItem = ({
 }) => {
   const { i18n } = useTranslation();
   const isKh = i18n.language === "kh";
-  const [isOpen, setIsOpen] = useState(false);
   const hasChildren = category.children && category.children.length > 0;
 
   // Check if this category or any child is active
@@ -36,13 +35,8 @@ const CategoryItem = ({
   const isChildActive = category.children?.some(
     (c) => c?.slug === currentCategory,
   );
-
-  // Auto-expand if child is active
-  useEffect(() => {
-    if (isChildActive) {
-      setIsOpen(true);
-    }
-  }, [isChildActive]);
+  const [isOpen, setIsOpen] = useState(Boolean(isChildActive));
+  const isExpanded = isOpen || Boolean(isChildActive);
 
   return (
     <div className="select-none">
@@ -65,7 +59,7 @@ const CategoryItem = ({
             className={`p-1 rounded-full hover:bg-white/20 transition-colors ${isActive ? "text-white" : ""}`}
           >
             <svg
-              className={`w-3 h-3 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+              className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -82,7 +76,7 @@ const CategoryItem = ({
       </div>
 
       <AnimatePresence>
-        {isOpen && hasChildren && (
+        {isExpanded && hasChildren && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -156,6 +150,14 @@ const BackgroundElements = () => (
   </div>
 );
 
+// Map from ProductFilters property names to URL search param keys
+const filterKeyToParam: Record<string, string> = {
+  sortBy: "sort",
+  minPrice: "min_price",
+  maxPrice: "max_price",
+  // These map 1:1 so no entry needed: search, category, page, limit
+};
+
 const ProductsPage = () => {
   const { t, i18n } = useTranslation();
   const isKh = i18n.language === "kh";
@@ -214,36 +216,7 @@ const ProductsPage = () => {
     filters.maxPrice?.toString() || "",
   );
 
-  // Sync URL to local state (for back/forward navigation)
-  useEffect(() => {
-    setLocalSearch(filters.search || "");
-  }, [filters.search]);
-
-  // Auto-search effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localSearch !== (filters.search || "")) {
-        updateFilters({ search: localSearch || undefined });
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [localSearch, filters.search]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateFilters({ search: localSearch || undefined });
-  };
-
-  // Map from ProductFilters property names to URL search param keys
-  const filterKeyToParam: Record<string, string> = {
-    sortBy: "sort",
-    minPrice: "min_price",
-    maxPrice: "max_price",
-    // These map 1:1 so no entry needed: search, category, page, limit
-  };
-
-  const updateFilters = (newFilters: Partial<ProductFilters>) => {
+  const updateFilters = useCallback((newFilters: Partial<ProductFilters>) => {
     const params = new URLSearchParams(searchParams);
 
     Object.entries(newFilters).forEach(([key, value]) => {
@@ -261,6 +234,28 @@ const ProductsPage = () => {
     }
 
     setSearchParams(params);
+  }, [searchParams, setSearchParams]);
+
+  // Sync URL to local state (for back/forward navigation)
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setLocalSearch(filters.search || ""), 0);
+    return () => window.clearTimeout(timeout);
+  }, [filters.search]);
+
+  // Auto-search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== (filters.search || "")) {
+        updateFilters({ search: localSearch || undefined });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [localSearch, filters.search, updateFilters]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateFilters({ search: localSearch || undefined });
   };
 
   const handlePriceFilter = () => {

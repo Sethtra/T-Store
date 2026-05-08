@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -22,9 +24,9 @@ class GoogleAuthController extends Controller
 
     /**
      * Handle the callback from Google.
-     * Creates the Sanctum token directly and passes it to the frontend
-     * via the redirect URL. This eliminates the unreliable Cache-based
-     * token exchange that was causing first-login failures.
+     * Creates a short-lived one-time login code and passes only that code
+     * through the redirect URL. The frontend exchanges the code for a token
+     * with a POST request so Sanctum tokens never appear in browser URLs.
      */
     public function callback(Request $request)
     {
@@ -61,24 +63,74 @@ class GoogleAuthController extends Controller
                 return redirect($frontendUrl . '/login?google=error&message=' . urlencode('Your account has been suspended. Please contact support.'));
             }
 
-            // Create Sanctum token directly (no Cache intermediary)
-            $sanctumToken = $user->createToken('auth-token')->plainTextToken;
+            $loginCode = Str::random(64);
+            Cache::put($this->loginCodeCacheKey($loginCode), [
+                'user_id' => $user->id,
+            ], now()->addMinutes(2));
 
-            // Redirect to frontend with the real token and user data
             $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
-            $userData = base64_encode(json_encode([
+
+            return redirect($frontendUrl . '/login?google=success&code=' . urlencode($loginCode));
+        } catch (\Exception $e) {
+            Log::warning('Google OAuth callback failed', ['error' => $e->getMessage()]);
+
+            $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+            return redirect($frontendUrl . '/login?google=error&message=' . urlencode('Google login failed. Please try again.'));
+        }
+    }
+
+    /**
+     * Exchange a one-time Google login code for a Sanctum token.
+     */
+    public function exchange(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string|size:64',
+        ]);
+
+        $payload = Cache::pull($this->loginCodeCacheKey($request->code));
+
+        if (!$payload || !isset($payload['user_id'])) {
+            return response()->json([
+                'message' => 'Google login expired. Please try again.',
+            ], 422);
+        }
+
+        $user = User::find($payload['user_id']);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Google login expired. Please try again.',
+            ], 422);
+        }
+
+        if (($user->status ?? 'active') !== 'active') {
+            $user->tokens()->delete();
+
+            return response()->json([
+                'message' => 'Your account has been suspended. Please contact support.',
+            ], 403);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login successful',
+            'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'status' => $user->status,
                 'created_at' => $user->created_at,
-            ]));
+            ],
+            'token' => $token,
+        ]);
+    }
 
-            return redirect($frontendUrl . '/login?google=success&token=' . $sanctumToken . '&user=' . $userData);
-        } catch (\Exception $e) {
-            $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
-            return redirect($frontendUrl . '/login?google=error&message=' . urlencode($e->getMessage()));
-        }
+    private function loginCodeCacheKey(string $code): string
+    {
+        return 'google_login_code:' . $code;
     }
 }
 

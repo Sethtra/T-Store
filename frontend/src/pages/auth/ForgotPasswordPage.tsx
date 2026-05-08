@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import api from "../../lib/api";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
+import { getApiErrorMessage } from "../../lib/errors";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -20,12 +21,8 @@ const ForgotPasswordPage = () => {
     try {
       const res = await api.post("/forgot-password", { email });
       setMessage(res.data.message);
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message ||
-        err.response?.data?.errors?.email?.[0] ||
-        "Something went wrong. Please try again.";
-      setError(errorMessage);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Something went wrong. Please try again.", ["email"]));
     } finally {
       setIsLoading(false);
     }

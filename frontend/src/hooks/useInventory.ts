@@ -6,10 +6,11 @@ export interface ProductInventory {
   title: string;
   price: number;
   stock: number;
-  category: {
+  images?: string[];
+  category?: {
     id: number;
     name: string;
-  };
+  } | null;
 }
 
 export interface StockMovement {
@@ -36,11 +37,25 @@ export interface InventoryFilters {
   per_page?: number;
 }
 
+interface InventoryResponse {
+  data: ProductInventory[];
+  meta?: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+interface StockHistoryResponse {
+  movements: StockMovement[];
+}
+
 // Fetch all products with stock
 export const useAdminInventory = (filters: InventoryFilters = {}) => {
   return useQuery({
     queryKey: ['admin-inventory', filters],
-    queryFn: async () => {
+    queryFn: async (): Promise<InventoryResponse> => {
       const response = await api.get('/admin/inventory', { params: filters });
       return response.data;
     },
@@ -51,7 +66,7 @@ export const useAdminInventory = (filters: InventoryFilters = {}) => {
 export const useStockHistory = (productId: number | null, page = 1) => {
   return useQuery({
     queryKey: ['stock-history', productId, page],
-    queryFn: async () => {
+    queryFn: async (): Promise<StockHistoryResponse | null> => {
       if (!productId) return null;
       const response = await api.get(`/admin/inventory/${productId}/history`, { params: { page } });
       return response.data;

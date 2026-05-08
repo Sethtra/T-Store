@@ -7,7 +7,7 @@ import Button from "../components/ui/Button";
 import ProductCard from "../components/product/ProductCard";
 import { getImageUrl } from "../utils/image";
 import { useTranslation } from "react-i18next";
-import { useToast } from "../components/ui/Toast";
+import { useToast } from "../components/ui/toastContext";
 
 const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();

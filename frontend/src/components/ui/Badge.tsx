@@ -1,6 +1,6 @@
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: "default" | "primary" | "success" | "warning" | "error";
+  variant?: "default" | "primary" | "success" | "warning" | "error" | "info";
   size?: "sm" | "md";
   className?: string;
 }
@@ -17,6 +17,7 @@ const Badge = ({
     success: "bg-[var(--color-success)]/20 text-[var(--color-success)]",
     warning: "bg-[var(--color-warning)]/20 text-[var(--color-warning)]",
     error: "bg-[var(--color-error)]/20 text-[var(--color-error)]",
+    info: "bg-blue-500/20 text-blue-500",
   };
 
   const sizes = {

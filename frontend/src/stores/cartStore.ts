@@ -13,6 +13,12 @@ export interface CartItem {
   cart_item_id?: number; // Backend exact ID
 }
 
+interface CartSyncPayloadItem {
+  product_id: number;
+  quantity: number;
+  attributes?: Record<string, string>;
+}
+
 interface CartState {
   items: CartItem[]; // The currently active cart items
   isOpen: boolean;
@@ -200,8 +206,8 @@ export const useCartStore = create<CartState>()(
 
         // --- At this point, we know we are switching to an Authenticated User! ---
         
-        let updatedCarts = { ...savedCarts };
-        let payloadItems: any[] = [];
+        const updatedCarts = { ...savedCarts };
+        let payloadItems: CartSyncPayloadItem[] = [];
 
         // If a guest logs in AND has temporary items, we will push them to the server
         if (activeCartId === 'guest' && items.length > 0) {

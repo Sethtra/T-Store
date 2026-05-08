@@ -61,7 +61,7 @@ const CategoryDisplayPage = () => {
     setFormData({});
   };
 
-  const handleImageUpload = async (id: number, file: File) => {
+  const handleImageUpload = useCallback(async (id: number, file: File) => {
     try {
       const options = {
         maxSizeMB: 1,
@@ -79,7 +79,7 @@ const CategoryDisplayPage = () => {
       console.error("Error compressing image:", error);
       alert("Failed to compress image. Please try another one.");
     }
-  };
+  }, [uploadImage]);
 
   const handleImageDelete = async (id: number) => {
     await deleteImage.mutateAsync(id);
@@ -94,7 +94,7 @@ const CategoryDisplayPage = () => {
         await handleImageUpload(displayId, file);
       }
     },
-    [],
+    [handleImageUpload],
   );
 
   const handleDragOver = (e: React.DragEvent, displayId: number) => {

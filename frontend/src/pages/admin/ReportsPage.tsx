@@ -33,6 +33,11 @@ const getChangeClass = (change: number) => {
 
 const formatCurrency = (value: number) => `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+const formatChartNumber = (value: unknown) => {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+};
+
 const ReportsPage = () => {
   const [days, setDays] = useState(30);
 
@@ -199,10 +204,11 @@ const ReportsPage = () => {
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                     }}
                     labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                    formatter={(value: any, name: any) => {
-                      if (name === 'revenue') return [`$${value.toFixed(2)}`, 'Revenue'];
+                    formatter={(value, name) => {
+                      const displayName = String(name);
+                      if (name === 'revenue') return [`$${formatChartNumber(value).toFixed(2)}`, 'Revenue'];
                       if (name === 'orders_count') return [value, 'Orders'];
-                      return [value, name];
+                      return [value, displayName];
                     }}
                   />
                   <Legend verticalAlign="top" height={36} iconType="circle" />
@@ -263,10 +269,11 @@ const ReportsPage = () => {
                       borderColor: 'var(--color-border)',
                       borderRadius: '8px'
                     }}
-                    formatter={(value: any, name: any) => {
-                      if (name === 'total_revenue') return [`$${value.toFixed(2)}`, 'Revenue'];
+                    formatter={(value, name) => {
+                      const displayName = String(name);
+                      if (name === 'total_revenue') return [`$${formatChartNumber(value).toFixed(2)}`, 'Revenue'];
                       if (name === 'total_quantity') return [value, 'Units Sold'];
-                      return [value, name];
+                      return [value, displayName];
                     }}
                   />
                   <Legend iconType="circle" />

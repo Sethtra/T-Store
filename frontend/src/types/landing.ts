@@ -1,7 +1,7 @@
 // Landing Page Types
 // Centralized type definitions — single source of truth
 
-import type { Product } from './product';
+import type { Category, Product } from './product';
 
 export type SectionType = 'hero_main' | 'hero_featured' | 'hero_small' | 'curated_excellence';
 
@@ -69,7 +69,7 @@ export interface CategoryDisplay {
   id: number;
   position: 'main' | 'featured' | 'small_1' | 'small_2';
   category_id?: number | null;
-  category?: any;
+  category?: Category | null;
   title: string;
   title_kh: string | null;
   description?: string | null;

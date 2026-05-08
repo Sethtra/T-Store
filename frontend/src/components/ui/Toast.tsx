@@ -1,26 +1,6 @@
-import React, { useState, useEffect, useCallback, createContext, useContext } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-type ToastType = "success" | "error" | "warning" | "info";
-
-interface Toast {
-  id: string;
-  message: string;
-  type: ToastType;
-  duration?: number;
-}
-
-interface ToastContextType {
-  showToast: (message: string, type?: ToastType, duration?: number) => void;
-}
-
-const ToastContext = createContext<ToastContextType | null>(null);
-
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) throw new Error("useToast must be used within ToastProvider");
-  return context;
-};
+import { ToastContext, type Toast, type ToastType } from "./toastContext";
 
 const toastIcons: Record<ToastType, React.ReactNode> = {
   success: (

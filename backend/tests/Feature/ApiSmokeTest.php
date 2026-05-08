@@ -97,7 +97,7 @@ class ApiSmokeTest extends TestCase
 
         $this->getJson('/api/products/' . $p->slug)
             ->assertOk()
-            ->assertJsonPath('slug', 'show-me');
+            ->assertJsonPath('product.slug', 'show-me');
     }
 
     public function test_register_creates_customer_user(): void
@@ -214,4 +214,3 @@ class ApiSmokeTest extends TestCase
             ]);
     }
 }
-

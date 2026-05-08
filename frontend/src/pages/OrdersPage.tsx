@@ -17,19 +17,18 @@ const OrdersPage = () => {
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [, setTick] = useState(0);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   // Re-render every minute to update countdowns
   useEffect(() => {
-    const interval = setInterval(() => setTick((t) => t + 1), 60000);
+    const interval = setInterval(() => setCurrentTime(Date.now()), 60000);
     return () => clearInterval(interval);
   }, []);
 
   // Calculate remaining time for 24hr payment window
   const getCountdown = (createdAt: string) => {
     const deadline = new Date(createdAt).getTime() + 24 * 60 * 60 * 1000;
-    const now = Date.now();
-    const remaining = deadline - now;
+    const remaining = deadline - currentTime;
     if (remaining <= 0) return null;
     const hours = Math.floor(remaining / (1000 * 60 * 60));
     const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));

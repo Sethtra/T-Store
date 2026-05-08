@@ -61,7 +61,7 @@ const OrderDetailsModal = ({
                   <h2 className="text-xl font-bold">{t("orders.details")}</h2>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Badge variant={getStatusColor(order.status) as any}>
+                  <Badge variant={getStatusColor(order.status)}>
                     {t(`orders.${order.status}`)}
                   </Badge>
                   <button
