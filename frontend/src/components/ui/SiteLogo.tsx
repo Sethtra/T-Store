@@ -17,7 +17,7 @@ const sizeMap = {
 
 /**
  * Shared logo component used across Navbar, Footer, and Admin layout.
- * Displays the uploaded logo image or falls back to the gradient "T" box.
+ * Displays the uploaded logo image or falls back to a solid initial mark.
  */
 const SiteLogo = ({ size = "md", showName = true, nameClassName }: SiteLogoProps) => {
   const { data: settings } = useSiteSettings();
@@ -31,22 +31,22 @@ const SiteLogo = ({ size = "md", showName = true, nameClassName }: SiteLogoProps
         <img
           src={logoUrl}
           alt={siteName}
-          className={`${s.img} object-contain rounded-xl`}
+          className={`${s.img} object-contain`}
         />
       ) : (
         <div
-          className={`${s.box} flex items-center justify-center bg-gradient-to-br from-[var(--color-primary)] to-purple-600 rounded-xl shadow-lg shadow-[var(--color-primary)]/20`}
+          className={`${s.box} flex items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)]`}
         >
-          <span className={`text-white font-bold ${s.text}`}>
+          <span className={`text-[var(--color-on-primary)] font-bold ${s.text}`}>
             {siteName.charAt(0).toUpperCase()}
           </span>
         </div>
       )}
       {showName && (
         <span
-          className={`font-bold tracking-tight ${s.name} ${
+          className={`font-semibold tracking-[-0.02em] ${s.name} ${
             nameClassName ||
-            "bg-gradient-to-r from-[var(--color-text-primary)] to-[var(--color-text-secondary)] bg-clip-text text-transparent"
+            "text-[var(--color-text-primary)]"
           }`}
         >
           {siteName}

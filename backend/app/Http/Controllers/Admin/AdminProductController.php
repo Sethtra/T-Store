@@ -56,6 +56,7 @@ class AdminProductController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'original_price' => 'nullable|numeric|gt:price',
             'stock' => 'required|integer|min:0',
             'category_id' => 'nullable|exists:categories,id',
             'images' => 'nullable|array',
@@ -99,6 +100,7 @@ class AdminProductController extends Controller
             'slug' => $slug,
             'description' => $request->description,
             'price' => $request->price,
+            'original_price' => $request->original_price,
             'stock' => $request->stock,
             'category_id' => $request->category_id,
             'images' => json_encode(array_values($imageUrls)), // Ensure only clean string arrays are saved
@@ -127,6 +129,7 @@ class AdminProductController extends Controller
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'sometimes|required|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
             'stock' => 'sometimes|required|integer|min:0',
             'category_id' => 'nullable|exists:categories,id',
             'attributes' => 'nullable|array',
@@ -155,7 +158,7 @@ class AdminProductController extends Controller
 
         $request->validate($rules);
 
-        $updateData = $request->only(['title', 'description', 'price', 'stock', 'category_id', 'attributes']);
+        $updateData = $request->only(['title', 'description', 'price', 'original_price', 'stock', 'category_id', 'attributes']);
 
         // Handle Multiple File Uploads - Use existing_images from frontend if provided (tracks removals)
         // Otherwise fallback to database images

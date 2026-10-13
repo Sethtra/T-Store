@@ -1,111 +1,44 @@
 import type { ReactNode } from "react";
-import { motion } from "framer-motion";
 
 interface CardProps {
   children: ReactNode;
   className?: string;
   hover?: boolean;
+  /** Older variants map to the single bordered surface. */
   variant?: "default" | "glass" | "gradient" | "premium";
+  /** @deprecated kept for API compatibility */
   animate?: boolean;
   onClick?: () => void;
 }
 
-const Card = ({
-  children,
-  className = "",
-  hover = false,
-  variant = "default",
-  animate = false,
-  onClick,
-}: CardProps) => {
-  const variants = {
-    default: `
-      bg-[var(--color-bg-elevated)]
-      border border-[var(--color-border)]
-    `,
-    glass: `
-      glass-card
-    `,
-    gradient: `
-      bg-[var(--color-bg-elevated)]
-      gradient-border
-    `,
-    premium: `
-      glass-premium
-    `,
-  };
-
-  const hoverEffects = hover
-    ? {
-        whileHover: {
-          y: -8,
-          boxShadow:
-            "0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(59, 130, 246, 0.15)",
-          borderColor: "rgba(59, 130, 246, 0.3)",
-        },
-        transition: { duration: 0.3 },
-      }
-    : {};
-
-  const animateProps = animate
-    ? {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.5 },
-      }
-    : {};
-
-  return (
-    <motion.div
-      {...hoverEffects}
-      {...animateProps}
-      onClick={onClick}
-      className={`
-        ${variants[variant]}
-        rounded-lg overflow-hidden
-        transition-all duration-300
-        ${hover ? "cursor-pointer" : ""}
-        ${className}
-      `}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-interface CardHeaderProps {
-  children: ReactNode;
-  className?: string;
-}
-
-Card.Header = ({ children, className = "" }: CardHeaderProps) => (
+const Card = ({ children, className = "", hover = false, onClick }: CardProps) => (
   <div
-    className={`px-6 py-5 border-b border-[var(--color-border)]/50 ${className}`}
+    onClick={onClick}
+    className={`bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-[var(--radius-lg)] overflow-hidden ${
+      hover
+        ? "cursor-pointer transition-[border-color,box-shadow] duration-200 hover:border-[var(--color-border-hover)] hover:shadow-[var(--shadow-md)]"
+        : ""
+    } ${className}`}
   >
     {children}
   </div>
 );
 
-interface CardBodyProps {
+interface SlotProps {
   children: ReactNode;
   className?: string;
 }
 
-Card.Body = ({ children, className = "" }: CardBodyProps) => (
+Card.Header = ({ children, className = "" }: SlotProps) => (
+  <div className={`px-6 py-5 border-b border-[var(--color-border)] ${className}`}>{children}</div>
+);
+
+Card.Body = ({ children, className = "" }: SlotProps) => (
   <div className={`p-6 ${className}`}>{children}</div>
 );
 
-interface CardFooterProps {
-  children: ReactNode;
-  className?: string;
-}
-
-Card.Footer = ({ children, className = "" }: CardFooterProps) => (
-  <div
-    className={`px-6 py-5 border-t border-[var(--color-border)]/50 ${className}`}
-  >
-    {children}
-  </div>
+Card.Footer = ({ children, className = "" }: SlotProps) => (
+  <div className={`px-6 py-5 border-t border-[var(--color-border)] ${className}`}>{children}</div>
 );
 
 export default Card;

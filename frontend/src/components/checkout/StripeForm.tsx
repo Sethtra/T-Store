@@ -4,6 +4,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
+import { Lock } from 'lucide-react';
 import Button from '../ui/Button';
 
 interface StripeFormProps {
@@ -44,7 +45,7 @@ const StripeForm = ({ onSuccess, onError }: StripeFormProps) => {
 
   return (
     <form id="stripe-payment-form" onSubmit={handleSubmit} className="space-y-6">
-      <div className="p-4 bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)]">
+      <div>
         <PaymentElement id="payment-element" />
       </div>
 
@@ -54,12 +55,13 @@ const StripeForm = ({ onSuccess, onError }: StripeFormProps) => {
         fullWidth
         disabled={isProcessing || !stripe || !elements}
         isLoading={isProcessing}
-        className="py-4 text-base rounded-xl bg-[#6366f1] hover:bg-[#4f46e5] text-white border-none shadow-lg shadow-indigo-500/20"
+        className="h-12"
       >
-        Pay with Card
+        <Lock className="h-4 w-4" />
+        Pay with card
       </Button>
       
-      <p className="text-xs text-center text-[var(--color-text-muted)]">
+      <p className="text-xs text-center text-[var(--color-text-muted)] -mt-2">
         Payments are secure and encrypted.
       </p>
     </form>

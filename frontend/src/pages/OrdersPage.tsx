@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight, Package } from "lucide-react";
 import { useOrders, type Order } from "../hooks/useOrders";
 import Button from "../components/ui/Button";
 import OrderDetailsModal from "../components/orders/OrderDetailsModal";
 import InvoiceModal from "../components/orders/InvoiceModal";
 import { useTranslation } from "react-i18next";
+import { formatUSD } from "../utils/money";
 
 const ORDERS_PER_PAGE = 8;
 
@@ -89,16 +91,80 @@ const OrdersPage = () => {
     { id: "cancelled", label: t("orders.cancelled") },
   ];
 
+  const isKh = i18n.language === "kh";
+  const wrap = "max-w-[1100px] mx-auto px-4 md:px-6 lg:px-8 pt-6 md:pt-10";
+  const dateFmt = (d: string) =>
+    new Date(d).toLocaleDateString(isKh ? "km-KH" : "en-US", { day: "numeric", month: "short", year: "numeric" });
+
+  const statusPill = (order: Order) => {
+    let label: string;
+    let tone: "warning" | "error" | "neutral" | "success" | "info";
+    if (order.payment_status === "pending") {
+      label = t("orders.pending");
+      tone = "warning";
+    } else if (order.payment_status === "failed") {
+      label = t("orders.failed");
+      tone = "error";
+    } else if (order.payment_status === "cancelled" || order.status === "cancelled") {
+      label = t("orders.cancelled");
+      tone = "neutral";
+    } else if (order.status === "completed") {
+      label = t("orders.completed");
+      tone = "success";
+    } else {
+      label = t(`orders.${order.status}`);
+      tone = "info";
+    }
+    const tones = {
+      warning: "text-[var(--color-warning)]",
+      error: "text-[var(--color-error)]",
+      neutral: "text-[var(--color-text-muted)]",
+      success: "text-[var(--color-success)]",
+      info: "text-[var(--color-info)]",
+    };
+    return (
+      <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${tones[tone]}`}>
+        <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+        {label}
+      </span>
+    );
+  };
+
+  const isUnpaid = (o: Order) => o.payment_status === "pending";
+
+  const actions = (order: Order) =>
+    isUnpaid(order) ? (
+      <Button size="sm" onClick={() => navigate(`/checkout?retry_order=${order.id}`)}>
+        {t("orders.pay_now")}
+      </Button>
+    ) : (
+      <div className="flex gap-2">
+        <Button size="sm" variant="outline" onClick={() => handleViewInvoice(order)}>
+          {t("orders.invoice")}
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => handleViewDetails(order)}>
+          {t("orders.details")}
+        </Button>
+      </div>
+    );
+
+  const countdownCell = (order: Order) => {
+    if (!isUnpaid(order)) return null;
+    const left = getCountdown(order.created_at);
+    return (
+      <span className="tabular text-sm font-medium text-[var(--color-error)]">
+        {left ? `${left} ${isKh ? "នៅសល់" : "left to pay"}` : t("orders.expired")}
+      </span>
+    );
+  };
+
   if (isLoading) {
     return (
-      <div className="container pb-16" style={{ paddingTop: "140px" }}>
-        <h1 className="text-3xl font-bold mb-8">{t("orders.title")}</h1>
-        <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="h-16 bg-gray-100 rounded-lg animate-pulse"
-            />
+      <div className={wrap} aria-busy="true">
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl">{t("orders.title")}</h1>
+        <div className="mt-8 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-20 rounded-[var(--radius-md)] bg-[var(--color-bg-surface)]" />
           ))}
         </div>
       </div>
@@ -107,276 +173,150 @@ const OrdersPage = () => {
 
   if (error) {
     return (
-      <div
-        className="container pb-16 text-center"
-        style={{ paddingTop: "140px" }}
-      >
-        <h1 className="text-3xl font-bold mb-4">{t("orders.title")}</h1>
-        <p className="text-[var(--color-error)]">{t("orders.failed_load")}</p>
+      <div className={`${wrap} text-center`}>
+        <h1 className="text-3xl font-semibold tracking-[-0.03em]">{t("orders.title")}</h1>
+        <p role="alert" className="mt-4 text-[var(--color-error)]">
+          {t("orders.failed_load")}
+        </p>
+        <Button className="mt-6" variant="outline" onClick={() => window.location.reload()}>
+          {t("common.retry")}
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="container pb-16" style={{ paddingTop: "140px" }}>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <h1 className="text-3xl font-bold">My Orders</h1>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex overflow-x-auto pb-4 mb-6 gap-2 no-scrollbar">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => handleFilterChange(tab.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
-              filterStatus === tab.id
-                ? "bg-[var(--color-primary)] text-white shadow-lg shadow-blue-500/20"
-                : "bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] border border-[var(--color-border)] hover:border-[var(--color-text-muted)]"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+    <div className={wrap}>
+      <h1 className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl">{t("orders.title")}</h1>
 
       {!orders || orders.length === 0 ? (
-        <div className="min-h-[40vh] flex flex-col items-center justify-center bg-[var(--color-bg-elevated)] rounded-3xl border border-[var(--color-border)] px-4 py-12 text-center overflow-hidden">
-          <div className="w-20 h-20 bg-[var(--color-bg-surface)] rounded-full flex items-center justify-center mb-6 border border-[var(--color-border)]">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-10 w-10 text-[var(--color-text-muted)]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold mb-2">{t("orders.no_orders")}</h2>
-          <p className="text-[var(--color-text-muted)] mb-8">
-            {i18n.language === 'kh' ? "អ្នកមិនទាន់បានដាក់បញ្ជាទិញណាមួយនៅឡើយទេ។" : "You haven't placed any orders yet."}
+        <div className="mt-8 flex flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-[var(--color-border-hover)] px-6 py-20 text-center">
+          <Package className="h-8 w-8 text-[var(--color-text-muted)]" aria-hidden="true" />
+          <h2 className="mt-4 text-xl font-semibold">{t("orders.no_orders")}</h2>
+          <p className="mt-1.5 text-[var(--color-text-secondary)]">
+            {isKh ? "អ្នកមិនទាន់បានដាក់បញ្ជាទិញណាមួយនៅឡើយទេ។" : "You haven't placed any orders yet."}
           </p>
-          <Link to="/products">
-            <Button>{t("orders.start_shopping")}</Button>
+          <Link
+            to="/products"
+            className="mt-6 inline-flex h-11 items-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 text-sm font-semibold text-[var(--color-on-primary)]"
+          >
+            {t("orders.start_shopping")}
           </Link>
         </div>
       ) : (
-        <div className="bg-[var(--color-bg-primary)] rounded-3xl border border-[var(--color-border)] overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] text-[10px] sm:text-xs uppercase text-[var(--color-text-muted)] font-semibold tracking-wider">
-                  <th className="px-3 sm:px-6 py-4 sm:py-5">{t("orders.tracking_id")}</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5">{t("orders.date")}</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden md:table-cell">{t("orders.status")}</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">{t("orders.time_left")}</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5 hidden lg:table-cell">{t("orders.delivery")}</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5">{t("orders.total")}</th>
-                  <th className="px-3 sm:px-6 py-4 sm:py-5 text-right hidden sm:table-cell">{t("orders.action")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--color-border)]">
-                {paginatedOrders?.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="hover:bg-[var(--color-bg-elevated)] transition-colors group cursor-pointer sm:cursor-default"
-                    onClick={() => {
-                      // On mobile, clicking the row opens details
-                      if (window.innerWidth < 640) {
-                        if (order.payment_status === "pending") {
-                          navigate(`/checkout?retry_order=${order.id}`);
-                        } else {
-                          handleViewDetails(order);
-                        }
-                      }
-                    }}
-                  >
-                    <td className="px-3 sm:px-6 py-4 sm:py-5 font-medium text-[var(--color-primary)] text-xs sm:text-sm">
-                      <span className="inline-block max-w-[80px] sm:max-w-none truncate align-bottom">
-                        #{order.tracking_id || order.id}
-                      </span>
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 sm:py-5 text-[var(--color-text-secondary)] whitespace-nowrap text-xs sm:text-sm">
-                      {new Date(order.created_at).toLocaleDateString("en-US", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 sm:py-5 hidden md:table-cell">
-                      {order.payment_status === "pending" ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                          {t("orders.pending")}
-                        </span>
-                      ) : order.payment_status === "failed" ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                          ✕ {t("orders.failed")}
-                        </span>
-                      ) : order.payment_status === "cancelled" ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                          {t("orders.cancelled")}
-                        </span>
-                      ) : (
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize
-                        ${
-                          order.status === "completed"
-                            ? "bg-green-100 text-green-700"
-                            : order.status === "pending"
-                            ? "bg-amber-100 text-amber-700"
-                            : order.status === "cancelled"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-blue-100 text-blue-700"
-                        }`}
-                        >
-                          {t(`orders.${order.status}`)}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">
-                      {order.payment_status === "pending" ? (
-                        getCountdown(order.created_at) ? (
-                          <span className="text-sm font-semibold text-[var(--color-error)]">
-                            {getCountdown(order.created_at)}
-                          </span>
-                        ) : (
-                          <span className="text-sm font-semibold text-[var(--color-error)]">
-                            {t("orders.expired")}
-                          </span>
-                        )
-                      ) : (
-                        <span className="text-sm text-[var(--color-text-muted)]">—</span>
-                      )}
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 sm:py-5 text-[var(--color-text-secondary)] hidden lg:table-cell">
-                      {
-                        Number(order.total) > 50 ? (
-                          <span className="text-green-600 font-medium">
-                            {t("orders.free")}
-                          </span>
-                        ) : (
-                          <span>$9.99</span>
-                        )
-                      }
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 sm:py-5 font-bold text-[var(--color-text-primary)] text-xs sm:text-sm">
-                      ${Number(order.total).toFixed(2)}
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 sm:py-5 hidden sm:table-cell">
-                      <div className="flex items-center justify-end gap-2">
-                        {order.payment_status === "pending" ? (
-                          <Button
-                            size="sm"
-                            onClick={(e) => { e?.stopPropagation(); navigate(`/checkout?retry_order=${order.id}`); }}
-                            className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white border-none shadow-lg shadow-[var(--color-primary)]/20"
-                          >
-                            {t("orders.pay_now")}
-                          </Button>
-                        ) : (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => { e?.stopPropagation(); handleViewInvoice(order); }}
-                              className="border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)] hover:border-[var(--color-text-muted)]"
-                            >
-                              {t("orders.invoice")}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => { e?.stopPropagation(); handleViewDetails(order); }}
-                            >
-                              {t("orders.details")}
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* Status tabs */}
+          <div className="mt-6 -mx-4 overflow-x-auto px-4 scrollbar-hide md:mx-0 md:px-0">
+            <div role="tablist" aria-label={t("orders.status")} className="flex gap-1 border-b border-[var(--color-border)] min-w-max">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={filterStatus === tab.id}
+                  onClick={() => handleFilterChange(tab.id)}
+                  className={`relative h-11 px-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                    filterStatus === tab.id
+                      ? "text-[var(--color-text-primary)] after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:bg-[var(--color-text-primary)]"
+                      : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {filteredOrders?.length === 0 && (
-            <div className="p-12 text-center text-[var(--color-text-muted)]">
-              {t("orders.no_orders_category")}
-            </div>
-          )}
+          {filteredOrders?.length === 0 ? (
+            <p className="py-16 text-center text-[var(--color-text-secondary)]">{t("orders.no_orders_category")}</p>
+          ) : (
+            <>
+              {/* Mobile: cards */}
+              <ul className="mt-4 space-y-3 md:hidden">
+                {paginatedOrders?.map((order) => (
+                  <li key={order.id} className="rounded-[var(--radius-lg)] border border-[var(--color-border)] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="tabular truncate font-semibold">#{order.tracking_id || order.id}</p>
+                        <p className="text-sm text-[var(--color-text-muted)]">
+                          {dateFmt(order.created_at)} · {order.items?.length ?? 0} {isKh ? "មុខ" : order.items?.length === 1 ? "item" : "items"}
+                        </p>
+                      </div>
+                      <p className="tabular font-semibold">{formatUSD(order.total)}</p>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                      {statusPill(order)}
+                      {countdownCell(order)}
+                    </div>
+                    <div className="mt-4 [&_button]:flex-1 [&>div]:flex [&>div]:w-full">{actions(order)}</div>
+                  </li>
+                ))}
+              </ul>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-t border-[var(--color-border)]">
-              <p className="text-xs sm:text-sm text-[var(--color-text-muted)]">
-                Showing {(currentPage - 1) * ORDERS_PER_PAGE + 1}–{Math.min(currentPage * ORDERS_PER_PAGE, totalFiltered)} of {totalFiltered}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  {t("orders.prev")}
-                </button>
-                {Array.from({ length: totalPages }).map((_, i) => {
-                  const page = i + 1;
-                  // Show limited page numbers on mobile
-                  if (
-                    totalPages > 5 &&
-                    page !== 1 &&
-                    page !== totalPages &&
-                    Math.abs(page - currentPage) > 1
-                  ) {
-                    // Show ellipsis marker
-                    if (page === 2 && currentPage > 3) return <span key={page} className="px-1 text-[var(--color-text-muted)]">…</span>;
-                    if (page === totalPages - 1 && currentPage < totalPages - 2) return <span key={page} className="px-1 text-[var(--color-text-muted)]">…</span>;
-                    return null;
-                  }
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                        currentPage === page
-                          ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20"
-                          : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] border border-[var(--color-border)]"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  {t("orders.next")}
-                </button>
+              {/* Desktop: table */}
+              <div className="mt-2 hidden md:block">
+                <table className="w-full text-left text-[0.9375rem]">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)] text-sm text-[var(--color-text-muted)]">
+                      <th scope="col" className="py-3 pr-4 font-medium">{t("orders.tracking_id")}</th>
+                      <th scope="col" className="py-3 pr-4 font-medium">{t("orders.date")}</th>
+                      <th scope="col" className="py-3 pr-4 font-medium">{t("orders.status")}</th>
+                      <th scope="col" className="py-3 pr-4 font-medium text-right">{t("orders.total")}</th>
+                      <th scope="col" className="py-3 font-medium text-right">
+                        <span className="sr-only">{t("orders.action")}</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--color-border)]">
+                    {paginatedOrders?.map((order) => (
+                      <tr key={order.id}>
+                        <td className="tabular py-4 pr-4 font-medium">#{order.tracking_id || order.id}</td>
+                        <td className="py-4 pr-4 whitespace-nowrap text-[var(--color-text-secondary)]">{dateFmt(order.created_at)}</td>
+                        <td className="py-4 pr-4">
+                          <div className="flex flex-col gap-0.5">
+                            {statusPill(order)}
+                            {countdownCell(order)}
+                          </div>
+                        </td>
+                        <td className="tabular py-4 pr-4 text-right font-semibold">{formatUSD(order.total)}</td>
+                        <td className="py-4">
+                          <div className="flex justify-end">{actions(order)}</div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
+
+              {totalPages > 1 && (
+                <nav aria-label="Pagination" className="mt-6 flex items-center justify-between gap-4 border-t border-[var(--color-border)] pt-4">
+                  <p className="tabular text-sm text-[var(--color-text-muted)]">
+                    {(currentPage - 1) * ORDERS_PER_PAGE + 1}–{Math.min(currentPage * ORDERS_PER_PAGE, totalFiltered)} / {totalFiltered}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
+                      <ChevronLeft className="h-4 w-4" />
+                      {t("orders.prev")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    >
+                      {t("orders.next")}
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </nav>
+              )}
+            </>
           )}
-        </div>
+        </>
       )}
 
-      <OrderDetailsModal
-        isOpen={detailsOpen}
-        onClose={() => setDetailsOpen(false)}
-        order={selectedOrder}
-      />
-
-      <InvoiceModal
-        isOpen={invoiceOpen}
-        onClose={() => setInvoiceOpen(false)}
-        order={selectedOrder}
-      />
+      <OrderDetailsModal isOpen={detailsOpen} onClose={() => setDetailsOpen(false)} order={selectedOrder} />
+      <InvoiceModal isOpen={invoiceOpen} onClose={() => setInvoiceOpen(false)} order={selectedOrder} />
     </div>
   );
 };

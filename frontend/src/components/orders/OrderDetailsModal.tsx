@@ -45,7 +45,7 @@ const OrderDetailsModal = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/40 z-[95] flex items-center justify-center p-4"
           >
             {/* Modal Content */}
             <motion.div
@@ -53,7 +53,7 @@ const OrderDetailsModal = ({
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[var(--color-bg-primary)] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="bg-[var(--color-bg-primary)] w-full max-w-2xl rounded-[var(--radius-lg)] shadow-[var(--shadow-lg)] overflow-hidden flex flex-col max-h-[90vh]"
             >
               {/* Header */}
               <div className="p-6 border-b border-[var(--color-border)] flex items-center justify-between bg-[var(--color-bg-secondary)]">
@@ -88,7 +88,7 @@ const OrderDetailsModal = ({
               <div className="p-6 overflow-y-auto custom-scrollbar">
                 {/* Date & Tracking */}
                 <div className="grid grid-cols-2 gap-4 mb-8">
-                  <div className="bg-[var(--color-bg-secondary)] p-4 rounded-2xl">
+                  <div className="bg-[var(--color-bg-surface)] p-4 rounded-[var(--radius-md)]">
                     <p className="text-xs text-[var(--color-text-muted)] uppercase font-semibold tracking-wider mb-1">
                       {t("orders.date")}
                     </p>
@@ -103,7 +103,7 @@ const OrderDetailsModal = ({
                     </p>
                   </div>
                   {order.tracking_id && (
-                    <div className="bg-[var(--color-bg-secondary)] p-4 rounded-2xl">
+                    <div className="bg-[var(--color-bg-surface)] p-4 rounded-[var(--radius-md)]">
                       <p className="text-xs text-[var(--color-text-muted)] uppercase font-semibold tracking-wider mb-1">
                         {t("orders.tracking_id")}
                       </p>
@@ -120,7 +120,7 @@ const OrderDetailsModal = ({
                   {order.items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-4 bg-[var(--color-bg-surface)] p-3 rounded-2xl border border-[var(--color-border)]"
+                      className="flex items-center gap-4 p-3 rounded-[var(--radius-md)] border border-[var(--color-border)]"
                     >
                       <div className="w-16 h-16 bg-white rounded-xl flex-shrink-0 flex items-center justify-center p-2 overflow-hidden border border-gray-100">
                         {item.product?.image_url ||
@@ -183,7 +183,7 @@ const OrderDetailsModal = ({
                 </div>
 
                 {/* Summary */}
-                <div className="bg-[var(--color-bg-Secondary)] p-6 rounded-3xl space-y-3">
+                <div className="bg-[var(--color-bg-surface)] p-5 rounded-[var(--radius-md)] space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-[var(--color-text-muted)]">
                       {t("cart.subtotal")}

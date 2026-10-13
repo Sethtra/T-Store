@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import { ArrowLeft, Check, CreditCard, Lock, QrCode, Smartphone, Store, Timer, Truck } from "lucide-react";
 import { useCartStore } from "../stores/cartStore";
 import {
   useCreateOrder,
@@ -15,6 +15,8 @@ import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import StripeForm from "../components/checkout/StripeForm";
 import { useTranslation } from "react-i18next";
+import { getImageUrl } from "../utils/image";
+import { formatUSD } from "../utils/money";
 
 import api from "../lib/api";
 import { getApiErrorMessage } from "../lib/errors";
@@ -24,167 +26,94 @@ type PaywayData = {
   deeplink?: string;
 };
 
-const BackgroundElements = () => (
-  <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    <motion.div
-      animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1], rotate: [0, 45, 0] }}
-      transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-      className="absolute top-[-10%] right-[-5%] w-[50vw] h-[50vw] rounded-full bg-[var(--color-primary)] blur-[120px]"
-    />
-    <motion.div
-      animate={{ scale: [1, 1.2, 1], opacity: [0.05, 0.15, 0.05], rotate: [0, -45, 0] }}
-      transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-      className="absolute bottom-[-10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-purple-500 blur-[100px]"
-    />
-  </div>
-);
-
 // Initialize Stripe outside component
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_placeholder",
-);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_placeholder");
 
-// Step Progress Component
+const stripeAppearance = () => {
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  return {
+    theme: (dark ? "night" : "stripe") as "night" | "stripe",
+    variables: {
+      colorPrimary: dark ? "#f4f4f2" : "#121212",
+      borderRadius: "10px",
+      fontFamily: '"Hanken Grotesk", system-ui, sans-serif',
+    },
+  };
+};
+
 const StepProgress = ({ currentStep }: { currentStep: number }) => {
   const { t } = useTranslation();
-  const steps = [
-    { number: 1, label: t("checkout.step_shipping") },
-    { number: 2, label: t("checkout.step_payment") },
-  ];
+  const steps = [t("checkout.step_shipping"), t("checkout.step_payment")];
 
   return (
-    <div className="flex items-center justify-center mb-10">
-      {steps.map((step, index) => (
-        <div key={step.number} className="flex items-center">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: index * 0.1 }}
-            className="flex flex-col items-center"
-          >
-            <motion.div
-              className={`step-indicator ${
-                currentStep > step.number
-                  ? "completed"
-                  : currentStep === step.number
-                    ? "active"
-                    : "pending"
-              }`}
-            >
-              {currentStep > step.number ? (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              ) : (
-                step.number
-              )}
-            </motion.div>
-            <span
-              className={`mt-2 text-sm font-medium ${
-                currentStep >= step.number
-                  ? "text-[var(--color-text-primary)]"
-                  : "text-[var(--color-text-muted)]"
-              }`}
-            >
-              {step.label}
+    <ol className="flex items-center gap-3 text-sm" aria-label="Checkout progress">
+      {steps.map((label, index) => {
+        const n = index + 1;
+        const done = currentStep > n;
+        const active = currentStep === n;
+        return (
+          <li key={label} className="flex items-center gap-3" aria-current={active ? "step" : undefined}>
+            {index > 0 && <span className="h-px w-6 bg-[var(--color-border-hover)] sm:w-10" aria-hidden="true" />}
+            <span className="flex items-center gap-2">
+              <span
+                className={`tabular grid h-6 w-6 place-items-center rounded-full text-xs font-semibold ${
+                  done || active
+                    ? "bg-[var(--color-primary)] text-[var(--color-on-primary)]"
+                    : "border border-[var(--color-border-hover)] text-[var(--color-text-muted)]"
+                }`}
+              >
+                {done ? <Check className="h-3.5 w-3.5" /> : n}
+              </span>
+              <span className={active || done ? "font-medium" : "text-[var(--color-text-muted)]"}>{label}</span>
             </span>
-          </motion.div>
-          {index < steps.length - 1 && (
-            <div
-              className={`step-line mx-4 w-16 md:w-24 ${
-                currentStep > step.number ? "completed" : ""
-              }`}
-            />
-          )}
-        </div>
-      ))}
-    </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 };
 
-// Payment Method Card Component
-const PaymentMethodCard = ({
-  id,
+const ChoiceCard = ({
   selected,
   onSelect,
   icon,
   title,
   description,
-  accentColor,
+  name,
+  value,
 }: {
-  id: string;
   selected: boolean;
   onSelect: () => void;
   icon: React.ReactNode;
   title: string;
-  description: string;
-  accentColor: string;
+  description?: string;
+  name: string;
+  value: string;
 }) => (
-  <button
-    type="button"
-    data-payment-method={id}
-    onClick={onSelect}
-    className={`w-full flex items-center p-5 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden group ${
+  <label
+    className={`flex cursor-pointer items-center gap-4 rounded-[var(--radius-md)] border p-4 transition-colors ${
       selected
-        ? `border-transparent bg-[var(--color-bg-surface)] shadow-md`
-        : "border-[var(--color-border)] bg-[var(--color-bg-elevated)] hover:border-[var(--color-border-hover)]"
+        ? "border-[var(--color-text-primary)] bg-[var(--color-bg-surface)] shadow-[inset_0_0_0_1px_var(--color-text-primary)]"
+        : "border-[var(--color-border-hover)] hover:border-[var(--color-text-muted)]"
     }`}
-    style={selected ? {
-      boxShadow: `0 4px 20px -2px ${accentColor}30`,
-      borderColor: accentColor,
-    } : {}}
   >
-    {selected && (
-      <div className="absolute inset-0 opacity-10" style={{ backgroundColor: accentColor }} />
-    )}
-    
-    <div
-      className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 mr-4 relative z-10 transition-transform group-hover:scale-105"
-      style={{
-        background: selected ? accentColor : `${accentColor}15`,
-        color: selected ? "white" : accentColor,
-      }}
-    >
-      <div className="text-[1.75rem]">
-        {icon}
-      </div>
-    </div>
-    
-    <div className="flex-1 text-left relative z-10">
-      <h4
-        className="font-bold text-base tracking-wide mb-1 transition-colors"
-        style={selected ? { color: accentColor } : { color: 'var(--color-text-primary)' }}
-      >
-        {title}
-      </h4>
-      <p className="text-sm text-[var(--color-text-muted)] line-clamp-1">
-        {description}
-      </p>
-    </div>
-
-    <div
-      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ml-4 flex-shrink-0 transition-all z-10 ${
-        selected ? 'border-transparent' : 'border-[var(--color-border)]'
+    <input type="radio" name={name} value={value} checked={selected} onChange={onSelect} className="sr-only" />
+    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-[var(--color-bg-primary)] border border-[var(--color-border)]">
+      {icon}
+    </span>
+    <span className="min-w-0 flex-1">
+      <span className="block font-semibold">{title}</span>
+      {description && <span className="block text-sm text-[var(--color-text-secondary)]">{description}</span>}
+    </span>
+    <span
+      className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border ${
+        selected ? "border-[var(--color-text-primary)] bg-[var(--color-primary)]" : "border-[var(--color-border-hover)]"
       }`}
-      style={selected ? { backgroundColor: accentColor } : {}}
+      aria-hidden="true"
     >
-      {selected && (
-        <motion.svg initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-        </motion.svg>
-      )}
-    </div>
-  </button>
+      {selected && <span className="h-2 w-2 rounded-full bg-[var(--color-on-primary)]" />}
+    </span>
+  </label>
 );
 
 const PaywayQRView = ({
@@ -201,87 +130,72 @@ const PaywayQRView = ({
   createdOrderId: number | null;
 }) => {
   const { t } = useTranslation();
+  const [simulating, setSimulating] = useState(false);
+  const expiring = qrTimeLeft < 60;
+
   return (
-    <div className="flex flex-col items-center justify-center p-4 w-full">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-[var(--color-bg-elevated)]/80 backdrop-blur-3xl border border-[var(--color-border)]/60 rounded-[2.5rem] shadow-2xl shadow-red-500/10 overflow-hidden max-w-[28rem] w-full mx-auto relative group"
+    <div className="mx-auto flex w-full max-w-sm flex-col items-center text-center">
+      <p className="text-sm font-semibold">ABA KHQR</p>
+      <h2 className="mt-1 text-2xl font-semibold tracking-[-0.02em]">{t("checkout.scan_to_pay")}</h2>
+      <p className="mt-2 text-[0.9375rem] text-[var(--color-text-secondary)]">{t("checkout.scan_hint")}</p>
+
+      <div className="mt-6 w-full rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white p-5">
+        <img
+          src={paywayData.qrImage}
+          alt="KHQR payment code"
+          className="mx-auto aspect-square w-full max-w-[16rem] object-contain"
+          style={{ imageRendering: "pixelated" }}
+        />
+        <div className="mt-4 flex items-baseline justify-between border-t border-dashed border-neutral-300 pt-4 text-neutral-900">
+          <span className="text-sm text-neutral-600">{t("checkout.order_total")}</span>
+          <span className="tabular text-2xl font-semibold">{formatUSD(totalAmount)}</span>
+        </div>
+      </div>
+
+      <p
+        className={`mt-4 inline-flex items-center gap-2 text-sm font-medium ${
+          expiring ? "text-[var(--color-error)]" : "text-[var(--color-text-secondary)]"
+        }`}
+        aria-live={expiring ? "assertive" : "off"}
       >
-         {/* Subtle red glow at top */}
-         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-400 via-[#e21937] to-red-400 opacity-80" />
-         
-         <div className="pt-8 px-8 pb-4 text-center relative z-10">
-           <div className="inline-flex items-center justify-center bg-[#e21937]/10 px-4 py-1.5 rounded-full mb-6 border border-[#e21937]/20">
-             <span className="text-[#e21937] font-bold text-sm tracking-[0.2em] uppercase">ABA KHQR</span>
-           </div>
-           <h3 className="text-3xl font-extrabold mb-3 text-[var(--color-text-primary)]">{t("checkout.scan_to_pay")}</h3>
-           <p className="text-[var(--color-text-muted)] text-[15px] mx-auto mb-8 leading-relaxed">
-             Open your ABA Mobile app or any KHQR supported app to scan.
-           </p>
-           
-           <div className="bg-[var(--color-bg-surface)]/50 backdrop-blur-sm px-8 py-5 rounded-[2rem] mb-8 border border-[var(--color-border)]/50 shadow-inner">
-             <span className="block text-xs font-bold tracking-widest uppercase text-[var(--color-text-muted)] mb-1">{t("checkout.order_total")}</span>
-             <span className="text-[2.5rem] font-black text-[var(--color-text-primary)] tracking-tight leading-none">${Number(totalAmount).toFixed(2)}</span>
-           </div>
-         </div>
+        <Timer className="h-4 w-4" aria-hidden="true" />
+        {t("checkout.expires_in")} <span className="tabular">{formatTime(qrTimeLeft)}</span>
+      </p>
 
-         <div className="px-8 pb-10 flex flex-col items-center relative z-10">
-           {/* QR Code Container with animated border */}
-           <div className="relative mb-8 group-hover:scale-[1.02] transition-transform duration-500">
-             <div className="absolute -inset-1 bg-gradient-to-r from-[#e21937]/20 to-red-400/20 rounded-[2.2rem] blur-md opacity-70 group-hover:opacity-100 transition-opacity" />
-             <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-gray-100 flex items-center justify-center w-[18rem] h-[18rem] relative z-10">
-                <img 
-                   src={paywayData.qrImage} 
-                   alt="Payment QR" 
-                   className="w-full h-full object-contain mix-blend-multiply scale-[1.05]"
-                   style={{ imageRendering: "pixelated" }}
-                />
-             </div>
-           </div>
-           
-           {/* Timer */}
-           <div className={`flex items-center justify-center gap-3 px-8 py-3.5 rounded-2xl font-mono text-xl font-bold border-2 transition-all duration-300 w-full mb-4 ${qrTimeLeft < 60 ? 'bg-red-500/10 text-red-600 border-red-500/30 shadow-inner' : 'bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] border-[var(--color-border)]'}`}>
-             <svg className={`w-5 h-5 ${qrTimeLeft < 60 ? 'animate-pulse' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-             </svg>
-             {formatTime(qrTimeLeft)}
-           </div>
+      {paywayData.deeplink && (
+        <a
+          href={paywayData.deeplink}
+          className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] font-semibold text-[var(--color-on-primary)] sm:hidden"
+        >
+          <Smartphone className="h-[18px] w-[18px]" aria-hidden="true" />
+          {t("checkout.pay_on_phone")}
+        </a>
+      )}
 
-           {paywayData.deeplink && (
-              <a
-                href={paywayData.deeplink}
-                className="w-full flex justify-center items-center gap-2 bg-[#e21937] hover:bg-[#c91630] !text-white px-6 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-red-500/20 active:scale-[0.98] text-[15px]"
-              >
-                <svg className="w-5 h-5 !text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                <span>Pay on Phone</span>
-              </a>
-           )}
-
-          <button
-            onClick={async () => {
-              if (!createdOrderId) return;
-              try {
-                await api.post("/payment/payway/simulate", { order_id: createdOrderId });
-              } catch (err) {
-                console.error("PayWay simulation failed", err);
-              }
-            }}
-            className="mt-6 text-[11px] font-bold tracking-widest text-[var(--color-text-muted)] hover:text-[#e21937] opacity-60 transition-colors uppercase cursor-pointer"
-          >
-            {'>'} Simulate Payment {'<'}
-          </button>
-         </div>
-      </motion.div>
+      <button
+        type="button"
+        disabled={!createdOrderId || simulating}
+        onClick={async () => {
+          if (!createdOrderId) return;
+          setSimulating(true);
+          try {
+            await api.post("/payment/payway/simulate", { order_id: createdOrderId });
+          } catch (err) {
+            console.error("PayWay simulation failed", err);
+          } finally {
+            setSimulating(false);
+          }
+        }}
+        className="mt-6 text-xs text-[var(--color-text-muted)] underline underline-offset-4 hover:text-[var(--color-text-primary)] disabled:opacity-50"
+      >
+        {t("checkout.demo_simulate")}
+      </button>
     </div>
   );
 };
 
 const CheckoutPage = () => {
-  const { t, i18n } = useTranslation();
-  const isKh = i18n.language === "kh";
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { items, totalPrice, clearCart } = useCartStore();
@@ -306,9 +220,7 @@ const CheckoutPage = () => {
   const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">(
     "delivery",
   );
-  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "payway">(
-    "stripe",
-  );
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "payway">("payway");
 
   // Payment Flow State
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
@@ -370,7 +282,7 @@ const CheckoutPage = () => {
           if (prev <= 1) {
              clearInterval(statusInterval);
              clearInterval(timerInterval);
-             navigate("/cart");
+             navigate("/orders");
              return 0;
           }
           return prev - 1;
@@ -489,64 +401,97 @@ const CheckoutPage = () => {
   const tax = subtotal * 0.1;
   const total = subtotal + shipping + tax;
 
+  const wrap = "max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8 pt-6 md:pt-10";
+
+  const errorBox = paymentError && (
+    <div role="alert" className="rounded-[var(--radius-md)] border border-[var(--color-error)]/30 bg-[color-mix(in_srgb,var(--color-error)_8%,transparent)] px-4 py-3 text-sm text-[var(--color-error)]">
+      {paymentError}
+    </div>
+  );
+
   if (items.length === 0 && !orderSuccess && !isRetryMode && !createdOrderId) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="min-h-[70vh] flex flex-col items-center justify-center"
-      >
-        <h2 className="text-2xl font-bold mb-2">{t("cart.empty")}</h2>
-        <Link to="/products">
-          <Button size="lg" className="mt-4">
-            {t("cart.continue_shopping")}
-          </Button>
+      <div className={`${wrap} flex min-h-[60vh] flex-col items-center justify-center text-center`}>
+        <h1 className="text-2xl font-semibold">{t("cart.empty")}</h1>
+        <Link
+          to="/products"
+          className="mt-6 inline-flex h-12 items-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-6 font-semibold text-[var(--color-on-primary)]"
+        >
+          {t("cart.continue_shopping")}
         </Link>
-      </motion.div>
+      </div>
     );
   }
 
   if (orderSuccess) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="min-h-[70vh] flex flex-col items-center justify-center"
-      >
-        <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mb-8">
-          <svg
-            className="w-12 h-12 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={3}
+      <div className={`${wrap} flex min-h-[60vh] flex-col items-center justify-center text-center`}>
+        <span className="grid h-16 w-16 place-items-center rounded-full bg-[color-mix(in_srgb,var(--color-success)_14%,transparent)] text-[var(--color-success)] rise-in">
+          <Check className="h-8 w-8" strokeWidth={2.5} />
+        </span>
+        <h1 className="mt-6 text-3xl font-semibold tracking-[-0.03em]">{t("checkout.success_title")}</h1>
+        <p className="mt-2 max-w-md text-[var(--color-text-secondary)]">{t("checkout.success_desc")}</p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Link
+            to="/orders"
+            className="inline-flex h-12 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-6 font-semibold text-[var(--color-on-primary)]"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-        </div>
-        <h2 className="text-3xl font-bold mb-3">{t("checkout.success_title")}</h2>
-        <p className="text-[var(--color-text-muted)] mb-8">
-          {t("checkout.success_desc")}
-        </p>
-        <div className="flex gap-4">
-          <Link to="/orders">
-            <Button variant="outline" size="lg">
-              {t("checkout.view_orders")}
-            </Button>
+            {t("checkout.view_orders")}
           </Link>
-          <Link to="/products">
-            <Button size="lg">{t("cart.continue_shopping")}</Button>
+          <Link
+            to="/products"
+            className="inline-flex h-12 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border-hover)] px-6 font-semibold"
+          >
+            {t("cart.continue_shopping")}
           </Link>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
-  // Retry Payment Mode: show payment method selection and pay button
+  const paymentChoices = (
+    <div className="space-y-3" role="radiogroup" aria-label={t("checkout.payment_method")}>
+      <ChoiceCard
+        name="payment"
+        value="payway"
+        selected={paymentMethod === "payway"}
+        onSelect={() => setPaymentMethod("payway")}
+        icon={<QrCode className="h-5 w-5" />}
+        title={t("checkout.pay_aba_title")}
+        description={t("checkout.pay_aba_desc")}
+      />
+      <ChoiceCard
+        name="payment"
+        value="stripe"
+        selected={paymentMethod === "stripe"}
+        onSelect={() => setPaymentMethod("stripe")}
+        icon={<CreditCard className="h-5 w-5" />}
+        title={t("checkout.pay_card_title")}
+        description={t("checkout.pay_card_desc")}
+      />
+    </div>
+  );
+
+  const paymentPanel = (amount: number) => (
+    <>
+      {paymentMethod === "stripe" && stripeClientSecret && (
+        <Elements stripe={stripePromise} options={{ clientSecret: stripeClientSecret, appearance: stripeAppearance() }}>
+          <StripeForm clientSecret={stripeClientSecret} onSuccess={handlePaymentSuccess} onError={setPaymentError} />
+        </Elements>
+      )}
+      {paymentMethod === "payway" && paywayData && (
+        <PaywayQRView
+          paywayData={paywayData}
+          totalAmount={amount}
+          qrTimeLeft={qrTimeLeft}
+          formatTime={formatTime}
+          createdOrderId={createdOrderId}
+        />
+      )}
+    </>
+  );
+
+  // Retry Payment Mode: pick a method and pay for an existing order
   if (isRetryMode && retryOrder && !orderSuccess) {
     const handleRetryPay = async () => {
       if (!createdOrderId) return;
@@ -554,584 +499,309 @@ const CheckoutPage = () => {
       setIsCreatingOrder(true);
 
       try {
-        // Update payment method on backend
         await api.post(`/orders/${createdOrderId}/retry-payment`, {
           payment_method: paymentMethod,
         });
 
         if (paymentMethod === "stripe") {
-          const intentRes = await createStripeIntent.mutateAsync({
-            order_id: createdOrderId,
-          });
+          const intentRes = await createStripeIntent.mutateAsync({ order_id: createdOrderId });
           setStripeClientSecret(intentRes.client_secret);
           setCurrentStep(2);
         } else if (paymentMethod === "payway") {
-          const paywayRes = await createPaywayTransaction.mutateAsync({
-            order_id: createdOrderId,
-          });
+          const paywayRes = await createPaywayTransaction.mutateAsync({ order_id: createdOrderId });
           if (paywayRes.payway_response?.qrImage) {
             setPaywayData({
               qrImage: paywayRes.payway_response.qrImage,
               deeplink: paywayRes.payway_response.abapay_deeplink,
             });
+            setQrTimeLeft(300);
             setCurrentStep(2);
           } else {
-            throw new Error(
-              paywayRes.payway_response.status?.message ||
-                "Failed to generate QR Code",
-            );
+            throw new Error(paywayRes.payway_response.status?.message || "Failed to generate QR Code");
           }
         }
       } catch (error) {
-        setPaymentError(
-          getApiErrorMessage(error, "Failed to process payment. Please try again."),
-        );
+        setPaymentError(getApiErrorMessage(error, "Failed to process payment. Please try again."));
       } finally {
         setIsCreatingOrder(false);
       }
     };
 
-    // If already moved to step 2 (payment form), show that instead
-    if (currentStep === 2) {
-      return (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="pb-12 md:pb-16 min-h-screen relative overflow-hidden bg-[var(--color-bg-base)] z-0"
-          style={{ paddingTop: "140px" }}
-        >
-          <BackgroundElements />
-          <div className="container lg:px-8 max-w-2xl mx-auto relative z-10">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-3xl font-extrabold tracking-tight">Complete Payment</h1>
-              <button
-                onClick={() => setCurrentStep(1)}
-                className="text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
-              >
-                ← Change Method
-              </button>
-            </div>
-            <div className="bg-[var(--color-bg-elevated)]/70 backdrop-blur-2xl p-8 rounded-[2rem] border border-[var(--color-border)]/60 shadow-xl">
-              {paymentMethod === "stripe" && stripeClientSecret && (
-                <Elements
-                  stripe={stripePromise}
-                  options={{
-                    clientSecret: stripeClientSecret,
-                    appearance: { theme: "stripe" },
-                  }}
-                >
-                  <StripeForm
-                    clientSecret={stripeClientSecret}
-                    onSuccess={handlePaymentSuccess}
-                    onError={setPaymentError}
-                  />
-                </Elements>
-              )}
-              {paymentMethod === "payway" && paywayData && (
-                <PaywayQRView 
-                   paywayData={paywayData}
-                   totalAmount={Number(retryOrder?.total || 0)}
-                   qrTimeLeft={qrTimeLeft}
-                   formatTime={formatTime}
-                   createdOrderId={createdOrderId}
-                />
-              )}
-            </div>
-          </div>
-        </motion.div>
-      );
-    }
-
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="pb-12 md:pb-16"
-        style={{ paddingTop: "140px" }}
-      >
-        <div className="container lg:px-8 max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">Retry Payment</h1>
-          <p className="text-[var(--color-text-muted)] mb-8">
-            Order #{retryOrder.tracking_id || retryOrder.id} · Total:{" "}
-            <span className="font-bold text-[var(--color-text-primary)]">
-              ${Number(retryOrder.total).toFixed(2)}
-            </span>
+      <div className={`${wrap} max-w-2xl`}>
+        <Link
+          to="/orders"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t("checkout.back_to_orders")}
+        </Link>
+        <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2">
+          <h1 className="text-3xl font-semibold tracking-[-0.03em]">
+            {currentStep === 2 ? t("checkout.complete_payment") : t("checkout.retry_title")}
+          </h1>
+          <p className="tabular text-[var(--color-text-secondary)]">
+            #{retryOrder.tracking_id || retryOrder.id} · <span className="font-semibold text-[var(--color-text-primary)]">{formatUSD(retryOrder.total)}</span>
           </p>
-
-          {paymentError && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl mb-6">
-              {paymentError}
-            </div>
-          )}
-
-          {/* Order Items */}
-          <div className="bg-[var(--color-bg-elevated)]/50 backdrop-blur-xl p-6 rounded-2xl border border-[var(--color-border)]/50 mb-8">
-            <h3 className="font-bold mb-4">Order Items</h3>
-            <div className="space-y-3">
-              {retryOrder.items?.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between items-center text-sm"
-                >
-                  <span>
-                    {item.product_title} × {item.quantity}
-                  </span>
-                  <span className="font-medium">
-                    ${Number(item.price * item.quantity).toFixed(2)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Payment Method Selection */}
-          <div className="space-y-4 mb-8">
-            <h3 className="font-bold">Choose Payment Method</h3>
-            <PaymentMethodCard
-              id="stripe"
-              selected={paymentMethod === "stripe"}
-              onSelect={() => setPaymentMethod("stripe")}
-              accentColor="#635BFF"
-              title="Credit / Debit Card"
-              description="Pay securely with Visa, Mastercard, or American Express via Stripe"
-              icon={
-                <svg
-                  className="w-7 h-7"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                  />
-                </svg>
-              }
-            />
-            <PaymentMethodCard
-              id="payway"
-              selected={paymentMethod === "payway"}
-              onSelect={() => setPaymentMethod("payway")}
-              accentColor="#E21937"
-              title="ABA PayWay"
-              description="Pay with ABA Mobile, KHQR, or local bank cards via ABA PayWay"
-              icon={
-                <svg
-                  className="w-7 h-7"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                  />
-                </svg>
-              }
-            />
-          </div>
-
-          <Button
-            size="lg"
-            fullWidth
-            isLoading={isCreatingOrder}
-            onClick={handleRetryPay}
-            className="py-4 text-base rounded-xl bg-[var(--color-primary)] text-white border-none shadow-lg shadow-blue-500/20"
-          >
-            {paymentMethod === "stripe"
-              ? "Pay with Card"
-              : "Pay with ABA PayWay"}
-          </Button>
-
-          <Link
-            to="/orders"
-            className="block text-center mt-4 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)]"
-          >
-            ← Back to My Orders
-          </Link>
         </div>
-      </motion.div>
+
+        <div className="mt-8 space-y-6">
+          {errorBox}
+
+          {currentStep === 2 ? (
+            <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] p-5 sm:p-8">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(1)}
+                className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {t("checkout.change_method")}
+              </button>
+              {paymentPanel(Number(retryOrder?.total || 0))}
+            </div>
+          ) : (
+            <>
+              <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)]">
+                <h2 className="border-b border-[var(--color-border)] px-5 py-3.5 text-sm font-semibold">{t("checkout.order_items")}</h2>
+                <ul className="divide-y divide-[var(--color-border)]">
+                  {retryOrder.items?.map((item) => (
+                    <li key={item.id} className="flex justify-between gap-4 px-5 py-3 text-[0.9375rem]">
+                      <span className="min-w-0">
+                        {item.product_title} <span className="text-[var(--color-text-muted)]">× {item.quantity}</span>
+                      </span>
+                      <span className="tabular font-medium">{formatUSD(item.price * item.quantity)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <section>
+                <h2 className="mb-3 text-base font-semibold">{t("checkout.payment_method")}</h2>
+                {paymentChoices}
+              </section>
+
+              <Button size="lg" fullWidth isLoading={isCreatingOrder} onClick={handleRetryPay} className="h-12">
+                <Lock className="h-4 w-4" />
+                {t("checkout.continue_payment")}
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
     );
   }
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="pb-12 md:pb-16 min-h-screen relative overflow-hidden bg-[var(--color-bg-base)] z-0"
-      style={{ paddingTop: "140px" }}
-    >
-      <BackgroundElements />
-      <div className="container lg:px-8 relative z-10">
-        <div className="flex items-center justify-between mb-8 md:mb-12">
-          <h1 className="text-4xl font-extrabold tracking-tight">{t("checkout.title")}</h1>
-          <StepProgress currentStep={currentStep} />
-        </div>
+  const summary = (
+    <section className="rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] p-5 sm:p-6 lg:sticky lg:top-24" aria-labelledby="summary-title">
+      <h2 id="summary-title" className="text-base font-semibold">
+        {t("checkout.summary")}
+      </h2>
 
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          {/* Left Column: Form / Payment */}
-          <div className="lg:col-span-7 space-y-8 bg-[var(--color-bg-elevated)]/70 backdrop-blur-2xl p-8 rounded-[2rem] border border-[var(--color-border)]/60 shadow-xl">
-            {paymentError && (
-              <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl">
-                {paymentError}
-              </div>
-            )}
-
-            <AnimatePresence mode="wait">
-              {currentStep === 1 ? (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
-                  <h2 className="text-xl font-bold mb-6">
-                    {t("checkout.step_shipping")} & {t("checkout.step_payment")}
-                  </h2>
-                  <form
-                    id="checkout-form"
-                    onSubmit={handleCreateOrder}
-                    className="space-y-8"
-                  >
-                    {/* Delivery Method */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        type="button"
-                        onClick={() => setDeliveryMethod("delivery")}
-                        className={`flex items-center justify-center gap-3 py-4 rounded-xl border-2 font-medium transition-all ${deliveryMethod === "delivery" ? "border-blue-500 bg-blue-500/10 text-blue-500" : "border-[var(--color-border)] hover:border-[var(--color-border-hover)]"}`}
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
-                          />
-                        </svg>
-                        {t("checkout.delivery")}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeliveryMethod("pickup")}
-                        className={`flex items-center justify-center gap-3 py-4 rounded-xl border-2 font-medium transition-all ${deliveryMethod === "pickup" ? "border-blue-500 bg-blue-500/10 text-blue-500" : "border-[var(--color-border)] hover:border-[var(--color-border-hover)]"}`}
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                          />
-                        </svg>
-                        {t("checkout.pickup")}
-                      </button>
-                    </div>
-
-                    {/* Form Fields */}
-                    <div className="space-y-6">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <Input
-                          label={t("auth.full_name") + " *"}
-                          value={formData.firstName}
-                          onChange={(e) =>
-                            handleInputChange("firstName", e.target.value)
-                          }
-                          required
-                        />
-                        <Input
-                          label="Last name *"
-                          value={formData.lastName}
-                          onChange={(e) =>
-                            handleInputChange("lastName", e.target.value)
-                          }
-                          required
-                        />
-                      </div>
-                      <Input
-                        label={t("auth.email") + " *"}
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) =>
-                          handleInputChange("email", e.target.value)
-                        }
-                        required
-                      />
-                      <Input
-                        label="Phone *"
-                        value={formData.phone}
-                        onChange={(e) =>
-                          handleInputChange("phone", e.target.value)
-                        }
-                        required
-                      />
-
-                      {deliveryMethod === "delivery" && (
-                        <div className="space-y-6">
-                          <Input
-                            label={t("checkout.shipping_address") + " *"}
-                            value={formData.address}
-                            onChange={(e) =>
-                              handleInputChange("address", e.target.value)
-                            }
-                            required
-                          />
-                          <div className="grid grid-cols-2 gap-6">
-                            <Input
-                              label={isKh ? "ទីក្រុង / ខេត្ត *" : "City / Province *"}
-                              value={formData.city}
-                              onChange={(e) =>
-                                handleInputChange("city", e.target.value)
-                              }
-                              required
-                            />
-                            <Input
-                              label={isKh ? "លេខកូដប្រៃសណីយ៍ *" : "ZIP Code *"}
-                              value={formData.postalCode}
-                              onChange={(e) =>
-                                handleInputChange("postalCode", e.target.value)
-                              }
-                              required
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Payment Method Selection - Premium UI */}
-                    <div className="pt-6 border-t border-[var(--color-border)]">
-                      <h3 className="text-lg font-bold mb-2">
-                        {t("checkout.step_payment")}
-                      </h3>
-                      <p className="text-sm text-[var(--color-text-muted)] mb-5">
-                        {isKh ? "ជ្រើសរើសវិធីសាស្ត្រទូទាត់ប្រាក់ដែលអ្នកចង់បាន" : "Choose your preferred payment option"}
-                      </p>
-                      <div className="space-y-4">
-                        <PaymentMethodCard
-                          id="stripe"
-                          selected={paymentMethod === "stripe"}
-                          onSelect={() => setPaymentMethod("stripe")}
-                          accentColor="#635BFF"
-                          title={isKh ? "កាតឥណទាន / ឥណពន្ធ" : "Credit / Debit Card"}
-                          description={isKh ? "ទូទាត់ដោយសុវត្ថិភាពជាមួយ Visa, Mastercard តាមរយៈ Stripe" : "Pay securely with Visa, Mastercard, or American Express via Stripe"}
-                          icon={
-                            <svg
-                              className="w-7 h-7"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.5}
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                              />
-                            </svg>
-                          }
-                        />
-                        <PaymentMethodCard
-                          id="payway"
-                          selected={paymentMethod === "payway"}
-                          onSelect={() => setPaymentMethod("payway")}
-                          accentColor="#E21937"
-                          title="ABA PayWay"
-                          description={isKh ? "ទូទាត់ជាមួយ ABA Mobile, KHQR ឬកាតធនាគារក្នុងស្រុក" : "Pay with ABA Mobile, KHQR, or local bank cards via ABA PayWay"}
-                          icon={
-                            <svg
-                              className="w-7 h-7"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.5}
-                                d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                              />
-                            </svg>
-                          }
-                        />
-                      </div>
-                    </div>
-                  </form>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                >
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold">{t("checkout.step_payment")}</h2>
-                    <button
-                      onClick={() => setCurrentStep(1)}
-                      className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)]"
-                    >
-                      ← {isKh ? "ត្រឡប់ទៅការដឹកជញ្ជូន" : "Back to Shipping"}
-                    </button>
-                  </div>
-
-                  {createdOrderId && (
-                    <div className="bg-[var(--color-bg-elevated)] p-6 rounded-2xl border border-[var(--color-border)] shadow-sm">
-                      {paymentMethod === "stripe" && stripeClientSecret && (
-                        <Elements
-                          stripe={stripePromise}
-                          options={{
-                            clientSecret: stripeClientSecret,
-                            appearance: { theme: "stripe" },
-                          }}
-                        >
-                          <StripeForm
-                            clientSecret={stripeClientSecret}
-                            onSuccess={handlePaymentSuccess}
-                            onError={setPaymentError}
-                          />
-                        </Elements>
-                      )}
-
-                      {paymentMethod === "payway" && paywayData && (
-                        <PaywayQRView 
-                          paywayData={paywayData}
-                          totalAmount={total}
-                          qrTimeLeft={qrTimeLeft}
-                          formatTime={formatTime}
-                          createdOrderId={createdOrderId}
-                        />
-                      )}
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Right Column: Order Summary */}
-          <div className="lg:col-span-5">
-            <div className="bg-[var(--color-bg-elevated)]/70 backdrop-blur-2xl p-8 rounded-[2rem] border border-[var(--color-border)]/60 shadow-xl sticky top-32">
-              <h2 className="text-xl font-bold mb-6">{t("checkout.summary")}</h2>
-
-              <div className="space-y-4 mb-8 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
-                {items.map((item) => (
-                  <div key={item.id} className="flex gap-4">
-                    <div className="w-16 h-16 bg-white rounded-xl overflow-hidden border border-gray-200 p-2 flex-shrink-0">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-contain mix-blend-multiply"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold line-clamp-1 text-sm text-[var(--color-text-primary)]">
-                        {item.title}
-                      </h4>
-                      {item.attributes && Object.keys(item.attributes).length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1 mb-1">
-                          {Object.entries(item.attributes).map(([key, value]) => (
-                            <span key={key} className="text-[10px] bg-[var(--color-bg-surface)] px-2 py-0.5 rounded-md font-medium text-[var(--color-text-muted)]">
-                              {value}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <p className="text-[11px] font-semibold tracking-wide text-[var(--color-text-muted)] uppercase mt-1">
-                        {isKh ? "ចំនួន" : "Qty"}: {item.quantity}
-                      </p>
-                    </div>
-                    <div className="font-semibold text-sm">${item.price}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-3 pb-6 border-b border-[var(--color-border)] mb-6">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[var(--color-text-muted)]">
-                    {t("cart.subtotal")}
-                  </span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[var(--color-text-muted)]">
-                    {t("checkout.delivery")}
-                  </span>
-                  <span className="font-medium">${shipping.toFixed(2)}</span>
-                </div>
-                {tax > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[var(--color-text-muted)]">
-                      {t("checkout.tax")}
-                    </span>
-                    <span className="font-medium">${tax.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-lg font-bold pt-2">
-                  <span>{t("checkout.total")}</span>
-                  <span>${total.toFixed(2)}</span>
-                </div>
-              </div>
-
-              {/* Payment method badge */}
-              <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-[var(--color-bg-surface)] rounded-lg">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{
-                    backgroundColor:
-                      paymentMethod === "stripe" ? "#635BFF" : "#E21937",
-                  }}
-                />
-                <span className="text-xs font-medium text-[var(--color-text-muted)]">
-                  {isKh ? "ទូទាត់ជាមួយ" : "Paying with"}{" "}
-                  {paymentMethod === "stripe"
-                    ? isKh ? "កាតឥណទាន / ឥណពន្ធ (Stripe)" : "Credit/Debit Card (Stripe)"
-                    : "ABA PayWay"}
-                </span>
-              </div>
-
-              {currentStep === 1 && (
-                <Button
-                  onClick={() =>
-                    document
-                      .getElementById("checkout-form")
-                      ?.dispatchEvent(
-                        new Event("submit", {
-                          cancelable: true,
-                          bubbles: true,
-                        }),
-                      )
-                  }
-                  size="lg"
-                  fullWidth
-                  isLoading={isCreatingOrder}
-                  disabled={!isAuthenticated}
-                  className="py-4 text-base rounded-xl mb-24 md:mb-6 bg-[var(--color-primary)] text-white border-none shadow-lg shadow-blue-500/20"
-                >
-                  {paymentMethod === "stripe"
-                    ? isKh ? "បន្តទៅការទូទាត់" : "Proceed to Payment"
-                    : t("checkout.simulate_payment")}
-                </Button>
+      <ul className="mt-4 max-h-[40vh] space-y-4 overflow-y-auto pr-1">
+        {items.map((item) => (
+          <li key={`${item.id}-${JSON.stringify(item.attributes || {})}`} className="flex gap-3">
+            <div className="relative h-16 w-16 shrink-0 rounded-[var(--radius-md)] bg-[var(--color-bg-primary)]">
+              <img src={getImageUrl(item.image)} alt="" className="h-full w-full object-contain p-1.5" />
+              <span className="tabular absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-[var(--color-primary)] px-1 text-[11px] font-semibold text-[var(--color-on-primary)]">
+                {item.quantity}
+              </span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-2 text-sm font-medium leading-snug">{item.title}</p>
+              {item.attributes && Object.keys(item.attributes).length > 0 && (
+                <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">{Object.values(item.attributes).join(" · ")}</p>
               )}
             </div>
-          </div>
+            <p className="tabular text-sm font-medium">{formatUSD(item.price * item.quantity)}</p>
+          </li>
+        ))}
+      </ul>
+
+      <dl className="mt-5 space-y-2.5 border-t border-[var(--color-border-hover)] pt-5 text-[0.9375rem]">
+        <div className="flex justify-between">
+          <dt className="text-[var(--color-text-secondary)]">{t("cart.subtotal")}</dt>
+          <dd className="tabular">{formatUSD(subtotal)}</dd>
         </div>
+        <div className="flex justify-between">
+          <dt className="text-[var(--color-text-secondary)]">{t("checkout.delivery")}</dt>
+          <dd className="tabular">{shipping === 0 ? t("orders.free") : formatUSD(shipping)}</dd>
+        </div>
+        {tax > 0 && (
+          <div className="flex justify-between">
+            <dt className="text-[var(--color-text-secondary)]">{t("checkout.tax")}</dt>
+            <dd className="tabular">{formatUSD(tax)}</dd>
+          </div>
+        )}
+        <div className="flex items-baseline justify-between border-t border-[var(--color-border-hover)] pt-3">
+          <dt className="font-semibold">{t("checkout.total")}</dt>
+          <dd className="tabular text-xl font-semibold">{formatUSD(total)}</dd>
+        </div>
+      </dl>
+
+      {currentStep === 1 && isAuthenticated && (
+        <Button type="submit" form="checkout-form" size="lg" fullWidth isLoading={isCreatingOrder} className="mt-6 hidden h-12 lg:inline-flex">
+          <Lock className="h-4 w-4" />
+          {t("checkout.continue_payment")}
+        </Button>
+      )}
+    </section>
+  );
+
+  return (
+    <div className={wrap}>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--color-border)] pb-5">
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl">{t("checkout.title")}</h1>
+        <StepProgress currentStep={currentStep} />
       </div>
 
-      {/* (No Hidden Form Needed Since we natively render the QR Code now!) */}
-    </motion.div>
+      <div className="grid items-start gap-8 pt-8 lg:grid-cols-12 lg:gap-14">
+        <div className="space-y-8 lg:col-span-7">
+          {errorBox}
+
+          {!isAuthenticated && (
+            <div className="flex flex-col gap-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-semibold">{t("checkout.sign_in_title")}</h2>
+                <p className="mt-0.5 text-sm text-[var(--color-text-secondary)]">{t("checkout.sign_in_desc")}</p>
+              </div>
+              <Link
+                to="/login?redirect=/checkout"
+                className="inline-flex h-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 text-sm font-semibold text-[var(--color-on-primary)]"
+              >
+                {t("checkout.sign_in")}
+              </Link>
+            </div>
+          )}
+
+          {currentStep === 1 ? (
+            <form id="checkout-form" onSubmit={handleCreateOrder} className="space-y-10">
+              <fieldset className="space-y-3">
+                <legend className="mb-3 text-lg font-semibold">{t("checkout.delivery_method")}</legend>
+                <div className="grid gap-3 sm:grid-cols-2" role="radiogroup">
+                  <ChoiceCard
+                    name="delivery"
+                    value="delivery"
+                    selected={deliveryMethod === "delivery"}
+                    onSelect={() => setDeliveryMethod("delivery")}
+                    icon={<Truck className="h-5 w-5" />}
+                    title={t("checkout.delivery")}
+                  />
+                  <ChoiceCard
+                    name="delivery"
+                    value="pickup"
+                    selected={deliveryMethod === "pickup"}
+                    onSelect={() => setDeliveryMethod("pickup")}
+                    icon={<Store className="h-5 w-5" />}
+                    title={t("checkout.pickup")}
+                  />
+                </div>
+                {deliveryMethod === "pickup" && (
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t("checkout.pickup_note")}</p>
+                )}
+              </fieldset>
+
+              <fieldset className="space-y-4">
+                <legend className="mb-3 text-lg font-semibold">{t("checkout.contact")}</legend>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    label={t("checkout.first_name")}
+                    autoComplete="given-name"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange("firstName", e.target.value)}
+                    required
+                  />
+                  <Input
+                    label={t("checkout.last_name")}
+                    autoComplete="family-name"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange("lastName", e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    label={t("auth.email")}
+                    type="email"
+                    autoComplete="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    required
+                  />
+                  <Input
+                    label={t("checkout.phone")}
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="012 345 678"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    required
+                  />
+                </div>
+              </fieldset>
+
+              {deliveryMethod === "delivery" && (
+                <fieldset className="space-y-4">
+                  <legend className="mb-3 text-lg font-semibold">{t("checkout.shipping_address")}</legend>
+                  <Input
+                    label={t("checkout.address")}
+                    autoComplete="street-address"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    required
+                  />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Input
+                      label={t("checkout.city")}
+                      autoComplete="address-level1"
+                      value={formData.city}
+                      onChange={(e) => handleInputChange("city", e.target.value)}
+                      required
+                    />
+                    <Input
+                      label={t("checkout.postal")}
+                      autoComplete="postal-code"
+                      inputMode="numeric"
+                      value={formData.postalCode}
+                      onChange={(e) => handleInputChange("postalCode", e.target.value)}
+                      required
+                    />
+                  </div>
+                </fieldset>
+              )}
+
+              <fieldset>
+                <legend className="mb-3 text-lg font-semibold">{t("checkout.payment_method")}</legend>
+                {paymentChoices}
+              </fieldset>
+
+              {/* Mobile / tablet submit; desktop submits from the summary */}
+              <div className="lg:hidden">
+                <Button type="submit" size="lg" fullWidth isLoading={isCreatingOrder} disabled={!isAuthenticated} className="h-12">
+                  <Lock className="h-4 w-4" />
+                  {t("checkout.continue_payment")} · <span className="tabular">{formatUSD(total)}</span>
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] p-5 sm:p-8">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(1)}
+                className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {t("checkout.back_to_details")}
+              </button>
+              {createdOrderId && paymentPanel(total)}
+            </div>
+          )}
+        </div>
+
+        <div className="lg:col-span-5">{summary}</div>
+      </div>
+    </div>
   );
 };
 

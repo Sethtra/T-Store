@@ -12,7 +12,7 @@ interface ThemeStore {
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
-      theme: 'dark',
+      theme: 'light',
       setTheme: (theme) => {
         set({ theme });
         updateDocumentTheme(theme);
@@ -53,9 +53,9 @@ if (typeof window !== 'undefined') {
   if (savedTheme) {
     try {
       const parsed = JSON.parse(savedTheme);
-      updateDocumentTheme(parsed.state?.theme || 'dark');
+      updateDocumentTheme(parsed.state?.theme || 'light');
     } catch {
-      updateDocumentTheme('dark');
+      updateDocumentTheme('light');
     }
   }
 }

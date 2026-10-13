@@ -9,6 +9,8 @@ export interface Product {
   description: string;
   description_kh: string;
   price: number;
+  /** Optional "was" price; a discount shows when it is above price. */
+  original_price?: number | string | null;
   stock: number;
   sold: number;
   category_id: number | null;

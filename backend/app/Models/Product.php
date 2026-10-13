@@ -18,6 +18,7 @@ class Product extends Model
         'description',
         'description_kh',
         'price',
+        'original_price',
         'stock',
         'category_id',
         'images',
@@ -26,6 +27,7 @@ class Product extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'original_price' => 'decimal:2',
         'stock' => 'integer',
         // 'images' is handled by getImagesAttribute accessor
         'attributes' => 'array',

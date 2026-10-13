@@ -1,187 +1,100 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Facebook, Twitter, Instagram, Github } from "lucide-react";
+import { Github } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useAuthStore } from "../../stores/authStore";
 import SiteLogo from "../ui/SiteLogo";
 
 const GITHUB_REPO_URL = "https://github.com/Sethtra/T-Store";
 
 const Footer = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { isAuthenticated } = useAuthStore();
   const currentYear = new Date().getFullYear();
 
-  const footerLinks = {
-    shop: [
-      { label: t("footer.all_products"), href: "/products" },
-      { label: t("footer.new_arrivals"), href: "/products?sort=newest" },
-      { label: t("footer.best_sellers"), href: "/products?sort=popular" },
-    ],
-    support: [
-      { label: t("footer.contact_us"), href: "/contact" },
-      { label: t("footer.faqs"), href: "/faq" },
-      { label: t("footer.shipping_info"), href: "/shipping" },
-      { label: t("footer.returns"), href: "/returns" },
-    ],
-    legal: [
-      { label: t("footer.privacy"), href: "/privacy" },
-      { label: t("footer.terms"), href: "/terms" },
-    ],
-  };
+  const columns = [
+    {
+      title: t("footer.shop"),
+      links: [
+        { label: t("footer.all_products"), to: "/products" },
+        { label: t("footer.new_arrivals"), to: "/products?sort=newest" },
+        { label: t("footer.best_sellers"), to: "/products?sort=popular" },
+      ],
+    },
+    {
+      title: t("footer.account"),
+      links: isAuthenticated
+        ? [{ label: t("footer.my_orders"), to: "/orders" }]
+        : [
+            { label: t("footer.sign_in"), to: "/login" },
+            { label: t("footer.create_account"), to: "/register" },
+          ],
+    },
+    {
+      title: t("footer.company"),
+      links: [{ label: t("footer.about"), to: "/about" }],
+    },
+  ];
 
   return (
-    <footer className="relative bg-[var(--color-bg-secondary)] pt-20 pb-10 border-t border-[var(--color-border)] mt-24 overflow-hidden">
-      {/* Decorative background glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-[var(--color-primary)]/5 blur-[120px] rounded-full pointer-events-none" />
-
-      <div className="container relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
-          {/* Brand Column */}
-          <div className="md:col-span-4 lg:col-span-5 space-y-6">
-            <Link to="/" className="inline-flex items-center gap-3 group">
-              <SiteLogo size="md" showName={true} nameClassName="text-[var(--color-text-primary)]" />
+    <footer className="mt-24 border-t border-[var(--color-border)] bg-[var(--color-bg-secondary)] pb-[calc(60px+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8">
+        <div className="grid gap-10 py-14 md:grid-cols-12">
+          <div className="md:col-span-5 lg:col-span-4">
+            <Link to="/" className="inline-flex rounded-[var(--radius-sm)]" aria-label="T-Store home">
+              <SiteLogo size="sm" showName />
             </Link>
-            <p className="text-[var(--color-text-secondary)] leading-relaxed max-w-sm">
+            <p className="mt-4 max-w-sm text-[0.9375rem] leading-relaxed text-[var(--color-text-secondary)]">
               {t("footer.brand_desc")}
             </p>
 
-            {/* Social Links */}
-            <div className="flex gap-4 pt-2">
-              {[
-                {
-                  icon: Twitter,
-                  href: "https://twitter.com",
-                  label: "Twitter",
-                },
-                {
-                  icon: Facebook,
-                  href: "https://facebook.com",
-                  label: "Facebook",
-                },
-                {
-                  icon: Instagram,
-                  href: "https://instagram.com",
-                  label: "Instagram",
-                },
-                { icon: Github, href: GITHUB_REPO_URL, label: "GitHub" },
-              ].map((social) => (
-                <motion.a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(event) => {
-                    if (social.label !== "GitHub") return;
-
-                    event.preventDefault();
-                    window.open(GITHUB_REPO_URL, "_blank", "noopener,noreferrer");
-                  }}
-                  whileHover={{ y: -3 }}
-                  className="w-10 h-10 rounded-full bg-[var(--color-bg-elevated)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors group"
-                >
-                  <span className="sr-only">{social.label}</span>
-                  <social.icon className="w-5 h-5 transition-transform group-hover:scale-110" />
-                </motion.a>
-              ))}
-            </div>
-          </div>
-
-          {/* Links Columns */}
-          <div className="md:col-span-8 lg:col-span-7 grid grid-cols-2 md:grid-cols-3 gap-8">
-            {/* Shop Links */}
-            <div>
-              <h4 className="font-bold text-[var(--color-text-primary)] mb-6 text-lg">
-                {t("footer.shop")}
-              </h4>
-              <ul className="space-y-4">
-                {footerLinks.shop.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      to={link.href}
-                      className="text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors inline-block hover:translate-x-1 duration-200"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Support Links */}
-            <div>
-              <h4 className="font-bold text-[var(--color-text-primary)] mb-6 text-lg">
-                {t("footer.support")}
-              </h4>
-              <ul className="space-y-4">
-                {footerLinks.support.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      to={link.href}
-                      className="text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors inline-block hover:translate-x-1 duration-200"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Legal Links */}
-            <div>
-              <h4 className="font-bold text-[var(--color-text-primary)] mb-6 text-lg">
-                {t("footer.company")}
-              </h4>
-              <ul className="space-y-4">
-                {footerLinks.legal.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      to={link.href}
-                      className="text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors inline-block hover:translate-x-1 duration-200"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-
-              {/* Newsletter Teaser */}
-              <div className="mt-8 p-4 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border)]">
-                <p className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">
-                  {t("footer.newsletter")}
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    placeholder={i18n.language === 'kh' ? "អ៊ីមែល" : "Email"}
-                    className="w-full bg-transparent border-b border-[var(--color-border)] text-sm py-1 focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                  />
-                  <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">
-                    →
-                  </button>
-                </div>
+            <dl className="mt-6 grid grid-cols-2 gap-4 max-w-sm text-sm">
+              <div>
+                <dt className="text-[var(--color-text-muted)]">{t("footer.payments")}</dt>
+                <dd className="mt-1 font-medium">{t("footer.pay_khqr")}</dd>
+                <dd className="text-[var(--color-text-secondary)]">{t("footer.pay_card")}</dd>
               </div>
-            </div>
+              <div>
+                <dt className="text-[var(--color-text-muted)]">{t("footer.delivery")}</dt>
+                <dd className="mt-1 font-medium">{t("footer.deliver_pp")}</dd>
+              </div>
+            </dl>
           </div>
+
+          <nav
+            aria-label="Footer"
+            className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:col-span-7 lg:col-span-6 lg:col-start-7"
+          >
+            {columns.map((col) => (
+              <div key={col.title}>
+                <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">{col.title}</h2>
+                <ul className="mt-3 space-y-2.5">
+                  {col.links.map((link) => (
+                    <li key={link.to}>
+                      <Link
+                        to={link.to}
+                        className="text-[0.9375rem] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:underline underline-offset-4"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-[var(--color-border)] flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-[var(--color-text-muted)] text-sm">
-            {t("footer.copyright", { year: currentYear })}
-          </p>
-
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3 opacity-70 grayscale hover:grayscale-0 transition-all duration-300">
-              {/* Simple Credit Card Icons placeholder */}
-              {["Visa", "Mastercard", "Amex"].map((card) => (
-                <div
-                  key={card}
-                  className="h-6 px-2 bg-white rounded border border-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-800"
-                >
-                  {card}
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="flex flex-col-reverse gap-4 border-t border-[var(--color-border)] py-6 text-sm text-[var(--color-text-muted)] sm:flex-row sm:items-center sm:justify-between">
+          <p>{t("footer.copyright", { year: currentYear })}</p>
+          <a
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 hover:text-[var(--color-text-primary)]"
+          >
+            <Github className="w-4 h-4" aria-hidden="true" />
+            {t("footer.source")}
+          </a>
         </div>
       </div>
     </footer>

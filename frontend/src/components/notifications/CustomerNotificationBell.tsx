@@ -65,7 +65,7 @@ const CustomerNotificationBell = () => {
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute top-1.5 right-1.5 bg-[var(--color-error)] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-[var(--color-bg-primary)]"
+            className="absolute top-1.5 right-1.5 bg-[var(--color-primary)] text-[var(--color-on-primary)] text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-[var(--color-bg-primary)]"
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </motion.span>

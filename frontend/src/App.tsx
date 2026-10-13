@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
   Outlet,
+  useLocation,
 } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect } from "react";
@@ -32,6 +33,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import OrdersPage from "./pages/OrdersPage";
 import AboutPage from "./pages/AboutPage";
 import TestPlaygroundPage from "./pages/TestPlaygroundPage";
+import UITestPage from "./pages/UITestPage";
 
 // Admin Pages - Lazy load for code splitting
 const AdminDashboard = lazy(() => import("./pages/admin/DashboardPage"));
@@ -73,9 +75,11 @@ const ProtectedRoute = ({
   requireAdmin?: boolean;
 }) => {
   const { isAuthenticated, user } = useAuthStore();
+  const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    const back = location.pathname + location.search;
+    return <Navigate to={`/login?redirect=${encodeURIComponent(back)}`} replace />;
   }
 
   if (requireAdmin && user?.role !== "admin") {
@@ -127,6 +131,9 @@ function App() {
         <ScrollToTop />
         <DynamicHead />
         <Routes>
+          {/* Standalone UI Test Sandbox (prevents header/footer duplication) */}
+          <Route path="/ui-test" element={<UITestPage />} />
+
           {/* Public Routes */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<HomePage />} />

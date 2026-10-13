@@ -18,15 +18,15 @@ const Skeleton: React.FC<SkeletonProps> = ({
   const baseClasses = "bg-[var(--color-bg-surface)] relative overflow-hidden";
   
   const variantClasses = {
-    text: "h-3 w-full rounded",
+    text: "h-3 w-full rounded-[4px]",
     circle: "rounded-full",
     rectangle: "",
-    rounded: "rounded-2xl",
+    rounded: "rounded-[var(--radius-lg)]",
   };
 
   const animationClasses = {
     pulse: "animate-pulse",
-    shimmer: "before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
+    shimmer: "before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.6s_infinite] before:bg-gradient-to-r before:from-transparent before:via-[var(--color-bg-primary)]/60 before:to-transparent",
   };
 
   const style: React.CSSProperties = {
@@ -44,7 +44,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
 
 // Layout Specific Skeletons
 export const ProductCardSkeleton = () => (
-  <div className="bg-[var(--color-bg-elevated)] rounded-3xl border border-[var(--color-border)] p-4 space-y-4">
+  <div className="bg-[var(--color-bg-elevated)] rounded-[var(--radius-lg)] space-y-4">
     <Skeleton variant="rounded" className="aspect-square w-full" />
     <div className="space-y-2 px-2">
       <Skeleton variant="text" width="60%" />
@@ -66,7 +66,7 @@ export const TableRowSkeleton = ({ cols = 5 }: { cols?: number }) => (
 );
 
 export const StatsCardSkeleton = () => (
-  <div className="bg-[var(--color-bg-elevated)] p-6 rounded-2xl border border-[var(--color-border)] space-y-4">
+  <div className="bg-[var(--color-bg-elevated)] p-6 rounded-[var(--radius-lg)] border border-[var(--color-border)] space-y-4">
     <div className="flex justify-between items-start">
       <div className="space-y-2">
         <Skeleton variant="text" width="80px" />

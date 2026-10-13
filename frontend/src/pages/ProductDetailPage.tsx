@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight, CreditCard, Expand, Minus, Plus, ShoppingBag, Truck, X } from "lucide-react";
+import { formatUSD, getDiscount } from "../utils/money";
 import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { useProduct, type Product } from "../hooks/useProducts";
 import { useCartStore } from "../stores/cartStore";
@@ -153,15 +155,18 @@ const ProductDetailPage = () => {
     return colors[colorName.toLowerCase()] || colorName;
   };
 
+
   if (isLoading) {
     return (
-      <div className="container pb-16" style={{ paddingTop: "128px" }}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="aspect-square skeleton rounded-2xl" />
-          <div className="space-y-4">
-            <div className="h-8 w-32 skeleton rounded" />
-            <div className="h-10 w-3/4 skeleton rounded" />
-            <div className="h-24 skeleton rounded" />
+      <div className="max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8 pt-6 md:pt-10" aria-busy="true">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-14">
+          <div className="lg:col-span-7 aspect-square rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)]" />
+          <div className="lg:col-span-5 space-y-4 pt-2">
+            <div className="h-4 w-24 rounded bg-[var(--color-bg-surface)]" />
+            <div className="h-10 w-3/4 rounded bg-[var(--color-bg-surface)]" />
+            <div className="h-7 w-28 rounded bg-[var(--color-bg-surface)]" />
+            <div className="h-24 rounded bg-[var(--color-bg-surface)]" />
+            <div className="h-12 rounded-[var(--radius-md)] bg-[var(--color-bg-surface)]" />
           </div>
         </div>
       </div>
@@ -170,64 +175,136 @@ const ProductDetailPage = () => {
 
   if (error || !product) {
     return (
-      <div
-        className="container pb-16 text-center"
-        style={{ paddingTop: "128px" }}
-      >
-        <h1 className="text-2xl font-bold mb-4">{t("product.not_found")}</h1>
-        <Button onClick={() => navigate("/products")}>{t("product.browse_products")}</Button>
+      <div className="max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8 py-24 text-center">
+        <h1 className="text-2xl font-semibold">{t("product.not_found")}</h1>
+        <Button className="mt-6" onClick={() => navigate("/products")}>
+          {t("product.browse_products")}
+        </Button>
       </div>
     );
   }
 
   const isOutOfStock = product.stock <= 0;
+  const isLowStock = !isOutOfStock && product.stock <= 5;
+  const discount = getDiscount(product.price, product.original_price);
   const colors = getAttributeValues("Color");
   const sizes = getAttributeValues("Size");
+  const title = isKh ? product.title_kh || product.title : product.title;
+  const description = isKh ? product.description_kh || product.description : product.description;
+  const categoryName = product.category
+    ? isKh && product.category.name_kh
+      ? product.category.name_kh
+      : product.category.name
+    : null;
+  const specs = product.attributes
+    ? Object.entries(product.attributes).filter(([key]) => !["color", "size"].includes(key.toLowerCase()))
+    : [];
+
+  const stepper = (compact = false) => (
+    <div
+      className={`inline-flex items-center rounded-[var(--radius-md)] border border-[var(--color-border-hover)] ${
+        compact ? "h-11" : "h-12"
+      }`}
+      role="group"
+      aria-label={t("product.quantity")}
+    >
+      <button
+        type="button"
+        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+        disabled={quantity <= 1}
+        aria-label={t("product.decrease")}
+        className={`grid place-items-center h-full ${compact ? "w-9" : "w-11"} text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] disabled:opacity-35`}
+      >
+        <Minus className="w-4 h-4" />
+      </button>
+      <span className="tabular w-8 text-center font-semibold" aria-live="polite">
+        {quantity}
+      </span>
+      <button
+        type="button"
+        onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+        disabled={quantity >= product.stock}
+        aria-label={t("product.increase")}
+        className={`grid place-items-center h-full ${compact ? "w-9" : "w-11"} text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] disabled:opacity-35`}
+      >
+        <Plus className="w-4 h-4" />
+      </button>
+    </div>
+  );
 
   return (
-    <div className="container pb-16" style={{ paddingTop: "128px" }}>
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-8">
-        <button
-          onClick={() => navigate("/")}
-          className="hover:text-[var(--color-text-primary)]"
-        >
-          {t("nav.home")}
-        </button>
-        <span>/</span>
-        <button
-          onClick={() => navigate("/products")}
-          className="hover:text-[var(--color-text-primary)]"
-        >
-          {t("products.title")}
-        </button>
-        <span>/</span>
-        <span className="text-[var(--color-text-primary)] font-medium">
-          {isKh ? product.title_kh || product.title : product.title}
-        </span>
+    <div className="max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-8">
+      <nav aria-label="Breadcrumb" className="mb-5 md:mb-8">
+        <ol className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] min-w-0">
+          <li>
+            <Link to="/" className="hover:text-[var(--color-text-primary)]">
+              {t("nav.home")}
+            </Link>
+          </li>
+          <ChevronRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+          <li>
+            <Link to="/products" className="hover:text-[var(--color-text-primary)]">
+              {t("products.title")}
+            </Link>
+          </li>
+          {product.category && (
+            <>
+              <ChevronRight className="w-3.5 h-3.5 shrink-0 hidden sm:block" aria-hidden="true" />
+              <li className="hidden sm:block">
+                <Link
+                  to={`/products?category=${product.category.slug}`}
+                  className="hover:text-[var(--color-text-primary)]"
+                >
+                  {categoryName}
+                </Link>
+              </li>
+            </>
+          )}
+        </ol>
       </nav>
 
-      {/* Layout Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-        {/* Image Gallery - Span 8 (Left) */}
-        <div className="lg:col-span-8 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-4 h-auto">
-          {/* Thumbnails */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-14">
+        {/* Gallery */}
+        <div className="lg:col-span-7">
+          <button
+            type="button"
+            onClick={() => openLightbox(selectedImage)}
+            className="relative block w-full aspect-square overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] cursor-zoom-in"
+            aria-label={t("product.view_image", { n: selectedImage + 1 })}
+          >
+            <img
+              key={selectedImage}
+              src={getImageUrl(product.images[selectedImage])}
+              alt={title}
+              className={`h-full w-full object-contain p-[8%] rise-in ${isOutOfStock ? "opacity-50 grayscale" : ""}`}
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder.jpg";
+                e.currentTarget.onerror = null;
+              }}
+            />
+            <span className="absolute bottom-3 right-3 grid place-items-center w-10 h-10 rounded-full bg-[var(--color-bg-primary)] shadow-[var(--shadow-sm)]">
+              <Expand className="w-4 h-4" aria-hidden="true" />
+            </span>
+          </button>
+
           {product.images.length > 1 && (
-            <div className="flex lg:grid lg:grid-cols-1 lg:grid-rows-4 gap-2 lg:gap-4 shrink-0 w-full lg:w-36 h-auto lg:h-full order-2 lg:order-1 overflow-x-auto pb-1 lg:pb-0">
-              {product.images.slice(0, 4).map((img, index) => (
+            <div className="mt-1 flex gap-2 overflow-x-auto scrollbar-hide p-1.5 -mx-1.5">
+              {product.images.map((img, index) => (
                 <button
                   key={index}
+                  type="button"
                   onClick={() => setSelectedImage(index)}
-                  className={`relative flex-shrink-0 w-16 h-16 lg:w-full lg:h-full rounded-xl overflow-hidden border-2 transition-all bg-[var(--color-bg-secondary)] ${
-                    selectedImage === index
-                      ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
-                      : "border-[var(--color-border)] hover:border-[var(--color-primary)]/50"
+                  aria-label={t("product.view_image", { n: index + 1 })}
+                  aria-current={selectedImage === index ? "true" : undefined}
+                  className={`relative shrink-0 w-[72px] h-[72px] sm:w-20 sm:h-20 overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-bg-surface)] ring-offset-2 ring-offset-[var(--color-bg-primary)] transition-shadow ${
+                    selectedImage === index ? "ring-2 ring-[var(--color-text-primary)]" : "hover:ring-1 hover:ring-[var(--color-border-hover)]"
                   }`}
                 >
                   <img
                     src={getImageUrl(img)}
-                    alt={`${product.title} ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-contain p-1.5"
                     onError={(e) => {
                       e.currentTarget.src = "/placeholder.jpg";
                     }}
@@ -236,301 +313,206 @@ const ProductDetailPage = () => {
               ))}
             </div>
           )}
-
-          {/* Main Image */}
-          <div
-            className="flex-1 relative rounded-2xl overflow-hidden bg-[var(--color-bg-secondary)] border border-[var(--color-border)] group aspect-square lg:aspect-auto lg:min-h-[600px] lg:h-full order-1 lg:order-2 cursor-zoom-in"
-            onClick={() => openLightbox(selectedImage)}
-          >
-            <motion.img
-              key={selectedImage}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-              src={getImageUrl(product.images[selectedImage])}
-              alt={product.title}
-              className="w-full h-full object-contain p-4 lg:p-8"
-              onError={(e) => {
-                e.currentTarget.src = "/placeholder.jpg";
-                e.currentTarget.onerror = null;
-              }}
-            />
-            {isOutOfStock && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                <span className="text-white text-xl font-bold">
-                  {t("product.out_of_stock")}
-                </span>
-              </div>
-            )}
-            <div className="absolute bottom-3 right-3 lg:hidden bg-black/50 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-              </svg>
-              {t("product.tap_to_view")}
-            </div>
-          </div>
         </div>
 
-        {/* Product Info - Span 4 (Right) */}
-        <div className="lg:col-span-4 flex flex-col pt-4">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              {product.category && (
-                <span className="text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1 rounded-full">
-                  {isKh && product.category.name_kh ? product.category.name_kh : product.category.name}
-                </span>
-              )}
-              <div className="flex items-center gap-1 text-sm text-[var(--color-text-muted)]">
-                 <span className="ml-1 text-xs px-2 py-1 bg-[var(--color-bg-elevated)] rounded">{t("product.no_reviews")}</span>
-              </div>
-            </div>
-
-            <h1 className="text-4xl font-bold leading-tight text-[var(--color-text-primary)] mb-4">
-              {isKh ? product.title_kh || product.title : product.title}
+        {/* Buy box */}
+        <div className="lg:col-span-5">
+          <div className="lg:sticky lg:top-24">
+            {categoryName && <p className="text-sm text-[var(--color-text-muted)]">{categoryName}</p>}
+            <h1 className="mt-1 text-[1.875rem] font-semibold leading-tight tracking-[-0.03em] md:text-[2.375rem]">
+              {title}
             </h1>
-
-            <div className="flex items-baseline gap-4">
-              <span className="text-3xl font-bold text-[var(--color-text-primary)]">
-                ${Number(product.price).toFixed(2)}
-              </span>
+            <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <p className="tabular text-2xl font-semibold tracking-[-0.01em]">{formatUSD(product.price)}</p>
+              {discount && (
+                <>
+                  <p className="tabular text-lg text-[var(--color-text-muted)] line-through">{formatUSD(discount.original)}</p>
+                  <p className="tabular rounded-[var(--radius-sm)] bg-[var(--color-primary)] px-2 py-0.5 text-sm font-bold text-[var(--color-on-primary)]">
+                    {discount.percent}% {isKh ? "បញ្ចុះ" : "OFF"}
+                  </p>
+                  <p className="tabular basis-full text-sm font-medium text-[var(--color-success)]">
+                    {isKh ? "សន្សំ" : "Save"} - {formatUSD(discount.save)}
+                  </p>
+                </>
+              )}
             </div>
-          </div>
 
-          <div className="h-px bg-[var(--color-border)] my-6" />
+            <p
+              className={`mt-3 flex items-center gap-2 text-sm font-medium ${
+                isOutOfStock
+                  ? "text-[var(--color-error)]"
+                  : isLowStock
+                    ? "text-[var(--color-warning)]"
+                    : "text-[var(--color-success)]"
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-current" aria-hidden="true" />
+              {isOutOfStock
+                ? t("product.out_of_stock")
+                : isLowStock
+                  ? t("product.only_left", { count: product.stock })
+                  : t("product.in_stock")}
+            </p>
 
-          <p className="text-[var(--color-text-secondary)] leading-relaxed mb-6">
-            {isKh ? product.description_kh || product.description : product.description}
-          </p>
+            {description && (
+              <p className="mt-6 max-w-prose text-[0.9875rem] leading-relaxed text-[var(--color-text-secondary)] whitespace-pre-line">
+                {description}
+              </p>
+            )}
 
-          <div className="space-y-6">
             {colors.length > 0 && (
-              <div>
-                <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-3">
-                  {t("product.color")}:{" "}
-                  <span className="text-[var(--color-text-secondary)] font-normal">
+              <fieldset className="mt-7">
+                <legend className="mb-3 text-sm font-semibold">
+                  {t("product.color")}
+                  <span className="ml-2 font-normal text-[var(--color-text-secondary)]">
                     {selectedColor || t("product.select_color")}
                   </span>
-                </label>
-                <div className="flex flex-wrap gap-3">
+                </legend>
+                <div className="flex flex-wrap gap-2.5">
                   {colors.map((color) => {
-                    const hex = getColorHex(color);
                     const isSelected = selectedColor === color;
                     return (
                       <button
                         key={color}
+                        type="button"
                         onClick={() => setSelectedColor(color)}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                          isSelected
-                            ? "ring-2 ring-offset-2 ring-[var(--color-primary)] ring-offset-[var(--color-bg-primary)] scale-110"
-                            : "hover:scale-110 ring-1 ring-[var(--color-border)]"
-                        }`}
-                        style={{ backgroundColor: hex }}
+                        aria-pressed={isSelected}
+                        aria-label={color}
                         title={color}
-                      >
-                        {isSelected && (
-                          <svg
-                            className="w-5 h-5 text-white drop-shadow-md"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2.5}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        )}
-                      </button>
+                        className={`w-9 h-9 rounded-full border border-black/10 ring-offset-2 ring-offset-[var(--color-bg-primary)] transition-shadow ${
+                          isSelected ? "ring-2 ring-[var(--color-text-primary)]" : "hover:ring-1 hover:ring-[var(--color-border-hover)]"
+                        }`}
+                        style={{ backgroundColor: getColorHex(color) }}
+                      />
                     );
                   })}
                 </div>
-              </div>
+              </fieldset>
             )}
 
             {sizes.length > 0 && (
-              <div>
-                <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-3">
-                  {t("product.size")}:{" "}
-                  <span className="text-[var(--color-text-secondary)] font-normal">
+              <fieldset className="mt-7">
+                <legend className="mb-3 text-sm font-semibold">
+                  {t("product.size")}
+                  <span className="ml-2 font-normal text-[var(--color-text-secondary)]">
                     {selectedSize || t("product.select_size")}
                   </span>
-                </label>
-                <div className="flex flex-wrap gap-3">
+                </legend>
+                <div className="flex flex-wrap gap-2">
                   {sizes.map((size) => (
                     <button
                       key={size}
+                      type="button"
                       onClick={() => setSelectedSize(size)}
-                      className={`min-w-[3rem] h-10 px-3 rounded-lg border font-medium transition-all ${
+                      aria-pressed={selectedSize === size}
+                      className={`min-w-12 h-11 px-3 rounded-[var(--radius-md)] border text-sm font-medium transition-colors ${
                         selectedSize === size
-                          ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/25"
-                          : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                          ? "border-[var(--color-text-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)]"
+                          : "border-[var(--color-border-hover)] hover:border-[var(--color-text-primary)]"
                       }`}
                     >
                       {size}
                     </button>
                   ))}
                 </div>
+              </fieldset>
+            )}
+
+            {/* Actions (desktop) */}
+            <div className="mt-8 hidden lg:block">
+              {!isOutOfStock ? (
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    {stepper()}
+                    <Button size="lg" className="flex-1 h-12" onClick={handleAddToCart}>
+                      <ShoppingBag className="w-[18px] h-[18px]" />
+                      {t("product.add_to_cart")}
+                    </Button>
+                  </div>
+                  <Button size="lg" variant="outline" fullWidth className="h-12" onClick={handleBuyNow}>
+                    {t("product.buy_now")}
+                  </Button>
+                </div>
+              ) : (
+                <Button size="lg" fullWidth disabled className="h-12">
+                  {t("product.out_of_stock")}
+                </Button>
+              )}
+            </div>
+
+            {/* Quantity (mobile) */}
+            {!isOutOfStock && (
+              <div className="mt-7 flex items-center justify-between lg:hidden">
+                <span className="text-sm font-semibold">{t("product.quantity")}</span>
+                {stepper(true)}
               </div>
             )}
 
-            {product.attributes &&
-              Object.entries(product.attributes).filter(
-                ([key]) => !["color", "size"].includes(key.toLowerCase()),
-              ).length > 0 && (
-                <div className="pt-4 border-t border-[var(--color-border)]">
-                  <h3 className="text-sm font-bold text-[var(--color-text-primary)] mb-3">
-                    {t("product.specifications")}
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {Object.entries(product.attributes)
-                      .filter(
-                        ([key]) =>
-                          !["color", "size"].includes(key.toLowerCase()),
-                      )
-                      .map(([key, value]) => (
-                        <div
-                          key={key}
-                          className="flex justify-between items-center py-2 border-b border-[var(--color-border)] last:border-0"
-                        >
-                          <span className="text-sm font-medium text-[var(--color-text-muted)] capitalize">
-                            {key}
-                          </span>
-                          <span className="text-sm font-semibold text-[var(--color-text-primary)]">
-                            {Array.isArray(value) ? value.join(", ") : value}
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-          </div>
+            <ul className="mt-8 divide-y divide-[var(--color-border)] border-y border-[var(--color-border)] text-sm">
+              <li className="flex items-center gap-3 py-3.5">
+                <CreditCard className="w-[18px] h-[18px] text-[var(--color-text-secondary)]" aria-hidden="true" />
+                {t("home.facts_khqr")}
+              </li>
+              <li className="flex items-center gap-3 py-3.5">
+                <Truck className="w-[18px] h-[18px] text-[var(--color-text-secondary)]" aria-hidden="true" />
+                {t("home.facts_delivery")}
+              </li>
+            </ul>
 
-          <div className="hidden lg:block pt-6 space-y-4">
-            {!isOutOfStock ? (
-              <>
-                <div className="flex items-stretch gap-3">
-                  <div className="flex items-center gap-0 bg-[var(--color-bg-secondary)] rounded-full border border-[var(--color-border)] p-1">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] transition-all active:scale-90"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
-                      </svg>
-                    </button>
-                    <span className="w-8 sm:w-10 text-center font-bold text-sm text-[var(--color-text-primary)] select-none">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() =>
-                        setQuantity(Math.min(product.stock, quantity + 1))
-                      }
-                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] transition-all active:scale-90"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={handleAddToCart}
-                    className="flex-1 flex items-center justify-center gap-2.5 px-5 py-3 sm:py-3.5 rounded-full border-2 border-[var(--color-primary)] text-[var(--color-primary)] font-semibold text-sm sm:text-base hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 active:scale-[0.97] group"
-                  >
-                    <svg className="w-5 h-5 transition-transform group-hover:scale-110 group-hover:-rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
-                    {t("product.add_to_cart")}
-                  </button>
-                </div>
-
-                <button
-                  onClick={handleBuyNow}
-                  className="relative w-full py-3.5 sm:py-4 rounded-full bg-gradient-to-r from-[var(--color-primary)] via-[#6366f1] to-[var(--color-primary)] bg-[length:200%_100%] text-white font-bold text-sm sm:text-base tracking-wide shadow-lg shadow-[var(--color-primary)]/30 hover:shadow-xl hover:shadow-[var(--color-primary)]/40 transition-all duration-300 active:scale-[0.98] overflow-hidden group"
-                >
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-                  <span className="relative flex items-center justify-center gap-2">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    {t("product.buy_now")}
-                  </span>
-                </button>
-              </>
-            ) : (
-              <div className="flex items-center justify-center gap-2 p-4 bg-[var(--color-error)]/10 text-[var(--color-error)] rounded-full text-center font-semibold text-sm border border-[var(--color-error)]/20">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                </svg>
-                {t("product.out_of_stock")}
-              </div>
+            {specs.length > 0 && (
+              <section className="mt-8">
+                <h2 className="text-base font-semibold">{t("product.specifications")}</h2>
+                <dl className="mt-3 divide-y divide-[var(--color-border)] text-sm">
+                  {specs.map(([key, value]) => (
+                    <div key={key} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 py-3">
+                      <dt className="capitalize text-[var(--color-text-muted)]">{key}</dt>
+                      <dd className="font-medium">{Array.isArray(value) ? value.join(", ") : value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
             )}
           </div>
         </div>
       </div>
 
-      {relatedFromBundle && (
-        <RelatedProducts
-          related={relatedFromBundle}
-        />
-      )}
+      {relatedFromBundle && <RelatedProducts related={relatedFromBundle} />}
 
-      {/* Mobile Sticky Bar */}
-      {!isOutOfStock && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--color-bg-primary)]/95 backdrop-blur-lg border-t border-[var(--color-border)] px-4 py-3 safe-bottom">
-          <div className="flex items-center gap-2.5">
-            <div className="flex flex-col mr-auto">
-              <span className="text-lg font-bold text-[var(--color-text-primary)] leading-tight">
-                ${Number(product.price).toFixed(2)}
-              </span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-6 h-6 rounded-full bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] active:scale-90 transition-transform"
-                >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4" />
-                  </svg>
-                </button>
-                <span className="text-xs font-semibold text-[var(--color-text-secondary)] w-5 text-center">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  className="w-6 h-6 rounded-full bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] active:scale-90 transition-transform"
-                >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
-              </div>
+      {/* Mobile purchase bar */}
+      <div className="lg:hidden h-[calc(76px+env(safe-area-inset-bottom))]" aria-hidden="true" />
+      <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 border-t border-[var(--color-border)] bg-[var(--color-bg-primary)] px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        {!isOutOfStock ? (
+          <div className="flex items-center gap-2">
+            <div className="mr-auto min-w-0">
+              <p className="tabular text-lg font-semibold leading-tight">{formatUSD(product.price * quantity)}</p>
+              {quantity > 1 && (
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  {quantity} × {formatUSD(product.price)}
+                </p>
+              )}
             </div>
-
             <button
+              type="button"
               onClick={handleAddToCart}
-              className="w-12 h-12 flex-shrink-0 rounded-full border-2 border-[var(--color-primary)] text-[var(--color-primary)] flex items-center justify-center active:scale-90 transition-all hover:bg-[var(--color-primary)] hover:text-white"
+              aria-label={t("product.add_to_cart")}
+              className="grid place-items-center h-12 w-12 shrink-0 rounded-[var(--radius-md)] border border-[var(--color-border-hover)]"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
+              <ShoppingBag className="w-5 h-5" />
             </button>
-
             <button
+              type="button"
               onClick={handleBuyNow}
-              className="relative flex-1 max-w-[180px] py-3 rounded-full bg-gradient-to-r from-[var(--color-primary)] via-[#6366f1] to-[var(--color-primary)] bg-[length:200%_100%] text-white font-bold text-sm tracking-wide shadow-lg shadow-[var(--color-primary)]/30 active:scale-[0.97] transition-all overflow-hidden group"
+              className="h-12 px-6 rounded-[var(--radius-md)] bg-[var(--color-primary)] font-semibold text-[var(--color-on-primary)]"
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-              <span className="relative flex items-center justify-center gap-1.5">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                {t("product.buy_now")}
-              </span>
+              {t("product.buy_now")}
             </button>
           </div>
-        </div>
-      )}
-      <div className="h-20 lg:hidden" />
+        ) : (
+          <Button fullWidth disabled className="h-12">
+            {t("product.out_of_stock")}
+          </Button>
+        )}
+      </div>
 
       {/* Lightbox */}
       <AnimatePresence>
@@ -540,41 +522,41 @@ const ProductDetailPage = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center"
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+            className="fixed inset-0 z-[9999] flex flex-col bg-[var(--color-bg-primary)]"
             onClick={closeLightbox}
           >
-            <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-10">
-              <span className="text-white/70 text-sm font-medium">
+            <div className="flex items-center justify-between px-4 h-14 pt-[env(safe-area-inset-top)] shrink-0">
+              <span className="tabular text-sm text-[var(--color-text-secondary)]">
                 {lightboxIndex + 1} / {product.images.length}
               </span>
               <button
+                type="button"
                 onClick={closeLightbox}
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                aria-label="Close"
+                className="grid place-items-center w-10 h-10 rounded-full hover:bg-[var(--color-bg-surface)]"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div
-              className="flex-1 w-full flex items-center justify-center overflow-hidden px-4"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="flex-1 flex items-center justify-center overflow-hidden px-4" onClick={(e) => e.stopPropagation()}>
               <AnimatePresence mode="wait">
                 <motion.img
                   key={lightboxIndex}
                   src={getImageUrl(product.images[lightboxIndex])}
-                  alt={`${product.title} ${lightboxIndex + 1}`}
-                  initial={{ opacity: 0, x: 80 }}
+                  alt={`${title} ${lightboxIndex + 1}`}
+                  initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -80 }}
-                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  exit={{ opacity: 0, x: -40 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
                   dragElastic={0.7}
                   onDragEnd={handleDragEnd}
-                  className="max-w-full max-h-[80vh] object-contain select-none touch-pan-y"
+                  className="max-w-full max-h-[78vh] object-contain select-none touch-pan-y"
                   onError={(e) => {
                     e.currentTarget.src = "/placeholder.jpg";
                     e.currentTarget.onerror = null;
@@ -584,50 +566,39 @@ const ProductDetailPage = () => {
             </div>
 
             {product.images.length > 1 && (
-              <>
-                {lightboxIndex > 0 && (
-                  <button
-                    className="hidden lg:flex absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 items-center justify-center text-white transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setLightboxIndex((i) => Math.max(i - 1, 0));
-                    }}
-                  >
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                )}
-                {lightboxIndex < product.images.length - 1 && (
-                  <button
-                    className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 items-center justify-center text-white transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setLightboxIndex((i) => Math.min(i + 1, product.images.length - 1));
-                    }}
-                  >
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                )}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
+              <div className="flex items-center justify-center gap-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  disabled={lightboxIndex === 0}
+                  onClick={() => setLightboxIndex((i) => Math.max(i - 1, 0))}
+                  aria-label="Previous image"
+                  className="grid place-items-center w-11 h-11 rounded-full border border-[var(--color-border-hover)] disabled:opacity-30"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div className="flex gap-1.5">
                   {product.images.map((_, index) => (
                     <button
                       key={index}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLightboxIndex(index);
-                      }}
-                      className={`rounded-full transition-all duration-300 ${
-                        lightboxIndex === index
-                          ? "w-6 h-2 bg-white"
-                          : "w-2 h-2 bg-white/40 hover:bg-white/60"
+                      type="button"
+                      onClick={() => setLightboxIndex(index)}
+                      aria-label={t("product.view_image", { n: index + 1 })}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        lightboxIndex === index ? "w-6 bg-[var(--color-text-primary)]" : "w-1.5 bg-[var(--color-border-hover)]"
                       }`}
                     />
                   ))}
                 </div>
-              </>
+                <button
+                  type="button"
+                  disabled={lightboxIndex === product.images.length - 1}
+                  onClick={() => setLightboxIndex((i) => Math.min(i + 1, product.images.length - 1))}
+                  aria-label="Next image"
+                  className="grid place-items-center w-11 h-11 rounded-full border border-[var(--color-border-hover)] disabled:opacity-30"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
             )}
           </motion.div>
         )}
@@ -641,20 +612,12 @@ const RelatedProducts = ({ related }: { related: Product[] }) => {
   if (!related || related.length === 0) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
-      className="mt-24 pt-16 border-t border-[var(--color-border)]"
-    >
-      <div className="flex items-center gap-4 mb-10">
-        <div className="w-2 h-8 bg-[var(--color-primary)] rounded-full" />
-        <h2 className="text-2xl md:text-3xl font-extrabold text-[var(--color-text-primary)] tracking-tight">
-          {t("product.related_products")}
-        </h2>
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        {related.map((product) => (
+    <section className="mt-20 md:mt-28" aria-labelledby="related-heading">
+      <h2 id="related-heading" className="mb-6 text-2xl font-semibold tracking-[-0.025em] md:mb-8 sm:text-3xl">
+        {t("product.related_products")}
+      </h2>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 lg:gap-5">
+        {related.slice(0, 4).map((product) => (
           <ProductCard
             key={product.id}
             id={product.id}
@@ -662,15 +625,16 @@ const RelatedProducts = ({ related }: { related: Product[] }) => {
             title={product.title}
             title_kh={product.title_kh}
             price={product.price}
+            original_price={product.original_price}
             image={product.images?.[0] || ""}
             category={product.category?.name}
             category_kh={product.category?.name_kh}
             stock={product.stock}
-            description_kh={product.description_kh}
+            attributes={product.attributes}
           />
         ))}
       </div>
-    </motion.div>
+    </section>
   );
 };
 

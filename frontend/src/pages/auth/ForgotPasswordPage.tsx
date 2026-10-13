@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import api from "../../lib/api";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -29,36 +28,20 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 pt-32">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-2xl p-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 bg-[var(--color-primary)] rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">T</span>
-              </div>
-            </Link>
-            <h1 className="text-2xl font-bold">Forgot Password</h1>
-            <p className="text-[var(--color-text-muted)] mt-2">
-              Enter your email and we'll send you a reset link
-            </p>
-          </div>
-
-          {/* Form */}
+    <div className="flex flex-1 items-start justify-center px-4 pt-10 pb-16 md:pt-16">
+      <div className="w-full max-w-[400px] rise-in">
+        <h1 className="text-[2rem] font-semibold tracking-[-0.03em]">Forgot your password?</h1>
+        <p className="mt-1.5 text-[var(--color-text-secondary)]">Enter your email and we'll send you a reset link.</p>
+        <div className="mt-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-3 bg-[var(--color-error)]/10 border border-[var(--color-error)]/30 rounded-lg text-[var(--color-error)] text-sm">
+              <div role="alert" className="rounded-[var(--radius-md)] border border-[var(--color-error)]/30 bg-[color-mix(in_srgb,var(--color-error)_8%,transparent)] px-3.5 py-3 text-sm text-[var(--color-error)]">
                 {error}
               </div>
             )}
 
             {message && (
-              <div className="p-3 bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 rounded-lg text-[var(--color-success)] text-sm">
+              <div role="status" className="rounded-[var(--radius-md)] border border-[var(--color-success)]/30 bg-[color-mix(in_srgb,var(--color-success)_8%,transparent)] px-3.5 py-3 text-sm text-[var(--color-success)]">
                 {message}
               </div>
             )}
@@ -72,22 +55,21 @@ const ForgotPasswordPage = () => {
               required
             />
 
-            <Button type="submit" fullWidth size="lg" isLoading={isLoading}>
-              Send Reset Link
+            <Button type="submit" fullWidth size="lg" isLoading={isLoading} className="h-12">
+              Send reset link
             </Button>
           </form>
 
-          {/* Back to Login */}
           <div className="text-center mt-6">
             <Link
               to="/login"
-              className="text-sm text-[var(--color-primary)] hover:underline"
+              className="text-sm font-medium underline underline-offset-4"
             >
-              ← Back to Sign In
+              Back to sign in
             </Link>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

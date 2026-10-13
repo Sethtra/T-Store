@@ -62,14 +62,14 @@ const InvoiceModal = ({ isOpen, onClose, order }: InvoiceModalProps) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/40 z-[95] flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white text-black w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="bg-white text-black w-full max-w-3xl rounded-[var(--radius-lg)] shadow-[var(--shadow-lg)] overflow-hidden flex flex-col max-h-[90vh]"
             >
               {/* Toolbar */}
               <div className="p-4 bg-gray-100 border-b border-gray-200 flex justify-between items-center">

@@ -1,93 +1,137 @@
-import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { ArrowRight, Github } from "lucide-react";
+
+const GITHUB_REPO_URL = "https://github.com/Sethtra/T-Store";
+
+// Facts taken from the project README; keep in sync with what actually ships.
+const BUILT = {
+  en: [
+    {
+      title: "Storefront",
+      items: [
+        "Search, category and price filters, sorting",
+        "Product galleries with variants",
+        "Cloud-synced cart",
+        "Checkout with ABA PayWay KHQR and Stripe cards",
+        "Order history, invoices and payment retry",
+        "English and Khmer, light and dark",
+      ],
+    },
+    {
+      title: "Admin",
+      items: [
+        "Products, categories and homepage sections",
+        "Orders, inventory ledger and stock movements",
+        "Users with roles and suspension",
+        "Reports and CSV exports",
+        "Site name, logo and hero copy",
+      ],
+    },
+    {
+      title: "Stack",
+      items: ["React 19, TypeScript, Vite, Tailwind CSS", "Laravel 12 API with Sanctum", "Stripe and ABA PayWay webhooks"],
+    },
+  ],
+  kh: [
+    {
+      title: "ហាង",
+      items: [
+        "ស្វែងរក តម្រងប្រភេទ និងតម្លៃ",
+        "រូបភាពផលិតផល និងជម្រើស",
+        "កន្ត្រកធ្វើសមកាលកម្មលើ Cloud",
+        "ទូទាត់តាម ABA PayWay KHQR និងកាត Stripe",
+        "ប្រវត្តិការបញ្ជាទិញ វិក្កយបត្រ និងការទូទាត់ឡើងវិញ",
+        "ភាសាខ្មែរ និងអង់គ្លេស ពន្លឺ និងងងឹត",
+      ],
+    },
+    {
+      title: "ផ្ទាំងគ្រប់គ្រង",
+      items: [
+        "ផលិតផល ប្រភេទ និងផ្នែកទំព័រដើម",
+        "ការបញ្ជាទិញ និងស្តុកទំនិញ",
+        "អ្នកប្រើប្រាស់ តួនាទី និងការផ្អាក",
+        "របាយការណ៍ និងការនាំចេញ CSV",
+        "ឈ្មោះហាង ឡូហ្គោ និងអត្ថបទទំព័រដើម",
+      ],
+    },
+    {
+      title: "បច្ចេកវិទ្យា",
+      items: ["React 19, TypeScript, Vite, Tailwind CSS", "Laravel 12 API ជាមួយ Sanctum", "Stripe និង ABA PayWay webhooks"],
+    },
+  ],
+};
 
 const AboutPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
+  const groups = isKh ? BUILT.kh : BUILT.en;
+
   return (
-    <div className="min-h-screen bg-[var(--color-bg-primary)] pt-28 pb-16">
-      <div className="container mx-auto px-4 md:px-6 max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          {/* Left Column: Text/Speech */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="space-y-8"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[var(--color-text-primary)]">
-              {t("about.title_part1")} <br />
-              <span className="text-[var(--color-primary)]">
-                {t("about.title_part2")}
-              </span>
-            </h1>
+    <div className="max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8 pt-10 md:pt-16">
+      <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+        <div className="lg:col-span-6 rise-in">
+          <h1 className="text-[clamp(2.25rem,4.4vw,3.75rem)] font-[680] leading-[1.05] tracking-[-0.035em]">
+            {t("about.title_part1")}
+            <br />
+            {t("about.title_part2")}
+          </h1>
 
-            <div className="prose dark:prose-invert prose-lg text-[var(--color-text-secondary)]">
-              <p className="leading-relaxed">
-                {t("about.p1")}
-              </p>
-              <p className="leading-relaxed">
-                {t("about.p2")}
-              </p>
+          <div className="mt-8 max-w-[60ch] space-y-5 text-[1.0625rem] leading-relaxed text-[var(--color-text-secondary)]">
+            <p>{t("about.p1")}</p>
+            <p>{t("about.p2")}</p>
+          </div>
+
+          <div className="mt-10 flex items-center gap-4 border-t border-[var(--color-border)] pt-6">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-[var(--color-bg-surface)] font-semibold" aria-hidden="true">
+              ST
+            </span>
+            <div>
+              <p className="font-semibold">Seth Tra</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t("about.role")}</p>
             </div>
+          </div>
 
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4">
-                <div className="h-px flex-1 bg-[var(--color-border)]"></div>
-                <span className="text-sm font-medium uppercase tracking-widest text-[var(--color-text-muted)]">
-                  {t("about.creator")}
-                </span>
-                <div className="h-px flex-1 bg-[var(--color-border)]"></div>
-              </div>
-              <p className="text-xl font-handwriting font-medium text-center italic text-[var(--color-text-primary)]">
-                Seth Tra
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Right Column: Image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative"
-          >
-            <div className="aspect-[3/4] md:aspect-square rounded-[2.5rem] overflow-hidden bg-[var(--color-bg-secondary)] relative group">
-              <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop"
-                alt="Founder"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-
-              {/* Overlay/Glass card */}
-              <div className="absolute bottom-6 left-6 right-6 p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-white font-bold text-lg">Seth Tra</p>
-                    <p className="text-white/80 text-sm">
-                      {t("about.role")}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-                      <rect x="2" y="9" width="4" height="12"></rect>
-                      <circle cx="4" cy="4" r="2"></circle>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              to="/products"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-6 font-semibold text-[var(--color-on-primary)]"
+            >
+              {t("home.shop_all")}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <a
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-hover)] px-6 font-semibold hover:border-[var(--color-text-primary)]"
+            >
+              <Github className="h-4 w-4" aria-hidden="true" />
+              {t("footer.source")}
+            </a>
+          </div>
         </div>
+
+        <aside className="lg:col-span-5 lg:col-start-8" aria-label={isKh ? "អ្វីដែលបានសាងសង់" : "What's built"}>
+          <div className="rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] p-6 sm:p-8">
+            <h2 className="text-lg font-semibold">{isKh ? "អ្វីដែលបានសាងសង់" : "What's built"}</h2>
+            <div className="mt-6 space-y-7">
+              {groups.map((g) => (
+                <section key={g.title}>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-muted)]">{g.title}</h3>
+                  <ul className="mt-2.5 space-y-2">
+                    {g.items.map((item) => (
+                      <li key={item} className="flex gap-3 text-[0.9375rem]">
+                        <span className="mt-[0.6em] h-1 w-1 shrink-0 rounded-full bg-[var(--color-text-primary)]" aria-hidden="true" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );

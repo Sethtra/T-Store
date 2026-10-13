@@ -14,8 +14,8 @@ const statusConfig = (t: TFunction) => ({
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
+    color: "text-[var(--color-info)]",
+    bg: "bg-[var(--color-bg-surface)]",
   },
   processing: {
     title: t("notifications.processing_title"),
@@ -36,8 +36,8 @@ const statusConfig = (t: TFunction) => ({
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
       </svg>
     ),
-    color: "text-purple-400",
-    bg: "bg-purple-500/10",
+    color: "text-[var(--color-info)]",
+    bg: "bg-[var(--color-bg-surface)]",
   },
   completed: {
     title: t("notifications.completed_title"),

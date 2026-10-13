@@ -1,198 +1,162 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { useLandingData } from "../../hooks/useLandingData";
-import { getImageUrl } from "../../utils/image";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Zap, ShoppingBag, Star } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { useLandingData } from "../../hooks/useLandingData";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { getImageUrl } from "../../utils/image";
+import { formatUSD } from "../../utils/money";
 
 const HeroSkeleton = () => (
-  <section className="relative min-h-[85vh] flex items-center pt-32 pb-20 px-4 md:px-8">
-    <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-      <div className="flex flex-col gap-6">
-        <div className="w-32 h-8 rounded-full bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
-        <div className="w-3/4 h-16 lg:h-20 rounded-2xl bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
-        <div className="w-1/2 h-16 rounded-2xl bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
-        <div className="w-full max-w-md h-24 rounded-2xl bg-[var(--color-text-primary)]/10 animate-pulse mt-4 border border-[var(--color-border)]/50" />
-        <div className="flex gap-4 mt-4">
-          <div className="w-40 h-14 rounded-full bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
-          <div className="w-40 h-14 rounded-full bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
-        </div>
+  <section aria-hidden="true" className="max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12">
+    <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
+      <div className="lg:col-span-5 space-y-4">
+        <div className="h-12 w-4/5 rounded-[var(--radius-md)] bg-[var(--color-bg-surface)]" />
+        <div className="h-12 w-3/5 rounded-[var(--radius-md)] bg-[var(--color-bg-surface)]" />
+        <div className="h-5 w-full max-w-md rounded bg-[var(--color-bg-surface)]" />
+        <div className="h-11 w-44 rounded-[var(--radius-md)] bg-[var(--color-bg-surface)]" />
       </div>
-      <div className="hidden lg:flex items-center justify-center">
-        <div className="w-[400px] h-[400px] rounded-full bg-[var(--color-text-primary)]/10 animate-pulse border border-[var(--color-border)]/50" />
-      </div>
+      <div className="lg:col-span-7 aspect-[4/3] rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)]" />
     </div>
   </section>
 );
 
 const HeroSection = () => {
   const { t, i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
   const { data: landingData, isLoading: landingLoading } = useLandingData();
   const { data: siteSettings, isLoading: settingsLoading } = useSiteSettings();
-  const sections = landingData?.landing_sections;
 
-  const mainProduct = sections?.find(
-    (s) => s.section_type === "hero_main" && s.product,
-  );
-  const p = mainProduct?.product;
+  if (landingLoading || settingsLoading) return <HeroSkeleton />;
 
-  const isKh = i18n.language === "kh";
-  
+  // Copy is managed in Admin → Settings; fall back to the bundled defaults.
   const heroTitle = isKh
     ? siteSettings?.hero_title_kh || t("hero.default_title")
     : siteSettings?.hero_title || t("hero.default_title");
-
   const heroSubtitle = isKh
     ? siteSettings?.hero_subtitle_kh || t("hero.default_subtitle")
     : siteSettings?.hero_subtitle || t("hero.default_subtitle");
-
   const heroDescription = isKh
     ? siteSettings?.hero_description_kh || t("hero.default_description")
     : siteSettings?.hero_description || t("hero.default_description");
 
-  if (landingLoading || settingsLoading) return <HeroSkeleton />;
-
-  const productTitle = p ? (isKh ? p.title_kh || p.title : p.title) : "";
-
-  const productImage = getImageUrl(
-    mainProduct?.custom_image || p?.image_url || p?.images?.[0]
-  );
+  const heroMain = landingData?.landing_sections?.find((s) => s.section_type === "hero_main" && s.product);
+  const p = heroMain?.product;
+  const productTitle = p ? (isKh ? p.title_kh || p.title || p.name : p.title || p.name) : "";
+  const productImage = getImageUrl(heroMain?.custom_image || p?.image_url || p?.images?.[0]);
 
   return (
-    <>
-      <section className="relative z-10 pt-20 lg:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 min-h-[85vh]">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="flex-1 space-y-8 z-10 w-full"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-bg-surface)] border border-[var(--color-border)] backdrop-blur-md shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
-            <span className="text-sm font-bold text-[var(--color-text)]">
-              {isKh ? "ជំនាន់ថ្មីនៃពាណិជ្ជកម្ម" : "Next Gen E-Commerce"}
-            </span>
-          </div>
-
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.1] text-[var(--color-text)]">
-            {heroTitle} <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-purple-500">
-              {heroSubtitle}
-            </span>
+    <section className="max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8 pt-6 md:pt-10">
+      <div className="grid gap-8 lg:grid-cols-12 lg:items-center lg:gap-12">
+        <div className="lg:col-span-5 rise-in">
+          <h1 className="text-[clamp(2.5rem,5.2vw,4.5rem)] font-[680] leading-[1.02] tracking-[-0.035em]">
+            {heroTitle} {heroSubtitle}
           </h1>
-
-          <p className="text-lg md:text-xl text-[var(--color-text-muted)] max-w-xl leading-relaxed font-light">
+          <p className="mt-5 max-w-[34rem] text-[1.0625rem] leading-relaxed text-[var(--color-text-secondary)] md:text-lg">
             {heroDescription}
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               to="/products"
-              style={{ color: "var(--color-bg-primary)" }}
-              className="group relative px-8 py-4 bg-[var(--color-text-primary)] rounded-full font-bold text-lg overflow-hidden flex items-center justify-center gap-2 transition-transform hover:scale-105"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-6 font-semibold text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--color-primary-hover)]"
             >
-              {isKh ? "មេីលទាំងអស់" : "Shop Collection"}
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              {t("home.shop_all")}
+              <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link
-              to={p ? `/products/${p.slug}` : "/products"}
-              style={{ color: "var(--color-text-primary)" }}
-              className="px-8 py-4 rounded-full border border-[var(--color-text-primary)]/20 bg-transparent hover:bg-[var(--color-text-primary)]/5 backdrop-blur-md font-bold text-lg flex items-center justify-center gap-2 transition-all hover:border-[var(--color-text-primary)]/40"
-            >
-              <ShoppingBag className="w-5 h-5" />{" "}
-              {isKh ? "ទិញឥឡូវនេះ" : "Buy Now"}
-            </Link>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="flex-1 relative w-full aspect-square max-w-[600px] z-10 mt-10 lg:mt-0"
-        >
-          {/* Massive blurred glow behind the product */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-[var(--color-primary)]/20 to-purple-500/20 rounded-[3rem] blur-3xl pointer-events-none" />
-
-          {p ? (
-            <Link
-              to={`/products/${p.slug}`}
-              className="block relative w-full h-full z-10 group"
-            >
-              {/* Main Image Container */}
-              <div className="w-full h-full rounded-[3rem] bg-[var(--color-bg-surface)]/50 backdrop-blur-xl border border-[var(--color-border)] flex items-center justify-center overflow-hidden shadow-2xl relative">
-                <motion.img
-                  animate={{ y: [0, -15, 0] }}
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  src={productImage}
-                  alt={productTitle}
-                  className="w-[80%] h-[80%] object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-700 ease-out"
-                />
-              </div>
-
-              {/* Floating Dynamic Badge */}
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 4,
-                  ease: "easeInOut",
-                }}
-                className="absolute top-10 -left-4 md:-left-10 bg-[var(--color-bg-surface)] backdrop-blur-2xl border border-[var(--color-border)] p-4 rounded-2xl flex items-center gap-4 z-20 shadow-2xl min-w-[200px]"
+            {p && (
+              <Link
+                to={`/products/${p.slug}`}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-hover)] px-6 font-semibold transition-colors hover:border-[var(--color-text-primary)]"
               >
-                <div className="w-12 h-12 bg-[var(--color-primary)] rounded-full flex items-center justify-center shrink-0">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <div className="overflow-hidden">
-                  <p className="text-xs text-[var(--color-text-muted)] uppercase font-bold tracking-widest mb-1 truncate">
-                    {isKh ? "ទំនិញថ្មី" : "New Drop"}
-                  </p>
-                  <p className="font-black text-lg text-[var(--color-text)] truncate">
-                    {productTitle}
-                  </p>
-                </div>
-              </motion.div>
-            </Link>
-          ) : (
-            <div className="w-full h-full rounded-[3rem] bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-2xl flex items-center justify-center text-[var(--color-text-muted)] relative z-10 backdrop-blur-xl">
-              No featured product selected
-            </div>
-          )}
-        </motion.div>
-      </section>
+                {t("home.view_product")}
+              </Link>
+            )}
+          </div>
+        </div>
 
-      {/* Connected Marquee */}
-      <div className="relative z-10 w-full py-8 bg-gradient-to-r from-transparent via-[var(--color-text-primary)]/5 to-transparent border-y border-[var(--color-border)] overflow-hidden">
-        <motion.div
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
-          className="flex gap-16 px-8 items-center whitespace-nowrap"
-        >
-          {[...Array(2)].map((_, idx) => (
-            <div key={idx} className="flex gap-16 items-center">
-              <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-text-primary)]/20 to-[var(--color-text-primary)]/40 uppercase tracking-widest">
-                {isKh ? "គុណភាពល្អឥតខ្ចោះ" : "Premium Quality"}
-              </span>
-              <Star className="w-6 h-6 text-[var(--color-text-primary)]/20" />
-              <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-text-primary)]/20 to-[var(--color-text-primary)]/40 uppercase tracking-widest">
-                {isKh ? "ដឹកជញ្ជូនរហ័ស" : "Fast Delivery"}
-              </span>
-              <Star className="w-6 h-6 text-[var(--color-text-primary)]/20" />
-              <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-text-primary)]/20 to-[var(--color-text-primary)]/40 uppercase tracking-widest">
-                {isKh ? "ការទូទាត់សុវត្ថិភាព" : "Secure Checkout"}
-              </span>
-              <Star className="w-6 h-6 text-[var(--color-text-primary)]/20" />
+        {p ? (
+          <Link
+            to={`/products/${p.slug}`}
+            className="group relative block overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] lg:col-span-7 rise-in [animation-delay:90ms]"
+          >
+            <div className="aspect-[4/3] sm:aspect-[16/11]">
+              <img
+                src={productImage}
+                alt=""
+                fetchPriority="high"
+                className="h-full w-full object-contain p-[8%] pb-[16%] transition-transform duration-700 ease-[var(--ease-out)] group-hover:scale-[1.03]"
+              />
             </div>
-          ))}
-        </motion.div>
+            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-4 sm:p-6">
+              <div className="min-w-0">
+                <p className="truncate text-base font-semibold sm:text-lg">{productTitle}</p>
+                <p className="tabular text-sm text-[var(--color-text-secondary)] sm:text-[0.9375rem]">
+                  {formatUSD(p.price)}
+                </p>
+              </div>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[var(--color-bg-primary)] shadow-[var(--shadow-sm)] transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+                <ArrowUpRight className="h-[18px] w-[18px]" aria-hidden="true" />
+                <span className="sr-only">{t("home.view_product")}</span>
+              </span>
+            </div>
+          </Link>
+        ) : (
+          <div className="hidden lg:block lg:col-span-7 aspect-[16/11] rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)]" />
+        )}
       </div>
-    </>
+
+      {/* What's true about shopping here */}
+      <ul className="mt-8 grid grid-cols-1 gap-px overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-border)] text-sm sm:grid-cols-3 md:mt-10">
+        {[
+          { key: "facts_khqr", icon: <KhqrIcon /> },
+          { key: "facts_delivery", icon: <TruckIcon /> },
+          { key: "facts_language", icon: <LangIcon /> },
+        ].map(({ key, icon }) => (
+          <li key={key} className="flex items-center gap-3 bg-[var(--color-bg-primary)] px-4 py-3.5 sm:justify-center">
+            <span className="text-[var(--color-text-secondary)]">{icon}</span>
+            <span className="font-medium">{t(`home.${key}`)}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 };
+
+/* Small line icons drawn to match lucide's 1.75 stroke */
+const svgProps = {
+  width: 20,
+  height: 20,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.75,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
+};
+
+const KhqrIcon = () => (
+  <svg {...svgProps}>
+    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+    <rect x="14" y="3" width="7" height="7" rx="1.5" />
+    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+    <path d="M14 14h3v3h-3zM20 14v.01M17 20h4v-3M14 20v.01" />
+  </svg>
+);
+
+const TruckIcon = () => (
+  <svg {...svgProps}>
+    <path d="M3 6.5h11v9H3zM14 9.5h3.6l3.4 3.4v2.6h-7" />
+    <circle cx="7" cy="17.5" r="1.8" />
+    <circle cx="17" cy="17.5" r="1.8" />
+  </svg>
+);
+
+const LangIcon = () => (
+  <svg {...svgProps}>
+    <path d="M4 5h9M8.5 3v2M11 5c-.8 3.6-3.2 6.4-6.5 8" />
+    <path d="M6.5 8.5c1.2 1.8 2.9 3.2 4.8 4" />
+    <path d="M13 21l3.8-9 3.8 9M14.3 18h5" />
+  </svg>
+);
 
 export default HeroSection;

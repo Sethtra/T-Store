@@ -238,6 +238,7 @@ const ProductsPage = () => {
     description: "",
     description_kh: "",
     price: "",
+    original_price: "",
     stock: "",
     category_id: "",
     image_url: "",
@@ -296,6 +297,7 @@ const ProductsPage = () => {
       description: "",
       description_kh: "",
       price: "",
+      original_price: "",
       stock: "",
       category_id: "",
       image_url: "",
@@ -346,6 +348,7 @@ const ProductsPage = () => {
         description: product.description,
         description_kh: product.description_kh || "",
         price: product.price?.toString() || "0",
+        original_price: product.original_price ? String(product.original_price) : "",
         stock: product.stock?.toString() || "0",
         category_id: product.category_id?.toString() || "",
         image_url: product.images?.[0] || "",
@@ -370,6 +373,8 @@ const ProductsPage = () => {
         data.append("description", formData.description);
         if (formData.description_kh) data.append("description_kh", formData.description_kh);
         data.append("price", formData.price);
+        // Empty string clears the discount on update (backend converts it to null)
+        data.append("original_price", formData.original_price);
         data.append("stock", formData.stock);
         if (formData.category_id)
           data.append("category_id", formData.category_id);
@@ -819,7 +824,7 @@ const ProductsPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <Input
                     label="Price"
                     type="number"
@@ -829,6 +834,24 @@ const ProductsPage = () => {
                       setFormData({ ...formData, price: e.target.value })
                     }
                     required
+                  />
+                  <Input
+                    label="Original price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="Optional"
+                    helperText="Set above Price to show a discount"
+                    value={formData.original_price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, original_price: e.target.value })
+                    }
+                    error={
+                      formData.original_price &&
+                      Number(formData.original_price) <= Number(formData.price || 0)
+                        ? "Must be higher than Price"
+                        : undefined
+                    }
                   />
                   <Input
                     label="Stock"

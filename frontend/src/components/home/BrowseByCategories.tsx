@@ -1,304 +1,161 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { ArrowRight } from "lucide-react";
 import { useLandingData, type CategoryDisplay } from "../../hooks/useLandingData";
 import { getImageUrl } from "../../utils/image";
-import { useTranslation } from "react-i18next";
 
-const BrowseByCategories = () => {
-  const { t, i18n } = useTranslation();
-  const isKh = i18n.language === "kh";
-  const { data: landingData, isLoading } = useLandingData();
-  const displays = landingData?.category_displays;
+interface BrowseByCategoriesProps {
+  customDisplays?: CategoryDisplay[];
+}
 
-  const getDisplay = (position: string): CategoryDisplay | undefined => {
-    return displays?.find((d) => d.position === position);
-  };
+// Shown only until the four slots are configured in Admin → Category Display.
+const DEFAULT_DISPLAYS: Record<string, CategoryDisplay> = {
+  main: {
+    id: 1,
+    position: "main",
+    title: "Smartphones",
+    title_kh: "ទូរស័ព្ទស្មាតហ្វូន",
+    description: "Flagships and everyday phones.",
+    description_kh: "ទូរស័ព្ទកម្រិតខ្ពស់ និងប្រើប្រាស់ប្រចាំថ្ងៃ។",
+    image_url: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&q=80",
+    link: "/products",
+    is_active: true,
+  },
+  featured: {
+    id: 2,
+    position: "featured",
+    title: "Laptops",
+    title_kh: "កុំព្យូទ័រយួរដៃ",
+    description: "For work and study.",
+    description_kh: "សម្រាប់ការងារ និងការសិក្សា។",
+    image_url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80",
+    link: "/products",
+    is_active: true,
+  },
+  small_1: {
+    id: 3,
+    position: "small_1",
+    title: "Audio",
+    title_kh: "សំឡេង",
+    image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80",
+    link: "/products",
+    is_active: true,
+  },
+  small_2: {
+    id: 4,
+    position: "small_2",
+    title: "Accessories",
+    title_kh: "គ្រឿងបន្លាស់",
+    image_url: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=600&q=80",
+    link: "/products",
+    is_active: true,
+  },
+};
 
-  const mainDisplay = getDisplay("main");
-  const featuredDisplay = getDisplay("featured");
-  const small1Display = getDisplay("small_1");
-  const small2Display = getDisplay("small_2");
+const linkFor = (d: CategoryDisplay) =>
+  d.link || (d.category?.slug ? `/products?category=${d.category.slug}` : "/products");
 
-  if (isLoading) {
-    return (
-      <section className="py-24 bg-white dark:bg-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-96 w-full skeleton rounded-[32px]" />
-        </div>
-      </section>
-    );
-  }
+const Tile = ({
+  display,
+  size,
+  isKh,
+  shopLabel,
+}: {
+  display: CategoryDisplay;
+  size: "large" | "wide" | "small";
+  isKh: boolean;
+  shopLabel: string;
+}) => {
+  const title = isKh ? display.title_kh || display.title : display.title;
+  const description = isKh ? display.description_kh || display.description : display.description;
 
   return (
-    <section className="py-32 bg-[var(--color-bg-primary)] transition-colors duration-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Minimal Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6"
-        >
-          <div className="max-w-xl">
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-medium text-[var(--color-text-primary)] tracking-tight mb-3 md:mb-4">
-              {t("common.browse_by_categories", "Browse by Categories")}
-            </h2>
-            <p className="text-sm md:text-lg text-[var(--color-text-secondary)] font-normal leading-relaxed">
-              {t("common.categories_description", "Explore our curated collections designed for your lifestyle.")}
-            </p>
-          </div>
-          <Link
-            to="/products"
-            className="group flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors font-medium text-lg"
-          >
-            {t("common.view_all_categories", "View all categories")}
-            <svg
-              className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
-          </Link>
-        </motion.div>
-
-        {/* Modern Single-Surface Bento Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-3 md:gap-6 lg:h-[700px]">
-          {/* Main Card */}
-          {mainDisplay?.is_active !== false && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="col-span-2 lg:col-span-2 lg:row-span-2"
-            >
-              <Link
-                to={mainDisplay?.link || "/products"}
-                className="group block h-full"
-              >
-                <div className="relative h-full w-full min-h-[280px] md:min-h-0 bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[32px] overflow-hidden flex flex-col p-5 md:p-8 lg:p-10 transition-all duration-300 hover:shadow-2xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
-                  {/* Background Gradient Blob - Shifted to avoid text overlap */}
-                  <div className="absolute top-0 right-0 w-[80%] h-[80%] bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 rounded-full blur-3xl opacity-100" />
-
-                  {/* Text Top-Left - High Z-Index */}
-                  <div className="relative z-20 flex flex-col items-start gap-4 max-w-[60%]">
-                    <div>
-                      <span className="inline-block px-2.5 py-0.5 md:px-3 md:py-1 mb-2 md:mb-3 text-[10px] md:text-xs font-semibold tracking-wide uppercase bg-[var(--color-bg-elevated)] rounded-full text-[var(--color-text-primary)] shadow-sm">
-                        {t("common.premium_collection", "Premium Collection")}
-                      </span>
-                      <h3 className="text-xl md:text-4xl font-bold text-[var(--color-text-primary)] leading-tight">
-                        {isKh ? mainDisplay?.title_kh || mainDisplay?.title : mainDisplay?.title || "All Products"}
-                      </h3>
-                      <p className="mt-2 text-sm text-[var(--color-text-muted)] font-medium leading-relaxed">
-                        {isKh ? mainDisplay?.description_kh || mainDisplay?.description : mainDisplay?.description || "Discover the latest in technology and design."}
-                      </p>
-                    </div>
-
-                    {/* Button - hidden on very small screens */}
-                    <button className="mt-2 md:mt-4 group/btn hidden sm:flex items-center justify-between gap-4 px-1 py-1 pr-6 bg-[var(--color-bg-elevated)] rounded-full shadow-sm border border-[var(--color-border)] hover:shadow-md transition-all duration-300">
-                      <div className="w-10 h-10 rounded-full bg-[var(--color-text-primary)] flex items-center justify-center text-[var(--color-bg-primary)] group-hover/btn:scale-110 transition-transform">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M14 5l7 7m0 0l-7 7m7-7H3"
-                          />
-                        </svg>
-                      </div>
-                      <span className="font-semibold text-sm text-[var(--color-text-primary)]">
-                        Shop Collection
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Image - Bottom Right (only when image_url exists) */}
-                  {mainDisplay?.image_url && (
-                    <motion.div
-                      className="absolute right-[-10%] bottom-[-10%] w-[80%] h-[80%] flex items-center justify-center"
-                      whileHover={{ scale: 1.05, rotate: -3 }}
-                      transition={{ duration: 0.5, ease: "easeOut" }}
-                    >
-                      <div className="absolute w-[80%] h-[80%] bg-gradient-to-tr from-orange-400/20 to-amber-300/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                      <img
-                        src={getImageUrl(mainDisplay.image_url)}
-                        alt={mainDisplay?.title}
-                        className="relative z-10 w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-2xl"
-                      />
-                    </motion.div>
-                  )}
-                </div>
-              </Link>
-            </motion.div>
-          )}
-
-          {/* Featured Card (Wide) */}
-          {featuredDisplay?.is_active !== false && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1, duration: 0.6, ease: "easeOut" }}
-              className="col-span-2 lg:col-span-2 lg:row-span-1"
-            >
-              <Link
-                to={featuredDisplay?.link || "/products"}
-                className="group block h-full"
-              >
-                <div className="relative h-full w-full min-h-[140px] md:min-h-0 bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[32px] overflow-hidden flex flex-row items-center justify-between p-5 md:p-8 lg:p-10 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
-                  {/* Background Gradient Blob */}
-                  <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-gradient-to-bl from-cyan-400/10 to-blue-500/10 rounded-full blur-[80px]" />
-
-                  <div className="z-10 flex flex-col items-start gap-1 md:gap-3 max-w-[50%]">
-                    <span className="text-[10px] md:text-xs font-bold tracking-wider uppercase text-[var(--color-primary)]">
-                       {t("common.top_rated", "Top Rated")}
-                    </span>
-                    <h3 className="text-base md:text-2xl font-bold text-[var(--color-text-primary)]">
-                      {isKh ? featuredDisplay?.title_kh || featuredDisplay?.title : featuredDisplay?.title || "Displays"}
-                    </h3>
-                    <p className="text-[var(--color-text-muted)] text-[10px] md:text-sm leading-relaxed font-medium mb-1 md:mb-2 hidden sm:block">
-                      {isKh ? featuredDisplay?.description_kh || featuredDisplay?.description : featuredDisplay?.description || "Stunning visuals."}
-                    </p>
-
-                    {/* View Now Button */}
-                    <div className="hidden sm:flex items-center gap-2 px-4 md:px-5 py-1.5 md:py-2 bg-[var(--color-bg-elevated)] rounded-full shadow-sm border border-[var(--color-border)] group-hover:shadow-md transition-all">
-                      <span className="text-xs font-bold text-[var(--color-text-primary)]">
-                        View Now
-                      </span>
-                      <div className="w-5 h-5 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
-                        <svg
-                          className="w-3 h-3 text-[var(--color-primary)] transform group-hover:translate-x-0.5 transition-transform"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  {featuredDisplay?.image_url && (
-                    <motion.div
-                      className="absolute right-[-20px] top-0 bottom-0 w-[55%] flex items-center justify-center p-4"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                    >
-                      <div className="absolute w-[70%] h-[70%] bg-blue-400/20 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <img
-                        src={getImageUrl(featuredDisplay.image_url)}
-                        alt={featuredDisplay?.title}
-                        className="relative z-10 w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-xl"
-                      />
-                    </motion.div>
-                  )}
-                </div>
-              </Link>
-            </motion.div>
-          )}
-
-          {/* Small Card 1 */}
-          {small1Display?.is_active !== false && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
-              className="lg:col-span-1 lg:row-span-1"
-            >
-              <Link
-                to={small1Display?.link || "/products"}
-                className="group block h-full"
-              >
-                <div className="relative h-full w-full min-h-[180px] md:min-h-0 bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[32px] overflow-hidden flex flex-col p-5 md:p-8 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-full blur-[40px]" />
-
-                  <h3 className="text-base md:text-xl font-bold text-[var(--color-text-primary)] z-10 mb-0.5 md:mb-1">
-                    {isKh ? small1Display?.title_kh || small1Display?.title : small1Display?.title || "Headphones"}
-                  </h3>
-                  <p className="text-xs text-[var(--color-text-muted)] font-medium z-10">
-                    {t("common.new_arrival", "New Arrival")}
-                  </p>
-
-                  {small1Display?.image_url && (
-                    <motion.div
-                      className="absolute inset-0 flex items-center justify-center pt-8"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                    >
-                      <div className="absolute w-[60%] h-[60%] bg-yellow-300/20 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <img
-                        src={getImageUrl(small1Display.image_url)}
-                        alt={small1Display?.title}
-                        className="relative z-10 w-[80%] h-[80%] object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-lg"
-                      />
-                    </motion.div>
-                  )}
-                </div>
-              </Link>
-            </motion.div>
-          )}
-
-          {/* Small Card 2 */}
-          {small2Display?.is_active !== false && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
-              className="lg:col-span-1 lg:row-span-1"
-            >
-              <Link
-                to={small2Display?.link || "/products"}
-                className="group block h-full"
-              >
-                <div className="relative h-full w-full min-h-[180px] md:min-h-0 bg-[var(--color-bg-surface)] rounded-2xl md:rounded-[32px] overflow-hidden flex flex-col p-5 md:p-8 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)] hover:border-[var(--color-border-hover)]">
-                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-400/10 rounded-full blur-[40px]" />
-
-                  <h3 className="text-base md:text-xl font-bold text-[var(--color-text-primary)] z-10 mb-0.5 md:mb-1">
-                    {isKh ? small2Display?.title_kh || small2Display?.title : small2Display?.title || "Phones"}
-                  </h3>
-                  <p className="text-xs text-[var(--color-text-muted)] font-medium z-10">
-                    {t("common.best_sellers", "Best Sellers")}
-                  </p>
-
-                  {small2Display?.image_url && (
-                    <motion.div
-                      className="absolute inset-0 flex items-center justify-center pt-8"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                    >
-                      <div className="absolute w-[60%] h-[60%] bg-green-300/20 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <img
-                        src={getImageUrl(small2Display.image_url)}
-                        alt={small2Display?.title}
-                        className="relative z-10 w-[80%] h-[80%] object-contain mix-blend-multiply dark:mix-blend-normal drop-shadow-lg"
-                      />
-                    </motion.div>
-                  )}
-                </div>
-              </Link>
-            </motion.div>
+    <Link
+      to={linkFor(display)}
+      className={`group relative flex overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] transition-colors duration-300 hover:bg-[var(--color-bg-sunken)] ${
+        size === "large"
+          ? "min-h-[300px] flex-col sm:min-h-[420px] lg:h-full"
+          : size === "wide"
+            ? "min-h-[200px] flex-row items-stretch"
+            : "min-h-[220px] flex-col"
+      }`}
+    >
+      <div
+        className={`relative z-10 flex flex-col p-5 sm:p-6 ${
+          size === "wide" ? "w-1/2 justify-between" : ""
+        } ${size === "large" ? "lg:p-8" : ""}`}
+      >
+        <div>
+          <h3 className={`font-semibold tracking-[-0.02em] ${size === "large" ? "text-2xl sm:text-3xl" : "text-lg sm:text-xl"}`}>
+            {title}
+          </h3>
+          {description && size !== "small" && (
+            <p className="mt-1.5 line-clamp-2 max-w-xs text-sm text-[var(--color-text-secondary)]">{description}</p>
           )}
         </div>
+        <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${size === "wide" ? "mt-4" : "mt-3"}`}>
+          {shopLabel}
+          <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+        </span>
+      </div>
+
+      <div
+        className={`relative flex items-center justify-center ${
+          size === "wide" ? "w-1/2 p-4" : "flex-1 px-6 pb-6"
+        }`}
+      >
+        <img
+          src={getImageUrl(display.image_url || "")}
+          alt=""
+          loading="lazy"
+          className={`object-contain transition-transform duration-500 ease-[var(--ease-out)] group-hover:scale-[1.04] ${
+            size === "large" ? "max-h-[220px] sm:max-h-[300px] w-full" : size === "wide" ? "max-h-[170px] w-full" : "max-h-[130px] w-full"
+          }`}
+          onError={(e) => {
+            const fallback = DEFAULT_DISPLAYS[display.position]?.image_url;
+            if (fallback && e.currentTarget.src !== fallback) e.currentTarget.src = fallback;
+          }}
+        />
+      </div>
+    </Link>
+  );
+};
+
+const BrowseByCategories = ({ customDisplays }: BrowseByCategoriesProps = {}) => {
+  const { t, i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
+  const { data: landingData } = useLandingData();
+  const displays = customDisplays || landingData?.category_displays;
+
+  const get = (position: string): CategoryDisplay =>
+    displays?.find((d) => d.position === position && d.is_active !== false) || DEFAULT_DISPLAYS[position];
+
+  const shopLabel = t("home.shop");
+
+  return (
+    <section className="max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8 mt-20 md:mt-28" aria-labelledby="home-categories">
+      <div className="mb-6 flex items-end justify-between gap-4 md:mb-8">
+        <h2 id="home-categories" className="text-2xl font-semibold tracking-[-0.025em] sm:text-3xl">
+          {t("home.categories_title")}
+        </h2>
+        <Link
+          to="/products"
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold hover:underline underline-offset-4"
+        >
+          {t("home.view_all")}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-4 lg:grid-rows-2 lg:h-[600px]">
+        <div className="sm:col-span-2 lg:col-span-2 lg:row-span-2">
+          <Tile display={get("main")} size="large" isKh={isKh} shopLabel={shopLabel} />
+        </div>
+        <div className="sm:col-span-2 lg:col-span-2">
+          <Tile display={get("featured")} size="wide" isKh={isKh} shopLabel={shopLabel} />
+        </div>
+        <Tile display={get("small_1")} size="small" isKh={isKh} shopLabel={shopLabel} />
+        <Tile display={get("small_2")} size="small" isKh={isKh} shopLabel={shopLabel} />
       </div>
     </section>
   );

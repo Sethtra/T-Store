@@ -1,167 +1,96 @@
-import { useRef, useState, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
-
+import { useTranslation } from "react-i18next";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useLandingData } from "../../hooks/useLandingData";
-import { useThemeStore } from "../../stores/themeStore";
+import { getImageUrl } from "../../utils/image";
+import { formatUSD } from "../../utils/money";
 
+/**
+ * "Spotlight" rail: products the admin pins as curated sections
+ * (Admin → Landing Sections → curated_excellence). Native horizontal scroll
+ * with snap; arrow buttons on wider screens.
+ */
 const CuratedExcellence = () => {
+  const { t, i18n } = useTranslation();
+  const isKh = i18n.language === "kh";
   const { data: landingData } = useLandingData();
-  const { theme } = useThemeStore();
-  const isDark = theme === "dark";
-  const galleryItems =
+  const railRef = useRef<HTMLUListElement>(null);
+
+  const items =
     landingData?.landing_sections
-      ?.filter((section) => section.section_type === "curated_excellence")
-      ?.sort((a, b) => a.order - b.order) || [];
+      ?.filter((s) => s.section_type === "curated_excellence" && s.product)
+      .sort((a, b) => a.order - b.order) || [];
 
-  const horizontalScrollRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [scrollRange, setScrollRange] = useState(0);
+  if (items.length === 0) return null;
 
-  // Total items = intro panel + gallery cards (dynamic or fallback 3)
-  const totalItems = Math.max(galleryItems.length, 3) + 1;
-  // Each card needs ~100vh of scroll height to feel smooth
-  const sectionHeight = `${totalItems * 100}vh`;
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (scrollContainerRef.current) {
-        setScrollRange(
-          scrollContainerRef.current.scrollWidth - window.innerWidth,
-        );
-      }
-    };
-    // Delay to ensure DOM has rendered the dynamic items
-    const timeout = setTimeout(handleResize, 300);
-    window.addEventListener("resize", handleResize);
-    return () => {
-      clearTimeout(timeout);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [galleryItems.length]);
-
-  const { scrollYProgress: horizontalProgress } = useScroll({
-    target: horizontalScrollRef,
-    offset: ["start start", "end end"],
-  });
-
-  // Pause the scroll for the last 15% of the container height so the user can look at the last item
-  const xTransform = useTransform(
-    horizontalProgress,
-    [0, 0.85],
-    [0, -scrollRange],
-  );
+  const scrollBy = (dir: 1 | -1) => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const card = rail.querySelector("li");
+    const step = card ? card.getBoundingClientRect().width + 16 : rail.clientWidth * 0.8;
+    rail.scrollBy({ left: dir * step, behavior: "smooth" });
+  };
 
   return (
-    <section
-      ref={horizontalScrollRef}
-      className="relative z-10 bg-[var(--color-bg-primary)]"
-      style={{ height: sectionHeight }}
-    >
-      <div className="sticky top-0 h-screen flex items-center overflow-hidden">
-        <motion.div
-          ref={scrollContainerRef}
-          style={{ x: xTransform }}
-          className="flex gap-8 px-8 lg:px-32 w-max"
-        >
-          {/* Intro text for horizontal scroll */}
-          <div className="w-[80vw] sm:w-[40vw] shrink-0 flex flex-col justify-center pr-12">
-            <h2 className="text-5xl md:text-7xl font-black leading-tight mb-6 text-[var(--color-text-primary)]">
-              Curated <br />
-              <span className="text-indigo-500">Excellence.</span>
-            </h2>
-            <p className="text-xl text-[var(--color-text-muted)] leading-relaxed">
-              Swipe through our hand-picked selections. Every piece is a
-              statement, blending cutting-edge design with timeless aesthetics.
-            </p>
-          </div>
-
-          {/* Gallery Items */}
-          {galleryItems.map((item, i) => (
-            <div
-              key={item.id || i}
-              className="w-[85vw] sm:w-[50vw] md:w-[40vw] h-[60vh] shrink-0 relative rounded-[3rem] overflow-hidden group"
+    <section className="mt-20 md:mt-28" aria-labelledby="home-spotlight">
+      <div className="max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8 mb-6 md:mb-8 flex items-end justify-between gap-4">
+        <h2 id="home-spotlight" className="text-2xl font-semibold tracking-[-0.025em] sm:text-3xl">
+          {t("home.curated_title")}
+        </h2>
+        {items.length > 2 && (
+          <div className="hidden sm:flex gap-2">
+            <button
+              type="button"
+              onClick={() => scrollBy(-1)}
+              aria-label="Previous"
+              className="grid h-10 w-10 place-items-center rounded-full border border-[var(--color-border-hover)] hover:border-[var(--color-text-primary)]"
             >
-              <img
-                src={
-                  item.image
-                    ? item.image.startsWith("http")
-                      ? item.image
-                      : `${import.meta.env.VITE_API_URL?.replace("/api", "")}/storage/${item.image}`
-                    : item.product?.image_url ||
-                      "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&q=80&w=1200"
-                }
-                alt={item.title || item.product?.title || "Gallery Image"}
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-              />
-              <div className="absolute bottom-0 left-0 p-10 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                <p className="font-bold uppercase tracking-widest text-sm mb-3" style={{ color: isDark ? (item.description_color_dark || 'var(--color-primary)') : (item.description_color || 'var(--color-primary)') }}>
-                  {item.description || item.product?.category || "Featured"}
-                </p>
-                <h3 className="text-4xl md:text-5xl font-black mb-6" style={{ color: isDark ? (item.title_color_dark || 'var(--color-text-primary)') : (item.title_color || 'var(--color-text-primary)') }}>
-                  {item.title || item.product?.title}
-                </h3>
-                <Link
-                  to={
-                    item.product
-                      ? `/products/${item.product.slug}`
-                      : "/products"
-                  }
-                >
-                  <button className="opacity-0 group-hover:opacity-100 px-8 py-4 bg-[var(--color-text-primary)] text-[var(--color-bg-primary)] rounded-full font-bold flex items-center gap-2 hover:opacity-80 transition-all duration-500 delay-100">
-                    Explore <ArrowRight className="w-5 h-5" />
-                  </button>
-                </Link>
-              </div>
-            </div>
-          ))}
-
-          {/* Fallback items if none are configured in admin yet */}
-          {galleryItems.length === 0 &&
-            [
-              {
-                img: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&q=80&w=1200",
-                title: "Urban Noir",
-                sub: "Streetwear",
-              },
-              {
-                img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=1200",
-                title: "Minimalist",
-                sub: "Accessories",
-              },
-              {
-                img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=1200",
-                title: "Sonic Purity",
-                sub: "Audio",
-              },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="w-[85vw] sm:w-[50vw] md:w-[40vw] h-[60vh] shrink-0 relative rounded-[3rem] overflow-hidden group"
-              >
-                <img
-                  src={item.img}
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                />
-                <div className="absolute bottom-0 left-0 p-10 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                  <p className="text-[var(--color-primary)] font-bold uppercase tracking-widest text-sm mb-3">
-                    {item.sub}
-                  </p>
-                  <h3 className="text-4xl md:text-5xl font-black text-[var(--color-text-primary)] mb-6">
-                    {item.title}
-                  </h3>
-                  <Link to="/products">
-                    <button className="opacity-0 group-hover:opacity-100 px-8 py-4 bg-[var(--color-text-primary)] text-[var(--color-bg-primary)] rounded-full font-bold flex items-center gap-2 hover:opacity-80 transition-all duration-500 delay-100">
-                      Explore <ArrowRight className="w-5 h-5" />
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-        </motion.div>
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollBy(1)}
+              aria-label="Next"
+              className="grid h-10 w-10 place-items-center rounded-full border border-[var(--color-border-hover)] hover:border-[var(--color-text-primary)]"
+            >
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
+
+      <ul
+        ref={railRef}
+        className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 md:scroll-px-6 md:px-6 lg:px-[max(2rem,calc((100vw-1320px)/2+2rem))] lg:scroll-px-[max(2rem,calc((100vw-1320px)/2+2rem))]"
+      >
+        {items.map((item) => {
+          const p = item.product;
+          const title = isKh ? item.title_kh || item.title || p.title_kh || p.title : item.title || p.title || p.name;
+          const tagline = isKh ? item.description_kh || item.description : item.description;
+          const image = getImageUrl(item.custom_image || item.image || p.image_url || p.images?.[0]);
+
+          return (
+            <li key={item.id} className="w-[82%] shrink-0 snap-start sm:w-[46%] lg:w-[calc((100%-2rem)/3)] max-w-[440px]">
+              <Link to={`/products/${p.slug}`} className="group block">
+                <div className="aspect-[4/5] overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] transition-colors duration-300 group-hover:bg-[var(--color-bg-sunken)]">
+                  <img
+                    src={image}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-out)] group-hover:scale-[1.04]"
+                  />
+                </div>
+                <div className="pt-4">
+                  {tagline && <p className="text-sm text-[var(--color-text-secondary)] line-clamp-1">{tagline}</p>}
+                  <h3 className="mt-0.5 text-lg font-semibold tracking-[-0.015em]">{title}</h3>
+                  <p className="tabular mt-1 text-[0.9375rem] text-[var(--color-text-secondary)]">{formatUSD(p.price)}</p>
+                </div>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 };
