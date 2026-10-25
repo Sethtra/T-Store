@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-25T00:00:00Z",
+  "title": "Design System: T-Store",
+  "extensions": {
+    "colorMeta": {
+      "counter-jade": { "role": "primary", "displayName": "Counter Jade", "canonical": "#0a5c44", "tonalRamp": ["#0a2e23", "#0a4535", "#084936", "#0a5c44", "#2b7a60", "#5fae92", "#a6d4c2", "#e6f2ec"] },
+      "counter-jade-deep": { "role": "primary", "displayName": "Deep Jade", "canonical": "#084936" },
+      "jade-mist": { "role": "primary", "displayName": "Jade Mist", "canonical": "#e6f2ec" },
+      "crest-gold": { "role": "secondary", "displayName": "Crest Gold", "canonical": "#b08a3a", "tonalRamp": ["#3d2f12", "#5e4819", "#7f6224", "#b08a3a", "#c4a35e", "#d8c08b", "#ebdcbb", "#f7f0e1"] },
+      "daylight-white": { "role": "neutral", "displayName": "Daylight White", "canonical": "#ffffff" },
+      "plinth": { "role": "neutral", "displayName": "Plinth", "canonical": "#f3f3f1", "tonalRamp": ["#1d211f", "#3a403c", "#5d645f", "#8d948f", "#b9c0bb", "#d9dfdb", "#ebebe8", "#f3f3f1"] },
+      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "#e6e6e3" },
+      "hairline-strong": { "role": "neutral", "displayName": "Strong Hairline", "canonical": "#cfcfcb" },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#121212", "tonalRamp": ["#121212", "#2c2c2e", "#46464b", "#6b6b70", "#9a9aa0", "#c4c4c8", "#e3e3e5", "#f4f4f2"] },
+      "night-jade": { "role": "primary", "displayName": "Night Jade", "canonical": "#3fc79a" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Home hero headline and About title only." },
+      "headline": { "displayName": "Headline", "purpose": "Page titles in account and admin." },
+      "section-title": { "displayName": "Section title", "purpose": "Home rows on a hairline with a jade underline." },
+      "title": { "displayName": "Title", "purpose": "Product names on cards, panel headings." },
+      "body": { "displayName": "Body", "purpose": "Descriptions, max 60-65ch." },
+      "label": { "displayName": "Label", "purpose": "Uppercase category captions; never applied to Khmer." },
+      "body-khmer": { "displayName": "Khmer body", "purpose": "All Khmer text; taller line height for stacked marks." }
+    },
+    "shadows": [
+      { "name": "rest", "value": "0 1px 2px rgb(16 32 26 / 0.05), 0 2px 8px -2px rgb(16 32 26 / 0.06)", "purpose": "Cards and panels at rest." },
+      { "name": "lift", "value": "0 6px 16px -4px rgb(16 32 26 / 0.10), 0 2px 4px rgb(16 32 26 / 0.04)", "purpose": "Hovered cards, touch quick-add." },
+      { "name": "float", "value": "0 18px 40px -12px rgb(16 32 26 / 0.18), 0 4px 10px rgb(16 32 26 / 0.05)", "purpose": "Menus, mega-menu, cart drawer, dialogs." }
+    ],
+    "motion": [
+      { "name": "duration-fast", "value": "120ms", "purpose": "Color and border state changes." },
+      { "name": "duration-normal", "value": "200ms", "purpose": "Card hover, menus." },
+      { "name": "duration-slow", "value": "320ms", "purpose": "Drawers." },
+      { "name": "ease-out", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Default easing; the rise-in page entrance (520ms, 8px)." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one jade action in a region: add to cart, checkout, pay.",
+      "html": "<button class=\"ds-btn-primary\">Add to cart</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border: none; border-radius: 10px; background: #0a5c44; color: #ffffff; font: 600 0.95rem/1 'Hanken Grotesk', system-ui, sans-serif; box-shadow: 0 1px 2px rgb(16 32 26 / 0.05), 0 2px 8px -2px rgb(16 32 26 / 0.06); cursor: pointer; transition: background-color 150ms ease-out, transform 150ms ease-out; } .ds-btn-primary:hover { background: #084936; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid #0a5c44; outline-offset: 2px; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action beside a primary one.",
+      "html": "<button class=\"ds-btn-outline\">View details</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 20px; border: 1px solid #cfcfcb; border-radius: 10px; background: #ffffff; color: #121212; font: 600 0.95rem/1 'Hanken Grotesk', system-ui, sans-serif; cursor: pointer; transition: border-color 150ms ease-out; } .ds-btn-outline:hover { border-color: #121212; } .ds-btn-outline:focus-visible { outline: 2px solid #0a5c44; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Quiet filled action on a plinth.",
+      "html": "<button class=\"ds-btn-secondary\">Clear filters</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 20px; border: none; border-radius: 10px; background: #f3f3f1; color: #121212; font: 600 0.95rem/1 'Hanken Grotesk', system-ui, sans-serif; cursor: pointer; transition: background-color 150ms ease-out; } .ds-btn-secondary:hover { background: #ebebe8; } .ds-btn-secondary:focus-visible { outline: 2px solid #0a5c44; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled field; jade border and mist halo on focus.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Phone number</span><input class=\"ds-input\" placeholder=\"012 345 678\"></label>",
+      "css": ".ds-field { display: block; width: 280px; font-family: 'Hanken Grotesk', system-ui, sans-serif; } .ds-field-label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: #121212; } .ds-input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid #cfcfcb; border-radius: 10px; background: #ffffff; color: #121212; font-size: 16px; transition: border-color 150ms, box-shadow 150ms; } .ds-input::placeholder { color: #6b6b70; } .ds-input:hover { border-color: #6b6b70; } .ds-input:focus { outline: none; border-color: #0a5c44; box-shadow: 0 0 0 3px #e6f2ec; }"
+    },
+    {
+      "name": "Product Card",
+      "kind": "card",
+      "refersTo": "product-card",
+      "description": "Signature component: plinth photo well, sale tag, caption, name and tabular price.",
+      "html": "<article class=\"ds-pcard\"><div class=\"ds-pcard-well\"><span class=\"ds-pcard-tag\">15%<br>OFF</span><svg viewBox=\"0 0 24 24\" width=\"72\" height=\"72\" fill=\"none\" stroke=\"#9a9aa0\" stroke-width=\"1.5\"><rect x=\"6\" y=\"2\" width=\"12\" height=\"20\" rx=\"2.5\"/><path d=\"M11 18h2\"/></svg></div><div class=\"ds-pcard-info\"><span class=\"ds-pcard-cap\">Phones</span><div class=\"ds-pcard-row\"><h3 class=\"ds-pcard-name\">Galaxy S25 Ultra</h3><div class=\"ds-pcard-price\">$1,099.00<s>$1,299.00</s></div></div><span class=\"ds-pcard-save\">Save $200.00</span></div></article>",
+      "css": ".ds-pcard { width: 240px; overflow: hidden; border: 1px solid #e6e6e3; border-radius: 12px; background: #ffffff; font-family: 'Hanken Grotesk', system-ui, sans-serif; box-shadow: 0 1px 2px rgb(16 32 26 / 0.05), 0 2px 8px -2px rgb(16 32 26 / 0.06); transition: border-color 200ms, box-shadow 200ms; } .ds-pcard:hover { border-color: #cfcfcb; box-shadow: 0 6px 16px -4px rgb(16 32 26 / 0.10), 0 2px 4px rgb(16 32 26 / 0.04); } .ds-pcard-well { position: relative; display: grid; place-items: center; aspect-ratio: 4 / 5; background: #f3f3f1; border-bottom: 1px solid #e6e6e3; } .ds-pcard-tag { position: absolute; top: 0; right: 0; padding: 6px 8px; border-bottom-left-radius: 10px; background: #0a5c44; color: #fff; font-size: 11px; font-weight: 700; line-height: 1.15; text-align: center; font-variant-numeric: tabular-nums; } .ds-pcard-info { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px 12px; } .ds-pcard-cap { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #46464b; } .ds-pcard-row { display: flex; justify-content: space-between; gap: 12px; } .ds-pcard-name { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.375; color: #121212; } .ds-pcard-price { font-size: 15px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; color: #121212; } .ds-pcard-price s { display: block; font-size: 12px; font-weight: 400; color: #6b6b70; } .ds-pcard-save { align-self: flex-end; font-size: 11px; font-weight: 600; color: #0a5c44; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Tinted status chips; positive uses jade.",
+      "html": "<span class=\"ds-badge ds-badge-ok\">Paid</span> <span class=\"ds-badge ds-badge-warn\">Pending</span> <span class=\"ds-badge\">Draft</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px; background: #f3f3f1; color: #46464b; font: 500 13px/1.2 'Hanken Grotesk', system-ui, sans-serif; } .ds-badge-ok { background: color-mix(in srgb, #0a5c44 12%, transparent); color: #0a5c44; } .ds-badge-warn { background: color-mix(in srgb, #b45309 14%, transparent); color: #b45309; }"
+    },
+    {
+      "name": "Top Navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Sticky white bar; active link ink with a gold underline; jade count badge.",
+      "html": "<nav class=\"ds-nav\"><strong class=\"ds-nav-brand\">T-Store</strong><a class=\"ds-nav-link ds-active\" href=\"#\">Home</a><a class=\"ds-nav-link\" href=\"#\">Products</a><a class=\"ds-nav-link\" href=\"#\">About</a><span class=\"ds-nav-cart\"><svg viewBox=\"0 0 24 24\" width=\"19\" height=\"19\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M6 8h12l-1 12H7L6 8z\"/><path d=\"M9 8a3 3 0 0 1 6 0\"/></svg><span class=\"ds-nav-count\">2</span></span></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 4px; height: 64px; padding: 0 24px; background: #ffffff; border-bottom: 1px solid #e6e6e3; font-family: 'Hanken Grotesk', system-ui, sans-serif; } .ds-nav-brand { margin-right: 24px; font-size: 18px; color: #121212; } .ds-nav-link { padding: 8px 12px; font-size: 15px; font-weight: 500; color: #46464b; text-decoration: none; border-bottom: 2px solid transparent; transition: color 120ms; } .ds-nav-link:hover { color: #121212; } .ds-nav-link.ds-active { color: #121212; border-bottom-color: #b08a3a; } .ds-nav-link:focus-visible { outline: 2px solid #0a5c44; outline-offset: 2px; } .ds-nav-cart { position: relative; margin-left: auto; display: grid; place-items: center; width: 40px; height: 40px; color: #46464b; } .ds-nav-count { position: absolute; top: 2px; right: 2px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: #0a5c44; color: #fff; font-size: 10px; font-weight: 700; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px #ffffff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Bright Counter",
+    "overview": "T-Store should feel like a well-lit electronics counter: a clean white surface where each product sits on its own pale plinth, the price is printed plainly beside it, and the one jade thing in reach is the button you press to buy. Jade is the store's voice; white is the room it speaks in.\n\nIt is a clean, premium, easy storefront: the category standard done with full craft. Products and prices lead. Brand lives in precise details: tight display tracking, tabular prices, hairline structure, a jade that only appears where the shopper acts or has chosen, and the gold crest. Surfaces are gently layered, so cards rest a few millimetres above the counter rather than being printed on it.\n\nMost shoppers are on phones in daylight, often switching to their banking app to pay, so light mode is the default and every pattern has to work with one thumb. Dark mode mirrors the same roles on a deep green-black.",
+    "keyCharacteristics": [
+      "White ground, pale jade-grey plinths under every product photo.",
+      "Counter Jade for actions, selection and positive news; never for decoration.",
+      "Near-black ink for all reading text.",
+      "Soft resting shadows on cards; stronger lift on hover, menus and drawers.",
+      "Tabular prices everywhere, in USD.",
+      "Khmer gets its own face and taller line height."
+    ],
+    "rules": [
+      { "name": "The One Green Rule", "body": "Jade is the only green in the system. Success and positive status use Counter Jade itself, so a \"Save $20\" never sits beside a button in a slightly different green.", "section": "colors" },
+      { "name": "The Jade Marks Intent Rule", "body": "Jade appears only where the shopper can act, has chosen, or has received good news. Headlines, borders, icons at rest, and backgrounds stay neutral. If removing the jade from an element changes nothing about what the shopper can do or knows, it should not be jade.", "section": "colors" },
+      { "name": "The Gold Is a Line Rule", "body": "Gold appears only as the crest and as thin accent lines (underlines, rules). Never as a fill behind text, never as text, never on a button.", "section": "colors" },
+      { "name": "The Khmer Room Rule", "body": "Khmer text gets line height 1.8 for body and 1.45 for headings, letter spacing 0, and no truncation that could cut a cluster in half. Every layout is checked in both languages before it ships.", "section": "typography" },
+      { "name": "The Tabular Price Rule", "body": "Any number a shopper compares (price, quantity, total, stock count) uses tabular figures so columns line up.", "section": "typography" },
+      { "name": "The Thumb Reach Rule", "body": "On phones, the primary action of a screen is reachable at the bottom: the bottom nav, a sticky add-to-cart bar, or a checkout button that stays in view.", "section": "layout" },
+      { "name": "The Three Heights Rule", "body": "There are exactly three heights (Rest, Lift and Float). A new component picks one of them; it never invents a fourth shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "**Do** use Counter Jade for the one main action in each region, and for selected and positive states.",
+      "**Do** keep all reading text in Ink, Ink Secondary or Ink Muted, never in jade.",
+      "**Do** put every product photo on a Plinth well, uncropped, with about 9% padding.",
+      "**Do** give cards the Rest shadow and lift them to Lift on hover.",
+      "**Do** set prices in tabular figures through `formatUSD()`.",
+      "**Do** check every layout in Khmer and English, light and dark, at 375px and desktop widths.",
+      "**Do** render whatever logo, site name and hero copy the admin has configured, at any length."
+    ],
+    "donts": [
+      "**Don't** use gradient text, glassmorphism, floating blur blobs, pulsing pill labels or neon glows.",
+      "**Don't** add a second green, or any decorative color. If a color isn't a product photo, a status, jade intent or the crest, it's a neutral.",
+      "**Don't** use Crest Gold for text, prices, buttons or fills; it is for the crest and thin accent lines only.",
+      "**Don't** use Angkor, temple or other \"cultural/touristy\" ornament.",
+      "**Don't** propose themed or conceptual worlds (receipt, street map, calendar, collage) unless the user asks.",
+      "**Don't** invent a fourth shadow height or a glow.",
+      "**Don't** uppercase or letter-space Khmer text."
+    ]
+  }
+}

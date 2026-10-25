@@ -36,25 +36,28 @@ A store built for Cambodian shoppers rather than a generic Western template: Khm
 **Confirmed:**
 - Prices are in **USD**.
 - Delivery within **Phnom Penh costs $2**.
+- **Free shipping on orders over $100** (confirmed 2026-10-25).
 - Payments run through Stripe (card) and ABA PayWay (KHQR), with signature-verified webhooks and callbacks.
 - English and Khmer localization (`frontend/src/locales/en.json`, `kh.json`), plus light and dark themes.
-- Storefront features: search, filters, sorting, product variants, a cloud-synced cart, order history, invoices and payment retry.
+- Storefront features: search, filters, sorting, product variants and colors, a cloud-synced cart, order history, invoices and payment retry.
 - Admin features: CRUD, inventory ledger, CSV exports, role and suspension controls, and editable site name, logo, favicon and hero copy.
 
 **Undecided (do not invent):**
 - Delivery outside Phnom Penh: cost and whether it's offered.
 - Tax: the 10% in checkout code is not a confirmed policy.
-- Whether in-store or local pickup is a real option.
-- The free-shipping threshold: the "$50" in code is not confirmed.
+- Whether in-store or local pickup is a real option (checkout code offers it).
 - Catalog scope: the current copy says premium tech and electronics, but this is not confirmed as a hard limit.
 
-**Known gaps:** checkout currently hardcodes $9.99 shipping, which contradicts the confirmed $2 Phnom Penh rate. The Support, FAQ, shipping, returns, privacy and terms pages are linked but not built.
+**Known gaps:**
+- `frontend/src/pages/CheckoutPage.tsx` hardcodes $9.99 shipping and a $50 free-shipping threshold, which contradicts the confirmed $2 Phnom Penh rate and $100 threshold. It also applies the unconfirmed 10% tax.
+- The Support, FAQ, shipping, returns, privacy and terms pages are linked but not built.
+- Public `/test` and `/ui-test` routes expose internal test pages to shoppers and reviewers.
 
 ## Brand Commitments
 
 - Name: **T-Store**. The site name, logo and favicon can be changed in admin settings, so the UI must render whatever brand assets are configured.
 - Every customer-facing string must work in both Khmer and English.
-- **Standing visual preference (confirmed 2026-10-13):** a clean, premium, user-friendly modern e-commerce look, the category standard done with full craft. The user rejected themed or conceptual worlds (receipt, street map, calendar, collage) after two rounds. Do not propose themed concepts again unless they ask.
+- **Standing visual preference (confirmed 2026-10-13, reconfirmed 2026-10-25):** a clean, premium, user-friendly modern e-commerce look, the category standard done with full craft. The user rejected themed or conceptual worlds (receipt, street map, calendar, collage) after two rounds. Do not propose themed concepts again unless they ask.
 - **Rejected:** "AI slop" styling, meaning gradient text, glassmorphism, floating blur blobs, pulsing pill labels and neon glows. Also anything template-like, plain, or "cultural/touristy" (Angkor or temple ornaments), and anything that slows phone shopping.
 - **Keep:** the gold crest emblem logo.
 
