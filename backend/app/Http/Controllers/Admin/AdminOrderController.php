@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
 
@@ -128,11 +129,19 @@ class AdminOrderController extends Controller
             foreach ($order->items as $item) {
                 $product = Product::find($item->product_id);
                 if ($product) {
-                    $product->increment('stock', $item->quantity);
+                    // Return it to the memory option it came from, then refresh the product's total
+                    $variant = $item->variant_id ? ProductVariant::where('product_id', $product->id)->find($item->variant_id) : null;
+                    if ($variant) {
+                        $variant->increment('stock', $item->quantity);
+                        $product->syncFromVariants();
+                    } else {
+                        $product->increment('stock', $item->quantity);
+                    }
 
                     // Record stock movement
                     StockMovement::create([
                         'product_id' => $product->id,
+                        'variant_id' => $variant?->id,
                         'quantity_change' => $item->quantity, // Positive for addition
                         'type' => 'cancellation',
                         'reference' => 'Order #' . $order->tracking_id,

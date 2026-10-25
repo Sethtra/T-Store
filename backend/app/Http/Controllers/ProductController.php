@@ -21,7 +21,7 @@ class ProductController extends Controller
         $cacheKey = 'products_index_' . $cacheVersion . '_' . md5($queryString);
 
         $response = Cache::remember($cacheKey, 3600, function () use ($request) {
-            $query = Product::with('category');
+            $query = Product::with(['category', 'colors', 'activeVariants']);
 
             // Search (Full-Text or LIKE)
             if ($request->filled('search')) {
@@ -95,7 +95,7 @@ class ProductController extends Controller
     public function featured()
     {
         $products = Cache::remember('products_featured', 3600, function () {
-            return Product::with('category')
+            return Product::with(['category', 'colors', 'activeVariants'])
                 ->where('stock', '>', 0)
                 ->orderBy('created_at', 'desc')
                 ->take(8)
@@ -113,12 +113,12 @@ class ProductController extends Controller
         $cacheKey = 'product_show_' . $slug;
 
         $data = Cache::remember($cacheKey, 3600, function () use ($slug) {
-            $product = Product::with('category')
+            $product = Product::with(['category', 'colors', 'activeVariants'])
                 ->where('slug', $slug)
                 ->firstOrFail();
 
             // Get related products (same category, excluding self)
-            $related = Product::with('category')
+            $related = Product::with(['category', 'colors', 'activeVariants'])
                 ->where('category_id', $product->category_id)
                 ->where('id', '!=', $product->id)
                 ->where('stock', '>', 0)

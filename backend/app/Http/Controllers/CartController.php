@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -33,6 +34,7 @@ class CartController extends Controller
             'items' => 'array',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'items.*.variant_id' => 'nullable|integer',
             'items.*.attributes' => 'nullable|array',
         ]);
 
@@ -40,7 +42,7 @@ class CartController extends Controller
         $cart = $user->cart()->firstOrCreate([]);
 
         foreach ($request->items as $itemData) {
-            $this->addOrUpdateItem($cart, $itemData['product_id'], $itemData['quantity'], $itemData['attributes'] ?? null);
+            $this->addOrUpdateItem($cart, $itemData['product_id'], $itemData['quantity'], $itemData['attributes'] ?? null, $itemData['variant_id'] ?? null);
         }
 
         // Return the newly merged cart
@@ -58,13 +60,14 @@ class CartController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
+            'variant_id' => 'nullable|integer',
             'attributes' => 'nullable|array',
         ]);
 
         $user = Auth::user();
         $cart = $user->cart()->firstOrCreate([]);
 
-        $this->addOrUpdateItem($cart, $request->product_id, $request->quantity, $request->attributes);
+        $this->addOrUpdateItem($cart, $request->product_id, $request->quantity, $request->input('attributes'), $request->input('variant_id'));
 
         return response()->json([
             'message' => 'Item added to cart',
@@ -138,8 +141,13 @@ class CartController extends Controller
     /**
      * Helper to find or create a matching item within the cart.
      */
-    private function addOrUpdateItem(Cart $cart, $productId, $quantity, $attributes = null)
+    private function addOrUpdateItem(Cart $cart, $productId, $quantity, $attributes = null, $variantId = null)
     {
+        // Only keep a memory option that belongs to this product
+        $variantId = $variantId
+            ? ProductVariant::where('product_id', $productId)->whereKey($variantId)->value('id')
+            : null;
+
         // Try to find an existing item with the exact same product ID and attributes
         $query = $cart->items()->where('product_id', $productId);
         
@@ -147,7 +155,7 @@ class CartController extends Controller
         
         $matchedItem = null;
         foreach ($items as $item) {
-            if ($this->attributesMatch($item->attributes, $attributes)) {
+            if ((int) $item->variant_id === (int) $variantId && $this->attributesMatch($item->attributes, $attributes)) {
                 $matchedItem = $item;
                 break;
             }
@@ -158,6 +166,7 @@ class CartController extends Controller
         } else {
             $cart->items()->create([
                 'product_id' => $productId,
+                'variant_id' => $variantId,
                 'quantity' => $quantity,
                 'attributes' => $attributes,
             ]);
@@ -190,6 +199,8 @@ class CartController extends Controller
      */
     private function formatCartResponse(Cart $cart)
     {
+        $cart->loadMissing('items.variant');
+
         return $cart->items->map(function ($item) {
              // Some defensive checks in case the product was deleted
             $product = $item->product;
@@ -202,7 +213,9 @@ class CartController extends Controller
                 'id' => $product->id,        // The frontend uses product.id as item.id
                 'slug' => $product->slug,
                 'title' => $product->title,  // The Product model uses 'title', not 'name'
-                'price' => $product->price,
+                // A memory option has its own price
+                'price' => $item->variant ? $item->variant->price : $product->price,
+                'variant_id' => $item->variant_id,
                 'image' => !empty($product->images) && is_array($product->images) ? $product->images[0] : '',
                 'quantity' => $item->quantity,
                 'attributes' => $item->attributes,

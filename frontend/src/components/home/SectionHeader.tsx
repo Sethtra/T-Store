@@ -25,7 +25,7 @@ const SectionHeader = ({ id, lead, highlight, viewAllTo, actions }: SectionHeade
     <div className="mb-5 flex items-end justify-between gap-4 border-b border-[var(--color-border)] md:mb-6">
       <h2
         id={id}
-        className="relative -mb-px border-b-[3px] border-[var(--color-text-primary)] pb-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-text-secondary)] sm:text-[1.375rem]"
+        className="relative -mb-px border-b-[3px] border-[var(--color-gold)] pb-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-text-secondary)] sm:text-[1.375rem]"
       >
         {lead && <>{lead} </>}
         <span className="font-bold text-[var(--color-text-primary)]">{highlight}</span>

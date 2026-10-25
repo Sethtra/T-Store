@@ -6,6 +6,9 @@ import { getImageUrl } from "../../utils/image";
 import { formatUSD, getDiscount } from "../../utils/money";
 import { colorHex, getAttributeValues, type RawAttributes } from "../../utils/attributes";
 import { useCartStore } from "../../stores/cartStore";
+import { colorCover, headlineSpecs } from "../../utils/phoneSpecs";
+import type { PhoneSpecs, ProductColor, ProductVariant } from "../../types/product";
+import { priceRange } from "../../utils/variants";
 
 interface ProductCardProps {
   id: number;
@@ -21,15 +24,18 @@ interface ProductCardProps {
   stock?: number;
   /** Colour/size options; colours become swatches, sizes send the shopper to the product page. */
   attributes?: RawAttributes;
+  /** Phone specs; the card shows up to three typed values from them */
+  specs?: PhoneSpecs | null;
+  /** Colours with photo sets; win over the free-text Color attribute */
+  colors?: ProductColor[];
+  /** Memory options; when present the shopper picks one on the product page */
+  variants?: ProductVariant[];
   /** Accepted for API compatibility; not shown on the card. */
   description?: string;
   description_kh?: string;
 }
 
-/**
- * PLACEHOLDER: no product has key specs in the admin yet. Every card shows
- * these until a specs field exists; then pass real values instead.
- */
+/** PLACEHOLDER: shown until a product has its own specs filled in under Admin → Products. */
 const PLACEHOLDER_SPECS = [
   { value: '6.83"', label: "AMOLED" },
   { value: "165Hz", label: "Refresh" },
@@ -55,6 +61,9 @@ const ProductCard = ({
   category_kh,
   stock,
   attributes,
+  specs,
+  colors: productColors,
+  variants,
 }: ProductCardProps) => {
   const { i18n } = useTranslation();
   const isKh = i18n.language === "kh";
@@ -65,11 +74,18 @@ const ProductCard = ({
   const isOutOfStock = (stock ?? 0) <= 0;
   const isLowStock = !isOutOfStock && (stock ?? 0) <= 5;
   const discount = getDiscount(price, original_price);
-  const colors = getAttributeValues(attributes, "color");
-  const needsOptions = getAttributeValues(attributes, "size").length > 0;
+  const colors = productColors?.length ? productColors.map((c) => c.name) : getAttributeValues(attributes, "color");
+  const realSpecs = headlineSpecs(specs);
+  const cardSpecs = realSpecs.length ? realSpecs : PLACEHOLDER_SPECS;
+  const swatch = (name: string) => productColors?.find((c) => c.name === name)?.hex || colorHex(name);
+  const range = priceRange(variants);
+  const needsOptions = getAttributeValues(attributes, "size").length > 0 || Boolean(range);
   const href = `/products/${slug}`;
 
   const [selectedColor, setSelectedColor] = useState(colors[0] ?? "");
+  // The product image shows by default; only a colour the shopper clicks swaps in its front photo
+  const [colorPicked, setColorPicked] = useState(false);
+  const shownImage = (colorPicked && colorCover(productColors?.find((c) => c.name === selectedColor))) || image;
   const [justAdded, setJustAdded] = useState(false);
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -100,11 +116,11 @@ const ProductCard = ({
     "flex min-h-[38px] w-full items-center justify-center gap-1.5 bg-[var(--color-primary)] px-3 text-[0.8125rem] font-semibold text-[var(--color-on-primary)] transition-colors hover:bg-[var(--color-primary-hover)] active:opacity-90 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-[var(--color-on-primary)] disabled:cursor-not-allowed disabled:opacity-45";
 
   return (
-    <article className="@container group relative flex h-full flex-col overflow-hidden rounded-[12px] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] transition-[border-color,box-shadow] duration-200 hover:border-[var(--color-border-hover)] hover:shadow-[var(--shadow-md)]">
+    <article className="@container group relative flex h-full flex-col overflow-hidden rounded-[12px] border border-[var(--color-card-edge)] bg-[var(--color-bg-elevated)] transition-[border-color,box-shadow] duration-200 hover:border-[var(--color-card-edge-hover)] hover:shadow-[var(--shadow-md)]">
       {/* Media */}
-      <div className="relative aspect-[4/5] overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]">
+      <div className="relative aspect-[4/5] overflow-hidden border-b border-[var(--color-card-edge)] bg-[var(--color-card-well)]">
         <img
-            src={getImageUrl(image)}
+            src={getImageUrl(shownImage)}
             alt=""
             loading="lazy"
             decoding="async"
@@ -132,8 +148,8 @@ const ProductCard = ({
 
         {/* Reveal panel: pointer devices with hover, or keyboard focus inside the card */}
         <div className="absolute inset-x-0 bottom-0 z-10 translate-y-full border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)] transition-transform duration-[220ms] ease-[var(--ease-out)] group-hover:translate-y-0 group-focus-within:translate-y-0 motion-reduce:transition-none [@media(hover:none)]:hidden">
-          <dl className="grid grid-cols-3 px-3">
-            {PLACEHOLDER_SPECS.map((spec, i) => (
+          <dl className="grid px-3" style={{ gridTemplateColumns: `repeat(${cardSpecs.length}, minmax(0, 1fr))` }}>
+            {cardSpecs.map((spec, i) => (
               <div
                 key={spec.label}
                 className={`flex min-w-0 flex-col-reverse gap-px py-2 ${i > 0 ? "border-l border-[var(--color-border)] pl-2" : ""}`}
@@ -195,7 +211,10 @@ const ProductCard = ({
                 <button
                   key={c}
                   type="button"
-                  onClick={() => setSelectedColor(c)}
+                  onClick={() => {
+                    setSelectedColor(c);
+                    setColorPicked(true);
+                  }}
                   aria-label={c}
                   aria-pressed={selectedColor === c}
                   title={c}
@@ -203,7 +222,7 @@ const ProductCard = ({
                     selectedColor === c ? "border-[var(--color-text-primary)]" : "border-[var(--color-border-hover)]"
                   }`}
                 >
-                  <span className="block h-full w-full rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" style={{ background: colorHex(c) }} />
+                  <span className="block h-full w-full rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" style={{ background: swatch(c) }} />
                 </button>
               ))}
               {colors.length > MAX_SWATCHES && (
@@ -220,7 +239,12 @@ const ProductCard = ({
             </Link>
           </h3>
           <div className="flex shrink-0 items-baseline gap-2 @min-[210px]:block @min-[210px]:text-right">
-            <p className="tabular text-[0.9375rem] font-bold leading-snug">{formatUSD(price)}</p>
+            <p className="tabular text-[0.9375rem] font-bold leading-snug">
+              {range && range.min !== range.max && (
+                <span className="mr-1 text-[0.75rem] font-medium text-[var(--color-text-muted)]">{isKh ? "ចាប់ពី" : "From"}</span>
+              )}
+              {formatUSD(price)}
+            </p>
             {discount && (
               <p className="tabular text-[0.75rem] text-[var(--color-text-muted)] line-through">{formatUSD(discount.original)}</p>
             )}

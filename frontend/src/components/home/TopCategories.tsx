@@ -34,7 +34,7 @@ const TopCategories = () => {
               return (
                 <li key={category.id} className="mx-auto w-full max-w-[76px] sm:max-w-[92px] lg:max-w-[104px]">
                   <Link to={`/products?category=${category.slug}`} className="group flex flex-col items-center gap-2 rounded-[var(--radius-md)]">
-                    <span className="grid aspect-square w-full place-items-center overflow-hidden rounded-full bg-[var(--color-bg-surface)] ring-offset-2 ring-offset-[var(--color-bg-primary)] transition-[box-shadow,background-color] duration-200 group-hover:bg-[var(--color-bg-sunken)] group-hover:shadow-[var(--shadow-md)] group-hover:ring-2 group-hover:ring-[var(--color-text-primary)]">
+                    <span className="grid aspect-square w-full place-items-center overflow-hidden rounded-full bg-[var(--color-bg-surface)] ring-offset-2 ring-offset-[var(--color-bg-primary)] transition-[box-shadow,background-color] duration-200 group-hover:bg-[var(--color-bg-sunken)] group-hover:shadow-[var(--shadow-md)] group-hover:ring-[1.5px] group-hover:ring-[var(--color-primary-hover)]">
                       {image ? (
                         <img
                           src={getImageUrl(image)}

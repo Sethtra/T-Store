@@ -1,7 +1,7 @@
 import Skeleton from "../ui/Skeleton";
 
 const ProductCardSkeleton = () => (
-  <div aria-hidden="true" className="overflow-hidden rounded-[12px] border border-[var(--color-border)]">
+  <div aria-hidden="true" className="overflow-hidden rounded-[12px] border border-[var(--color-card-edge)]">
     <Skeleton className="w-full aspect-[4/5]" />
     <div className="space-y-2 px-3 pb-3 pt-2.5">
       <Skeleton variant="text" width="30%" height="10px" />

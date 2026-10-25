@@ -1,12 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, CreditCard, Expand, Minus, Plus, ShoppingBag, Truck, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, CreditCard, Expand, Languages, Minus, Plus, ShoppingBag, Truck, X } from "lucide-react";
 import { formatUSD, getDiscount } from "../utils/money";
 import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { useProduct, type Product } from "../hooks/useProducts";
 import { useCartStore } from "../stores/cartStore";
 import Button from "../components/ui/Button";
 import ProductCard from "../components/product/ProductCard";
+import ColorShowcase from "../components/product/ColorShowcase";
+import PhoneSpecsTable from "../components/product/PhoneSpecsTable";
+import { hasSpecs, keySpecs } from "../utils/phoneSpecs";
+import { defaultVariant, findVariant, optionAxes } from "../utils/variants";
+import type { ProductVariant } from "../types/product";
 import { getImageUrl } from "../utils/image";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../components/ui/toastContext";
@@ -67,6 +72,23 @@ const ProductDetailPage = () => {
   // Attribute selections
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [tab, setTab] = useState<"specs" | "delivery">("specs");
+
+  // Colours with photo sets win over the old free-text Color attribute; the first one is preselected
+  const productColors = product?.colors ?? [];
+  const activeColor = selectedColor || productColors[0]?.name || "";
+
+  // Memory options (RAM / storage): each has its own price and stock; the cheapest in stock is preselected
+  const variants = product?.active_variants ?? [];
+  const [pickedVariantId, setPickedVariantId] = useState<number | null>(null);
+  const activeVariant = variants.find((v) => v.id === pickedVariantId) ?? defaultVariant(variants);
+  const unitPrice = activeVariant ? Number(activeVariant.price) : Number(product?.price ?? 0);
+  const unitStock = activeVariant ? activeVariant.stock : (product?.stock ?? 0);
+  const pickVariant = (v: ProductVariant | undefined) => {
+    if (!v) return;
+    setPickedVariantId(v.id);
+    setQuantity((q) => Math.max(1, Math.min(q, v.stock)));
+  };
 
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useCartStore((state) => state.openCart);
@@ -75,11 +97,15 @@ const ProductDetailPage = () => {
     if (!product) return false;
 
     // Optional: Validate selection if attributes exist
-    const colors = getAttributeValues("Color");
+    const colors = productColors.length ? productColors.map((c) => c.name) : getAttributeValues("Color");
     const sizes = getAttributeValues("Size");
 
-    if (colors.length > 0 && !selectedColor) {
+    if (colors.length > 0 && !activeColor) {
       showToast(isKh ? "សូមជ្រើសរើសព័ណ៌" : "Please select a color", "warning");
+      return false;
+    }
+    if (variants.length > 0 && !activeVariant) {
+      showToast(isKh ? "សូមជ្រើសរើស RAM និងទំហំផ្ទុក" : "Please choose RAM and storage", "warning");
       return false;
     }
     if (sizes.length > 0 && !selectedSize) {
@@ -89,17 +115,19 @@ const ProductDetailPage = () => {
 
     for (let i = 0; i < quantity; i++) {
       const attributes: Record<string, string> = {
-        ...(selectedColor ? { Color: selectedColor } : {}),
+        ...(activeColor ? { Color: activeColor } : {}),
         ...(selectedSize ? { Size: selectedSize } : {}),
+        ...(activeVariant ? { Memory: activeVariant.label } : {}),
       };
 
       addItem({
         id: product.id,
         slug: product?.slug,
         title: product.title,
-        price: product.price,
+        price: unitPrice,
         image: product.images[0] || "/placeholder.jpg",
         attributes,
+        variant_id: activeVariant?.id ?? null,
       });
     }
     openCart();
@@ -159,9 +187,9 @@ const ProductDetailPage = () => {
   if (isLoading) {
     return (
       <div className="max-w-[1320px] mx-auto px-4 md:px-6 lg:px-8 pt-6 md:pt-10" aria-busy="true">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-14">
-          <div className="lg:col-span-7 aspect-square rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)]" />
-          <div className="lg:col-span-5 space-y-4 pt-2">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-14">
+          <div className="aspect-[4/5] rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)]" />
+          <div className="space-y-4 pt-2">
             <div className="h-4 w-24 rounded bg-[var(--color-bg-surface)]" />
             <div className="h-10 w-3/4 rounded bg-[var(--color-bg-surface)]" />
             <div className="h-7 w-28 rounded bg-[var(--color-bg-surface)]" />
@@ -184,10 +212,17 @@ const ProductDetailPage = () => {
     );
   }
 
-  const isOutOfStock = product.stock <= 0;
-  const isLowStock = !isOutOfStock && product.stock <= 5;
-  const discount = getDiscount(product.price, product.original_price);
-  const colors = getAttributeValues("Color");
+  const isOutOfStock = unitStock <= 0;
+  const isLowStock = !isOutOfStock && unitStock <= 5;
+  const discount = getDiscount(unitPrice, activeVariant ? activeVariant.original_price : product.original_price);
+  const { rams, storages } = optionAxes(variants);
+  const activeRam = activeVariant?.ram ?? null;
+  const activeStorage = activeVariant?.storage ?? null;
+  // Changing RAM keeps the storage if that combination exists, else takes the best one with that RAM
+  const pickRam = (ram: string) =>
+    pickVariant(findVariant(variants, ram, activeStorage) ?? defaultVariant(variants.filter((v) => v.ram === ram)));
+  const colors = productColors.length ? productColors.map((c) => c.name) : getAttributeValues("Color");
+  const swatchFor = (name: string) => productColors.find((c) => c.name === name)?.hex || getColorHex(name);
   const sizes = getAttributeValues("Size");
   const title = isKh ? product.title_kh || product.title : product.title;
   const description = isKh ? product.description_kh || product.description : product.description;
@@ -196,9 +231,21 @@ const ProductDetailPage = () => {
       ? product.category.name_kh
       : product.category.name
     : null;
-  const specs = product.attributes
+  const legacySpecs = product.attributes
     ? Object.entries(product.attributes).filter(([key]) => !["color", "size"].includes(key.toLowerCase()))
     : [];
+  const hasPhoneSpecs = hasSpecs(product.specs);
+  const highlights = keySpecs(product.specs, isKh);
+  const hasThumbs = product.images.length > 1;
+  const colorLabel = (name: string) => {
+    const c = productColors.find((x) => x.name === name);
+    return isKh && c?.name_kh ? c.name_kh : name;
+  };
+  const tabs = [
+    ...(hasPhoneSpecs || legacySpecs.length ? [{ key: "specs" as const, label: t("product.specifications") }] : []),
+    { key: "delivery" as const, label: isKh ? "ការដឹកជញ្ជូន និងការបង់ប្រាក់" : "Delivery & payment" },
+  ];
+  const activeTab = tabs.some((x) => x.key === tab) ? tab : tabs[0].key;
 
   const stepper = (compact = false) => (
     <div
@@ -222,8 +269,8 @@ const ProductDetailPage = () => {
       </span>
       <button
         type="button"
-        onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-        disabled={quantity >= product.stock}
+        onClick={() => setQuantity(Math.min(unitStock, quantity + 1))}
+        disabled={quantity >= unitStock}
         aria-label={t("product.increase")}
         className={`grid place-items-center h-full ${compact ? "w-9" : "w-11"} text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] disabled:opacity-35`}
       >
@@ -263,218 +310,343 @@ const ProductDetailPage = () => {
         </ol>
       </nav>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-14">
-        {/* Gallery */}
-        <div className="lg:col-span-7">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-14">
+        {/* Gallery: thumbnail column + tall main photo */}
+        <div className={hasThumbs ? "grid grid-cols-[56px_minmax(0,1fr)] gap-2.5 sm:grid-cols-[72px_minmax(0,1fr)] sm:gap-3" : ""}>
+          {hasThumbs && (
+            <div className="relative">
+              <div className="scrollbar-hide absolute inset-0 flex flex-col gap-2.5 overflow-y-auto p-0.5">
+                {product.images.map((img, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setSelectedImage(index)}
+                    aria-label={t("product.view_image", { n: index + 1 })}
+                    aria-current={selectedImage === index ? "true" : undefined}
+                    className={`aspect-square w-full shrink-0 overflow-hidden rounded-[10px] border bg-[var(--color-bg-surface)] transition-colors ${
+                      selectedImage === index ? "border-[var(--color-text-primary)]" : "border-[var(--color-border)] hover:border-[var(--color-border-hover)]"
+                    }`}
+                  >
+                    <img
+                      src={getImageUrl(img)}
+                      alt=""
+                      loading="lazy"
+                      className="h-full w-full object-contain p-1.5"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder.jpg";
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={() => openLightbox(selectedImage)}
-            className="relative block w-full aspect-square overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] cursor-zoom-in"
+            className="relative block w-full cursor-zoom-in overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-bg-surface)]"
             aria-label={t("product.view_image", { n: selectedImage + 1 })}
           >
-            <img
-              key={selectedImage}
-              src={getImageUrl(product.images[selectedImage])}
-              alt={title}
-              className={`h-full w-full object-contain p-[8%] rise-in ${isOutOfStock ? "opacity-50 grayscale" : ""}`}
-              onError={(e) => {
-                e.currentTarget.src = "/placeholder.jpg";
-                e.currentTarget.onerror = null;
-              }}
-            />
-            <span className="absolute bottom-3 right-3 grid place-items-center w-10 h-10 rounded-full bg-[var(--color-bg-primary)] shadow-[var(--shadow-sm)]">
-              <Expand className="w-4 h-4" aria-hidden="true" />
+            <div className="aspect-[4/5]">
+              <img
+                key={selectedImage}
+                src={getImageUrl(product.images[selectedImage])}
+                alt={title}
+                className={`rise-in h-full w-full object-contain p-[8%] ${isOutOfStock ? "opacity-50 grayscale" : ""}`}
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder.jpg";
+                  e.currentTarget.onerror = null;
+                }}
+              />
+            </div>
+            {discount && !isOutOfStock && (
+              <span className="tabular absolute left-3.5 top-3.5 rounded-full bg-[var(--color-primary)] px-2.5 py-1 text-xs font-bold text-[var(--color-on-primary)]">
+                {discount.percent}% {isKh ? "បញ្ចុះ" : "OFF"}
+              </span>
+            )}
+            <span className="absolute bottom-3 right-3 grid h-10 w-10 place-items-center rounded-full bg-[var(--color-bg-primary)] shadow-[var(--shadow-sm)]">
+              <Expand className="h-4 w-4" aria-hidden="true" />
             </span>
           </button>
-
-          {product.images.length > 1 && (
-            <div className="mt-1 flex gap-2 overflow-x-auto scrollbar-hide p-1.5 -mx-1.5">
-              {product.images.map((img, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => setSelectedImage(index)}
-                  aria-label={t("product.view_image", { n: index + 1 })}
-                  aria-current={selectedImage === index ? "true" : undefined}
-                  className={`relative shrink-0 w-[72px] h-[72px] sm:w-20 sm:h-20 overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-bg-surface)] ring-offset-2 ring-offset-[var(--color-bg-primary)] transition-shadow ${
-                    selectedImage === index ? "ring-2 ring-[var(--color-text-primary)]" : "hover:ring-1 hover:ring-[var(--color-border-hover)]"
-                  }`}
-                >
-                  <img
-                    src={getImageUrl(img)}
-                    alt=""
-                    loading="lazy"
-                    className="h-full w-full object-contain p-1.5"
-                    onError={(e) => {
-                      e.currentTarget.src = "/placeholder.jpg";
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Buy box */}
-        <div className="lg:col-span-5">
-          <div className="lg:sticky lg:top-24">
-            {categoryName && <p className="text-sm text-[var(--color-text-muted)]">{categoryName}</p>}
-            <h1 className="mt-1 text-[1.875rem] font-semibold leading-tight tracking-[-0.03em] md:text-[2.375rem]">
-              {title}
-            </h1>
-            <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <p className="tabular text-2xl font-semibold tracking-[-0.01em]">{formatUSD(product.price)}</p>
-              {discount && (
-                <>
-                  <p className="tabular text-lg text-[var(--color-text-muted)] line-through">{formatUSD(discount.original)}</p>
-                  <p className="tabular rounded-[var(--radius-sm)] bg-[var(--color-primary)] px-2 py-0.5 text-sm font-bold text-[var(--color-on-primary)]">
-                    {discount.percent}% {isKh ? "បញ្ចុះ" : "OFF"}
-                  </p>
-                  <p className="tabular basis-full text-sm font-medium text-[var(--color-success)]">
-                    {isKh ? "សន្សំ" : "Save"} - {formatUSD(discount.save)}
-                  </p>
-                </>
-              )}
-            </div>
-
-            <p
-              className={`mt-3 flex items-center gap-2 text-sm font-medium ${
-                isOutOfStock
-                  ? "text-[var(--color-error)]"
-                  : isLowStock
-                    ? "text-[var(--color-warning)]"
-                    : "text-[var(--color-success)]"
-              }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-current" aria-hidden="true" />
-              {isOutOfStock
-                ? t("product.out_of_stock")
-                : isLowStock
-                  ? t("product.only_left", { count: product.stock })
-                  : t("product.in_stock")}
-            </p>
-
+        <div className="flex flex-col gap-6 lg:sticky lg:top-24">
+          <div className="flex flex-col gap-2.5">
+            {categoryName && (
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-text-secondary)]">{categoryName}</p>
+            )}
+            <h1 className="line-clamp-2 text-[clamp(1.75rem,2.8vw,2.375rem)] font-semibold leading-[1.12] tracking-[-0.03em]">{title}</h1>
             {description && (
-              <p className="mt-6 max-w-prose text-[0.9875rem] leading-relaxed text-[var(--color-text-secondary)] whitespace-pre-line">
+              <p className="line-clamp-4 max-w-[52ch] whitespace-pre-line text-[0.9375rem] leading-relaxed text-[var(--color-text-secondary)]">
                 {description}
               </p>
             )}
+          </div>
 
-            {colors.length > 0 && (
-              <fieldset className="mt-7">
-                <legend className="mb-3 text-sm font-semibold">
-                  {t("product.color")}
-                  <span className="ml-2 font-normal text-[var(--color-text-secondary)]">
-                    {selectedColor || t("product.select_color")}
-                  </span>
-                </legend>
-                <div className="flex flex-wrap gap-2.5">
-                  {colors.map((color) => {
-                    const isSelected = selectedColor === color;
-                    return (
-                      <button
-                        key={color}
-                        type="button"
-                        onClick={() => setSelectedColor(color)}
-                        aria-pressed={isSelected}
-                        aria-label={color}
-                        title={color}
-                        className={`w-9 h-9 rounded-full border border-black/10 ring-offset-2 ring-offset-[var(--color-bg-primary)] transition-shadow ${
-                          isSelected ? "ring-2 ring-[var(--color-text-primary)]" : "hover:ring-1 hover:ring-[var(--color-border-hover)]"
-                        }`}
-                        style={{ backgroundColor: getColorHex(color) }}
-                      />
-                    );
-                  })}
-                </div>
-              </fieldset>
-            )}
-
-            {sizes.length > 0 && (
-              <fieldset className="mt-7">
-                <legend className="mb-3 text-sm font-semibold">
-                  {t("product.size")}
-                  <span className="ml-2 font-normal text-[var(--color-text-secondary)]">
-                    {selectedSize || t("product.select_size")}
-                  </span>
-                </legend>
-                <div className="flex flex-wrap gap-2">
-                  {sizes.map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => setSelectedSize(size)}
-                      aria-pressed={selectedSize === size}
-                      className={`min-w-12 h-11 px-3 rounded-[var(--radius-md)] border text-sm font-medium transition-colors ${
-                        selectedSize === size
-                          ? "border-[var(--color-text-primary)] bg-[var(--color-primary)] text-[var(--color-on-primary)]"
-                          : "border-[var(--color-border-hover)] hover:border-[var(--color-text-primary)]"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-            )}
-
-            {/* Actions (desktop) */}
-            <div className="mt-8 hidden lg:block">
-              {!isOutOfStock ? (
-                <div className="space-y-3">
-                  <div className="flex gap-3">
-                    {stepper()}
-                    <Button size="lg" className="flex-1 h-12" onClick={handleAddToCart}>
-                      <ShoppingBag className="w-[18px] h-[18px]" />
-                      {t("product.add_to_cart")}
-                    </Button>
-                  </div>
-                  <Button size="lg" variant="outline" fullWidth className="h-12" onClick={handleBuyNow}>
-                    {t("product.buy_now")}
-                  </Button>
-                </div>
-              ) : (
-                <Button size="lg" fullWidth disabled className="h-12">
-                  {t("product.out_of_stock")}
-                </Button>
-              )}
-            </div>
-
-            {/* Quantity (mobile) */}
-            {!isOutOfStock && (
-              <div className="mt-7 flex items-center justify-between lg:hidden">
-                <span className="text-sm font-semibold">{t("product.quantity")}</span>
-                {stepper(true)}
-              </div>
-            )}
-
-            <ul className="mt-8 divide-y divide-[var(--color-border)] border-y border-[var(--color-border)] text-sm">
-              <li className="flex items-center gap-3 py-3.5">
-                <CreditCard className="w-[18px] h-[18px] text-[var(--color-text-secondary)]" aria-hidden="true" />
-                {t("home.facts_khqr")}
-              </li>
-              <li className="flex items-center gap-3 py-3.5">
-                <Truck className="w-[18px] h-[18px] text-[var(--color-text-secondary)]" aria-hidden="true" />
-                {t("home.facts_delivery")}
-              </li>
-            </ul>
-
-            {specs.length > 0 && (
-              <section className="mt-8">
-                <h2 className="text-base font-semibold">{t("product.specifications")}</h2>
-                <dl className="mt-3 divide-y divide-[var(--color-border)] text-sm">
-                  {specs.map(([key, value]) => (
-                    <div key={key} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 py-3">
-                      <dt className="capitalize text-[var(--color-text-muted)]">{key}</dt>
-                      <dd className="font-medium">{Array.isArray(value) ? value.join(", ") : value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <p className="tabular text-[2.5rem] font-semibold leading-none tracking-[-0.02em] sm:text-[2.75rem]">{formatUSD(unitPrice)}</p>
+            {discount && <p className="tabular text-lg text-[var(--color-text-muted)] line-through">{formatUSD(discount.original)}</p>}
+            {activeVariant && <p className="text-sm text-[var(--color-text-secondary)]">{activeVariant.label}</p>}
+            <p
+              className={`ml-auto flex items-center gap-1.5 whitespace-nowrap text-[0.8125rem] font-semibold ${
+                isOutOfStock ? "text-[var(--color-error)]" : isLowStock ? "text-[var(--color-warning)]" : "text-[var(--color-success)]"
+              }`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+              {isOutOfStock
+                ? t("product.out_of_stock")
+                : isLowStock
+                  ? t("product.only_left", { count: unitStock })
+                  : t("product.in_stock")}
+            </p>
+            {discount && (
+              <p className="tabular basis-full text-sm font-medium text-[var(--color-success)]">
+                {isKh ? "សន្សំ" : "Save"} {formatUSD(discount.save)}
+              </p>
             )}
           </div>
+
+          {colors.length > 0 && (
+            <fieldset>
+              <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.08em]">
+                {t("product.color")} ·{" "}
+                <span className="font-normal normal-case tracking-normal text-[var(--color-text-secondary)]">
+                  {activeColor ? colorLabel(activeColor) : t("product.select_color")}
+                </span>
+              </legend>
+              <div className="flex flex-wrap gap-2.5">
+                {colors.map((color) => {
+                  const isSelected = activeColor === color;
+                  return (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setSelectedColor(color)}
+                      aria-pressed={isSelected}
+                      aria-label={colorLabel(color)}
+                      title={colorLabel(color)}
+                      className={`h-[34px] w-[34px] rounded-full border-[1.5px] p-[3px] transition-colors ${
+                        isSelected ? "border-[var(--color-text-primary)]" : "border-transparent hover:border-[var(--color-border-hover)]"
+                      }`}
+                    >
+                      <span
+                        className="block h-full w-full rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.15)]"
+                        style={{ backgroundColor: swatchFor(color) }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          )}
+
+          {variants.length > 0 && (
+            <div className="grid gap-4 sm:grid-cols-[repeat(auto-fit,minmax(12rem,1fr))]">
+              {rams.length > 0 && (
+                <fieldset>
+                  <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.08em]">RAM</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {rams.map((ram) => {
+                      const isActive = activeRam === ram;
+                      const anyInStock = variants.some((v) => v.ram === ram && v.stock > 0);
+                      return (
+                        <button
+                          key={ram}
+                          type="button"
+                          onClick={() => pickRam(ram)}
+                          aria-pressed={isActive}
+                          className={`h-10 min-w-[4.5rem] flex-1 whitespace-nowrap rounded-[10px] border px-3 text-sm font-semibold transition-colors ${
+                            isActive
+                              ? "border-[var(--color-text-primary)] bg-[var(--color-bg-surface)]"
+                              : "border-[var(--color-border)] hover:border-[var(--color-border-hover)]"
+                          } ${anyInStock ? "" : "text-[var(--color-text-muted)]"}`}
+                        >
+                          {ram}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              )}
+
+              {storages.length > 0 && (
+                <fieldset>
+                  <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.08em]">{isKh ? "ទំហំផ្ទុក" : "Storage"}</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {storages.map((storage) => {
+                      const match = findVariant(variants, rams.length ? activeRam : null, storage);
+                      const isActive = activeStorage === storage;
+                      const soldOut = match ? match.stock <= 0 : false;
+                      return (
+                        <button
+                          key={storage}
+                          type="button"
+                          onClick={() => pickVariant(match)}
+                          disabled={!match}
+                          aria-pressed={isActive}
+                          title={!match ? (isKh ? "មិនមានជម្រើសនេះទេ" : "Not available with this RAM") : soldOut ? (isKh ? "អស់ពីស្តុក" : "Sold out") : undefined}
+                          className={`h-10 min-w-[4.5rem] flex-1 whitespace-nowrap rounded-[10px] border px-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                            isActive
+                              ? "border-[var(--color-text-primary)] bg-[var(--color-bg-surface)]"
+                              : "border-[var(--color-border)] enabled:hover:border-[var(--color-border-hover)]"
+                          } ${soldOut ? "text-[var(--color-text-muted)] line-through" : ""}`}
+                        >
+                          {storage}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              )}
+            </div>
+          )}
+
+          {sizes.length > 0 && (
+            <fieldset>
+              <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.08em]">
+                {t("product.size")} ·{" "}
+                <span className="font-normal normal-case tracking-normal text-[var(--color-text-secondary)]">
+                  {selectedSize || t("product.select_size")}
+                </span>
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {sizes.map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => setSelectedSize(size)}
+                    aria-pressed={selectedSize === size}
+                    className={`h-10 min-w-12 rounded-[10px] border px-3.5 text-sm font-semibold transition-colors ${
+                      selectedSize === size
+                        ? "border-[var(--color-text-primary)] bg-[var(--color-bg-surface)]"
+                        : "border-[var(--color-border)] hover:border-[var(--color-border-hover)]"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          )}
+
+          {/* Actions (desktop) */}
+          <div className="hidden lg:block">
+            {!isOutOfStock ? (
+              <div className="flex flex-wrap gap-3">
+                {stepper()}
+                <Button size="lg" className="h-12 flex-[1_1_10rem]" onClick={handleAddToCart}>
+                  <ShoppingBag className="h-[18px] w-[18px]" />
+                  {t("product.add_to_cart")}
+                </Button>
+                <Button size="lg" variant="outline" className="h-12 flex-[1_1_7.5rem]" onClick={handleBuyNow}>
+                  {t("product.buy_now")}
+                </Button>
+              </div>
+            ) : (
+              <Button size="lg" fullWidth disabled className="h-12">
+                {t("product.out_of_stock")}
+              </Button>
+            )}
+          </div>
+
+          {/* Quantity (mobile) */}
+          {!isOutOfStock && (
+            <div className="flex items-center justify-between lg:hidden">
+              <span className="text-xs font-semibold uppercase tracking-[0.08em]">{t("product.quantity")}</span>
+              {stepper(true)}
+            </div>
+          )}
+
+          {highlights.length > 0 && (
+            <dl
+              className={`grid gap-px overflow-hidden rounded-[12px] border border-[var(--color-border)] bg-[var(--color-border)] sm:[grid-template-columns:repeat(var(--n),minmax(0,1fr))] ${
+                highlights.length > 2 ? "grid-cols-2" : "[grid-template-columns:repeat(var(--n),minmax(0,1fr))]"
+              }`}
+              style={{ "--n": highlights.length } as React.CSSProperties}
+            >
+              {highlights.map((k) => (
+                <div key={k.label} className="flex min-w-0 flex-col-reverse gap-0.5 bg-[var(--color-bg-primary)] p-3">
+                  <dt className="truncate text-[11px] text-[var(--color-text-muted)]">{k.label}</dt>
+                  <dd className="tabular truncate text-lg font-semibold leading-tight tracking-[-0.01em] sm:text-[1.375rem]">{k.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <ul className="flex flex-col gap-2 text-[0.8125rem] text-[var(--color-text-secondary)]">
+            <li className="flex items-center gap-2.5">
+              <CreditCard className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+              {t("home.facts_khqr")}
+            </li>
+            <li className="flex items-center gap-2.5">
+              <Truck className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+              {t("home.facts_delivery")}
+            </li>
+          </ul>
         </div>
       </div>
+
+      {productColors.length > 0 && (
+        <ColorShowcase colors={productColors} selected={activeColor} onSelect={setSelectedColor} isKh={isKh} title={title} />
+      )}
+
+      {/* Details tabs */}
+      <section className="mt-16 md:mt-20" aria-label={isKh ? "ព័ត៌មានលម្អិត" : "Product details"}>
+        <div role="tablist" className="scrollbar-hide mb-6 flex gap-2 overflow-x-auto border-b border-[var(--color-border)]">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              id={`tab-${tab.key}`}
+              aria-selected={activeTab === tab.key}
+              aria-controls={`panel-${tab.key}`}
+              onClick={() => setTab(tab.key)}
+              className={`-mb-px whitespace-nowrap border-b-2 px-3.5 py-2.5 text-sm font-semibold uppercase tracking-[0.06em] transition-colors ${
+                activeTab === tab.key
+                  ? "border-[var(--color-text-primary)] text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+          {activeTab === "specs" &&
+            (hasPhoneSpecs ? (
+              <PhoneSpecsTable specs={product.specs!} isKh={isKh} />
+            ) : (
+              <dl className="grid md:grid-cols-2 md:gap-x-12">
+                {legacySpecs.map(([key, value]) => (
+                  <div key={key} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-baseline gap-4 border-b border-[var(--color-border)] py-3.5">
+                    <dt className="text-sm capitalize text-[var(--color-text-muted)]">{key}</dt>
+                    <dd className="text-[0.9375rem]">{Array.isArray(value) ? value.join(", ") : value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ))}
+          {activeTab === "delivery" && (
+            <ul className="flex max-w-[64ch] flex-col gap-3 text-[0.9375rem]">
+              <li className="flex items-center gap-3">
+                <Truck className="h-[18px] w-[18px] shrink-0 text-[var(--color-text-secondary)]" aria-hidden="true" />
+                {t("home.facts_delivery")}
+              </li>
+              <li className="flex items-center gap-3">
+                <CreditCard className="h-[18px] w-[18px] shrink-0 text-[var(--color-text-secondary)]" aria-hidden="true" />
+                {t("home.facts_khqr")}
+              </li>
+              <li className="flex items-center gap-3">
+                <Languages className="h-[18px] w-[18px] shrink-0 text-[var(--color-text-secondary)]" aria-hidden="true" />
+                {t("home.facts_language")}
+              </li>
+            </ul>
+          )}
+        </div>
+      </section>
 
       {relatedFromBundle && <RelatedProducts related={relatedFromBundle} />}
 
@@ -484,10 +656,10 @@ const ProductDetailPage = () => {
         {!isOutOfStock ? (
           <div className="flex items-center gap-2">
             <div className="mr-auto min-w-0">
-              <p className="tabular text-lg font-semibold leading-tight">{formatUSD(product.price * quantity)}</p>
+              <p className="tabular text-lg font-semibold leading-tight">{formatUSD(unitPrice * quantity)}</p>
               {quantity > 1 && (
                 <p className="text-xs text-[var(--color-text-muted)]">
-                  {quantity} × {formatUSD(product.price)}
+                  {quantity} × {formatUSD(unitPrice)}
                 </p>
               )}
             </div>
@@ -631,6 +803,9 @@ const RelatedProducts = ({ related }: { related: Product[] }) => {
             category_kh={product.category?.name_kh}
             stock={product.stock}
             attributes={product.attributes}
+            specs={product.specs}
+            colors={product.colors}
+            variants={product.active_variants}
           />
         ))}
       </div>

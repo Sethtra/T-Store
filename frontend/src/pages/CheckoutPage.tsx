@@ -337,6 +337,7 @@ const CheckoutPage = () => {
           product_id: item.id,
           quantity: item.quantity,
           attributes: item.attributes,
+          variant_id: item.variant_id ?? null,
         })),
         payment_method: paymentMethod,
         delivery_method: deliveryMethod,

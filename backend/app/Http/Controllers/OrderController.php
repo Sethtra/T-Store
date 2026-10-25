@@ -45,6 +45,7 @@ class OrderController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'items.*.variant_id' => 'nullable|integer',
             'items.*.attributes' => 'nullable|array',
             'payment_method' => 'required|in:stripe,payway',
             'delivery_method' => 'nullable|in:delivery,pickup',
@@ -62,21 +63,47 @@ class OrderController extends Controller
             // Calculate total and validate stock
             foreach ($request->items as $item) {
                 $product = Product::findOrFail($item['product_id']);
+                $variant = null;
 
-                if ($product->stock < $item['quantity']) {
-                    return response()->json([
-                        'message' => "Insufficient stock for {$product->title}",
-                    ], 400);
+                if ($product->variants()->exists()) {
+                    // Products with memory options are sold per option, at that option's price
+                    $variant = isset($item['variant_id'])
+                        ? $product->activeVariants()->find($item['variant_id'])
+                        : null;
+
+                    if (!$variant) {
+                        return response()->json([
+                            'message' => "Please choose a memory option for {$product->title} again.",
+                        ], 400);
+                    }
+
+                    if ($variant->stock < $item['quantity']) {
+                        return response()->json([
+                            'message' => "Insufficient stock for {$product->title} ({$variant->label})",
+                        ], 400);
+                    }
+
+                    $unitPrice = $variant->price;
+                } else {
+                    if ($product->stock < $item['quantity']) {
+                        return response()->json([
+                            'message' => "Insufficient stock for {$product->title}",
+                        ], 400);
+                    }
+
+                    $unitPrice = $product->price;
                 }
 
-                $itemTotal = $product->price * $item['quantity'];
+                $itemTotal = $unitPrice * $item['quantity'];
                 $total += $itemTotal;
 
                 $orderItems[] = [
                     'product_id' => $product->id,
+                    'variant_id' => $variant?->id,
                     'product_title' => $product->title,
+                    'variant_label' => $variant?->label,
                     'quantity' => $item['quantity'],
-                    'price' => $product->price,
+                    'price' => $unitPrice,
                     'attributes' => $item['attributes'] ?? null,
                 ];
             }

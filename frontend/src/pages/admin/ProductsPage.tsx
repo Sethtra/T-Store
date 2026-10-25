@@ -14,6 +14,12 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { getApiErrorMessage } from "../../lib/errors";
+import type { PhoneSpecs } from "../../types/product";
+import PhoneSpecsEditor from "../../components/admin/products/PhoneSpecsEditor";
+import ColorPhotosEditor from "../../components/admin/products/ColorPhotosEditor";
+import { appendColors, toColorDrafts, type ColorDraft } from "../../components/admin/products/colorDrafts";
+import VariantsEditor from "../../components/admin/products/VariantsEditor";
+import { draftSummary, draftsToPayload, toVariantDrafts, variantDraftError, type VariantDraft } from "../../components/admin/products/variantDrafts";
 
 // Helper for status
 const getStockStatus = (stock: number) => {
@@ -245,6 +251,10 @@ const ProductsPage = () => {
     attributes: {} as Record<string, string | string[]>,
   });
   const [selectedParentId, setSelectedParentId] = useState<string>("");
+  const [specs, setSpecs] = useState<PhoneSpecs>({});
+  const [colorDrafts, setColorDrafts] = useState<ColorDraft[]>([]);
+  const [variantDrafts, setVariantDrafts] = useState<VariantDraft[]>([]);
+  const variantSummary = draftSummary(variantDrafts);
 
   // Build flat list of sub-categories for the selected parent
   const subCategories = useMemo(() => {
@@ -304,6 +314,9 @@ const ProductsPage = () => {
       attributes: {},
     });
     setAttributeRows([]);
+    setSpecs({});
+    setColorDrafts([]);
+    setVariantDrafts([]);
     setSelectedParentId("");
     setSelectedImages([]);
     setExistingImages([]);
@@ -355,6 +368,9 @@ const ProductsPage = () => {
         attributes: product.attributes || {},
       });
       setAttributeRows(initialRows);
+      setSpecs(product.specs ?? {});
+      setColorDrafts(toColorDrafts(product.colors));
+      setVariantDrafts(toVariantDrafts(product.variants));
       setSelectedParentId(parentId);
       setSelectedImages([]);
       setExistingImages(product.images || []);
@@ -366,6 +382,11 @@ const ProductsPage = () => {
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+      const variantError = variantDraftError(variantDrafts);
+      if (variantError) {
+        alert(variantError);
+        return;
+      }
       try {
         const data = new FormData();
         data.append("title", formData.title);
@@ -376,6 +397,13 @@ const ProductsPage = () => {
         // Empty string clears the discount on update (backend converts it to null)
         data.append("original_price", formData.original_price);
         data.append("stock", formData.stock);
+        if (variantDrafts.length > 0) {
+          // Options carry the real prices/stock; the server re-summarises the product from them
+          const summary = draftSummary(variantDrafts);
+          data.set("price", String(summary?.price ?? 0));
+          data.set("stock", String(summary?.stock ?? 0));
+          data.set("original_price", "");
+        }
         if (formData.category_id)
           data.append("category_id", formData.category_id);
 
@@ -403,6 +431,10 @@ const ProductsPage = () => {
           data.append("attributes", JSON.stringify(attributesObj));
         }
 
+        data.append("specs", JSON.stringify(specs));
+        appendColors(data, colorDrafts);
+        data.append("variants", JSON.stringify(draftsToPayload(variantDrafts)));
+
         if (editingProduct) {
           data.append("_method", "PUT");
           await updateProduct.mutateAsync({
@@ -426,6 +458,9 @@ const ProductsPage = () => {
       updateProduct,
       createProduct,
       attributeRows,
+      specs,
+      colorDrafts,
+      variantDrafts,
     ],
   );
 
@@ -734,7 +769,7 @@ const ProductsPage = () => {
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setIsModalOpen(false)}
             />
-            <div className="relative bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-2xl p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl">
+            <div className="relative bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-2xl p-6 w-full max-w-3xl max-h-[88vh] overflow-y-auto shadow-2xl">
               <h2 className="text-xl font-bold mb-6 text-[var(--color-text-primary)]">
                 {editingProduct ? "Edit Product" : "Create Product"}
               </h2>
@@ -824,6 +859,14 @@ const ProductsPage = () => {
                   </div>
                 </div>
 
+                {variantDrafts.length > 0 ? (
+                  // Memory options set their own prices and stock; the product shows the summary
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Input label="Price (lowest option)" type="number" value={variantSummary ? String(variantSummary.price) : ""} disabled readOnly />
+                    <Input label="Original price" type="text" value="Per option" disabled readOnly />
+                    <Input label="Stock (all options)" type="number" value={variantSummary ? String(variantSummary.stock) : ""} disabled readOnly helperText="Set in Memory options below" />
+                  </div>
+                ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <Input
                     label="Price"
@@ -863,6 +906,9 @@ const ProductsPage = () => {
                     required
                   />
                 </div>
+                )}
+
+                <VariantsEditor value={variantDrafts} onChange={setVariantDrafts} />
 
                 {/* Attributes Builder */}
                 <div className="space-y-2">
@@ -929,11 +975,18 @@ const ProductsPage = () => {
                   </div>
                 </div>
 
+                <PhoneSpecsEditor value={specs} onChange={setSpecs} />
+
+                <ColorPhotosEditor value={colorDrafts} onChange={setColorDrafts} />
+
                 {/* Image Upload */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block text-[var(--color-text-primary)]">
-                    Images
+                  <label className="text-sm font-medium block text-[var(--color-text-primary)]">
+                    Product images
                   </label>
+                  <p className="mb-2 text-xs text-[var(--color-text-muted)]">
+                    The main gallery shown when a shopper opens the product. Colour photos go in the section above.
+                  </p>
 
                   {/* Image Grid */}
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-4">

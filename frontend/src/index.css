@@ -25,17 +25,17 @@
   --color-text-secondary: #46464b;
   --color-text-muted: #6b6b70;
 
-  /* Action: ink */
-  --color-primary: #121212;
-  --color-primary-hover: #2c2c2e;
-  --color-primary-light: #ececea;
+  /* Action: jade */
+  --color-primary: #0a5c44;
+  --color-primary-hover: #084936;
+  --color-primary-light: #e6f2ec;
   --color-on-primary: #ffffff;
 
-  /* Brand: the crest's gold, for marks only (never body text) */
+  /* Brand: the crest's gold, for marks and accent lines only (3.2:1 on white, so never text) */
   --color-gold: #b08a3a;
 
-  /* Status */
-  --color-success: #15803d;
+  /* Status: success is the jade itself, so there is only one green */
+  --color-success: #0a5c44;
   --color-warning: #b45309;
   --color-error: #c62828;
   --color-info: #1d4ed8;
@@ -43,6 +43,11 @@
   /* Lines */
   --color-border: #e6e6e3;
   --color-border-hover: #cfcfcb;
+
+  /* Product cards: a firmer edge and deeper photo well so cards read on white */
+  --color-card-edge: #d4d4d0;
+  --color-card-edge-hover: #b4b4af;
+  --color-card-well: #eaeae7;
 
   /* Motion */
   --duration-fast: 120ms;
@@ -81,20 +86,24 @@
   --color-text-secondary: #bdbdc2;
   --color-text-muted: #94949a;
 
-  --color-primary: #f4f4f2;
-  --color-primary-hover: #ffffff;
-  --color-primary-light: #26262a;
-  --color-on-primary: #121212;
+  --color-primary: #3fc79a;
+  --color-primary-hover: #5fd6ad;
+  --color-primary-light: #16302a;
+  --color-on-primary: #0d1512;
 
   --color-gold: #cfa955;
 
-  --color-success: #4ade80;
+  --color-success: #3fc79a;
   --color-warning: #fbbf24;
   --color-error: #f87171;
   --color-info: #7aa7ff;
 
   --color-border: #2a2a2e;
   --color-border-hover: #3a3a40;
+
+  --color-card-edge: #3a3a40;
+  --color-card-edge-hover: #4a4a52;
+  --color-card-well: #26262b;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-md: 0 8px 20px -6px rgb(0 0 0 / 0.6);
@@ -192,7 +201,7 @@ body {
 
 /* Focus */
 :focus-visible {
-  outline: 2px solid var(--color-text-primary);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -214,8 +223,8 @@ body {
 }
 
 ::selection {
-  background-color: var(--color-text-primary);
-  color: var(--color-bg-primary);
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 /* ===== Utilities ===== */

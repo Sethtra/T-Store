@@ -47,10 +47,11 @@ const HomePage = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-5">
+          // Same card width as the deal rows (5 across on desktop); in-between widths drop the cards that would leave a half row
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5 sm:max-md:[&>:nth-child(n+10)]:hidden md:max-lg:[&>:nth-child(n+9)]:hidden">
             {isLoading
-              ? Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)
-              : products?.slice(0, 8).map((product: Product) => (
+              ? Array.from({ length: 10 }).map((_, i) => <ProductCardSkeleton key={i} />)
+              : products?.slice(0, 10).map((product: Product) => (
                   <ProductCard
                     key={product.id}
                     id={product.id}
@@ -64,6 +65,9 @@ const HomePage = () => {
                     category_kh={product.category?.name_kh}
                     stock={product.stock}
                     attributes={product.attributes}
+                    specs={product.specs}
+                    colors={product.colors}
+                    variants={product.active_variants}
                   />
                 ))}
           </div>

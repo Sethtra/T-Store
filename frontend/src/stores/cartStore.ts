@@ -10,6 +10,8 @@ export interface CartItem {
   image: string;
   quantity: number;
   attributes?: Record<string, string>;
+  /** Memory option (RAM / storage) bought; its price is the item price */
+  variant_id?: number | null;
   cart_item_id?: number; // Backend exact ID
 }
 
@@ -17,6 +19,7 @@ interface CartSyncPayloadItem {
   product_id: number;
   quantity: number;
   attributes?: Record<string, string>;
+  variant_id?: number | null;
 }
 
 interface CartState {
@@ -91,7 +94,8 @@ export const useCartStore = create<CartState>()(
           api.post('/cart/items', {
             product_id: item.id,
             quantity: 1,
-            attributes: item.attributes || null
+            attributes: item.attributes || null,
+            variant_id: item.variant_id ?? null
           }).then((res) => {
              // Optionally update local items with real cart_item_ids from the server
              if (res.data?.cart) {
@@ -215,7 +219,8 @@ export const useCartStore = create<CartState>()(
             payloadItems = items.map(i => ({
                 product_id: i.id,
                 quantity: i.quantity,
-                attributes: i.attributes
+                attributes: i.attributes,
+                variant_id: i.variant_id ?? null
             }));
             
             // Clear the local guest cart now that it is being migrated

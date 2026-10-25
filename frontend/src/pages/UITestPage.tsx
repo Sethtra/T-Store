@@ -614,6 +614,9 @@ const UITestPage = () => {
                 category_kh={p.category?.name_kh}
                 stock={p.stock}
                 attributes={p.attributes}
+                specs={p.specs}
+                colors={p.colors}
+                variants={p.active_variants}
                 description={p.description}
                 description_kh={p.description_kh}
               />

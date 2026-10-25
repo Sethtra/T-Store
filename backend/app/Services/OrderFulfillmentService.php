@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockMovement;
 
 /**
@@ -63,7 +64,14 @@ class OrderFulfillmentService
             $product = Product::find($item->product_id);
 
             if ($product) {
-                $product->decrement('stock', $item->quantity);
+                // Memory option bought: take it from that option, then refresh the product's total
+                $variant = $item->variant_id ? ProductVariant::where('product_id', $product->id)->find($item->variant_id) : null;
+                if ($variant) {
+                    $variant->decrement('stock', $item->quantity);
+                    $product->syncFromVariants();
+                } else {
+                    $product->decrement('stock', $item->quantity);
+                }
 
                 $ref = 'Order #' . $order->tracking_id;
                 if ($referenceSuffix) {
@@ -72,6 +80,7 @@ class OrderFulfillmentService
 
                 StockMovement::create([
                     'product_id' => $product->id,
+                    'variant_id' => $variant?->id,
                     'quantity_change' => -$item->quantity,
                     'type' => 'sale',
                     'reference' => $ref,

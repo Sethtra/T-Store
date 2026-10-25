@@ -65,7 +65,7 @@ const Navbar = () => {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `relative px-3 py-2 text-[0.9375rem] font-medium transition-colors ${
       isActive
-        ? "text-[var(--color-text-primary)] after:absolute after:inset-x-3 after:-bottom-[13px] after:h-[2px] after:bg-[var(--color-text-primary)]"
+        ? "text-[var(--color-text-primary)] after:absolute after:inset-x-3 after:-bottom-[13px] after:h-[2px] after:bg-[var(--color-gold)]"
         : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
     }`;
 

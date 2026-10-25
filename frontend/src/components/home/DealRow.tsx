@@ -79,6 +79,9 @@ const DealRow = ({ id, group, isLoading }: DealRowProps) => {
                 category_kh={product.category?.name_kh}
                 stock={product.stock}
                 attributes={product.attributes}
+                specs={product.specs}
+                colors={product.colors}
+                variants={product.active_variants}
               />
             ) : (
               <ProductCardSkeleton />

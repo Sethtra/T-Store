@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
 
 class Product extends Model
@@ -23,6 +24,7 @@ class Product extends Model
         'category_id',
         'images',
         'attributes',
+        'specs',
     ];
 
     protected $casts = [
@@ -31,6 +33,7 @@ class Product extends Model
         'stock' => 'integer',
         // 'images' is handled by getImagesAttribute accessor
         'attributes' => 'array',
+        'specs' => 'array',
     ];
 
     /**
@@ -66,7 +69,12 @@ class Product extends Model
 
         // Increment the product cache version to bust all listing caches
         // The ProductController reads this version and includes it in cache keys
-        Cache::increment('products_cache_version');
+        // increment() does nothing when the key is missing (database cache store),
+        // which left listings stale for up to an hour; start a fresh version instead.
+        // A timestamp can't collide with versions already used in cached keys.
+        if (Cache::increment('products_cache_version') === false) {
+            Cache::forever('products_cache_version', time());
+        }
     }
 
     /**
@@ -75,6 +83,62 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Colour options, each with its own six-angle photo set.
+     */
+    public function colors(): HasMany
+    {
+        return $this->hasMany(ProductColor::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * Memory options (RAM / storage), each with its own price and stock.
+     */
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * Options shoppers can buy (switched-off ones are hidden from the store).
+     */
+    public function activeVariants(): HasMany
+    {
+        // Raw boolean comparison for Postgres Transaction Pooler compatibility (same as Banner::scopeActive)
+        return $this->variants()->whereRaw('is_active = true');
+    }
+
+    /**
+     * For products with memory options, keep the product's own price and stock
+     * as a summary (lowest price, total stock) so listings, sorting, stock alerts
+     * and reports keep working unchanged. Products without options are left alone.
+     */
+    public function syncFromVariants(): void
+    {
+        $all = $this->variants()->get();
+        if ($all->isEmpty()) {
+            return;
+        }
+
+        // Every option switched off: nothing can be bought
+        $active = $all->where('is_active', true);
+        if ($active->isEmpty()) {
+            $this->update(['stock' => 0]);
+            return;
+        }
+
+        $cheapest = $active->sortBy(fn ($v) => (float) $v->price)->first();
+        $original = $cheapest->original_price !== null && (float) $cheapest->original_price > (float) $cheapest->price
+            ? $cheapest->original_price
+            : null;
+
+        $this->update([
+            'price' => $cheapest->price,
+            'original_price' => $original,
+            'stock' => (int) $active->sum('stock'),
+        ]);
     }
 
     /**

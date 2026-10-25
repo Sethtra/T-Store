@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductColor;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -17,7 +20,7 @@ class AdminProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('category')->orderBy('created_at', 'desc');
+        $query = Product::with(['category', 'colors', 'variants'])->orderBy('created_at', 'desc');
 
         if ($request->filled('search')) {
             // Use 'like' instead of 'ilike' to support MySQL/SQLite. Case insensitivity is default in MySQL.
@@ -63,7 +66,11 @@ class AdminProductController extends Controller
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'attributes' => 'nullable|array',
+            ...$this->colorRules(),
         ]);
+
+        // Check every memory option before anything is saved
+        $variantRows = $this->parseVariants($request);
 
         $slug = Str::slug($request->title);
         $slugExists = Product::where('slug', $slug)->exists();
@@ -105,7 +112,11 @@ class AdminProductController extends Controller
             'category_id' => $request->category_id,
             'images' => json_encode(array_values($imageUrls)), // Ensure only clean string arrays are saved
             'attributes' => $request->input('attributes') ?? [],
+            'specs' => $this->sanitizeSpecs($request->input('specs')),
         ]);
+
+        $this->syncColors($request, $product);
+        $this->saveVariants($product, $variantRows);
 
         // Invalidate public caches
         Cache::forget('landing_data_all');
@@ -113,7 +124,7 @@ class AdminProductController extends Controller
 
         return response()->json([
             'message' => 'Product created successfully',
-            'product' => $product,
+            'product' => $product->fresh(['colors', 'variants']),
         ], 201);
     }
 
@@ -133,6 +144,7 @@ class AdminProductController extends Controller
             'stock' => 'sometimes|required|integer|min:0',
             'category_id' => 'nullable|exists:categories,id',
             'attributes' => 'nullable|array',
+            ...$this->colorRules(),
         ];
 
         // Fix for FormData: decode attributes if sent as JSON string
@@ -158,7 +170,13 @@ class AdminProductController extends Controller
 
         $request->validate($rules);
 
+        // Check every memory option before anything is saved
+        $variantRows = $this->parseVariants($request);
+
         $updateData = $request->only(['title', 'description', 'price', 'original_price', 'stock', 'category_id', 'attributes']);
+        if ($request->has('specs')) {
+            $updateData['specs'] = $this->sanitizeSpecs($request->input('specs'));
+        }
 
         // Handle Multiple File Uploads - Use existing_images from frontend if provided (tracks removals)
         // Otherwise fallback to database images
@@ -242,6 +260,8 @@ class AdminProductController extends Controller
         }
 
         $product->update($updateData);
+        $this->syncColors($request, $product);
+        $this->saveVariants($product, $variantRows);
 
         // Invalidate public caches
         Cache::forget('landing_data_all');
@@ -249,7 +269,7 @@ class AdminProductController extends Controller
 
         return response()->json([
             'message' => 'Product updated successfully',
-            'product' => $product->fresh(),
+            'product' => $product->fresh(['colors', 'variants']),
         ]);
     }
 
@@ -276,6 +296,11 @@ class AdminProductController extends Controller
             }
         }
 
+        // Colour photo sets live in storage too; the rows go with the product (cascade)
+        foreach ($product->colors as $color) {
+            $this->deleteImages($color->imageUrls());
+        }
+
         $product->delete();
 
         // Invalidate public caches
@@ -285,5 +310,270 @@ class AdminProductController extends Controller
         return response()->json([
             'message' => 'Product deleted successfully',
         ]);
+    }
+
+    /**
+     * Phone specification groups and the fields each one accepts.
+     * "text" is free text; the rest are typed so they can be filtered and shown on cards.
+     */
+    private const SPEC_SCHEMA = [
+        'display' => ['text' => 'string', 'size_in' => 'number', 'refresh_hz' => 'number'],
+        'chipset' => ['text' => 'string'],
+        'rear_camera' => ['text' => 'string'],
+        'front_camera' => ['text' => 'string'],
+        'battery' => ['text' => 'string', 'mah' => 'number'],
+        'build' => ['text' => 'string'],
+        'software' => ['text' => 'string', 'os' => 'os'],
+        'brightness' => ['text' => 'string', 'nits' => 'number'],
+        'memory' => ['text' => 'string'],
+        'charging' => ['text' => 'string', 'watts' => 'number'],
+        'size_weight' => ['text' => 'string', 'weight_g' => 'number'],
+        'connectivity' => ['text' => 'string', 'five_g' => 'bool', 'nfc' => 'bool', 'esim' => 'bool', 'wifi7' => 'bool'],
+    ];
+
+    private const OS_OPTIONS = ['Android', 'iOS', 'HarmonyOS', 'Other'];
+
+    /**
+     * Keep only known spec groups/fields with the right types. Returns null when nothing is filled.
+     */
+    private function sanitizeSpecs(mixed $input): ?array
+    {
+        if (is_string($input)) {
+            $input = json_decode($input, true);
+        }
+        if (!is_array($input)) {
+            return null;
+        }
+
+        $clean = [];
+        foreach (self::SPEC_SCHEMA as $group => $fields) {
+            $values = $input[$group] ?? null;
+            if (!is_array($values)) {
+                continue;
+            }
+            foreach ($fields as $field => $type) {
+                $value = $values[$field] ?? null;
+                $value = match ($type) {
+                    'string' => is_string($value) && trim($value) !== '' ? mb_substr(trim($value), 0, 1000) : null,
+                    'number' => is_numeric($value) && (float) $value >= 0 ? round((float) $value, 2) : null,
+                    'bool' => filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ? true : null,
+                    'os' => in_array($value, self::OS_OPTIONS, true) ? $value : null,
+                };
+                if ($value !== null) {
+                    $clean[$group][$field] = $value;
+                }
+            }
+        }
+
+        return $clean ?: null;
+    }
+
+    /**
+     * Validation for the colour list: `colors` is a JSON array, photos arrive as color_images[index][angle].
+     */
+    private function colorRules(): array
+    {
+        return [
+            'colors' => 'nullable|json',
+            'variants' => 'nullable|json',
+            'color_images' => 'nullable|array',
+            'color_images.*' => 'array',
+            'color_images.*.*' => 'image|mimes:jpeg,png,jpg,webp|max:4096',
+        ];
+    }
+
+    /**
+     * Replace the product's colours with the submitted list.
+     *
+     * `colors`: [{ id?, name, name_kh?, hex?, images: { front: url|null, ... } }]
+     * Each image value is the URL to keep; a file in color_images[i][angle] replaces it.
+     * Colours left out of the list are deleted along with their photos.
+     */
+    private function syncColors(Request $request, Product $product): void
+    {
+        if (!$request->has('colors')) {
+            return;
+        }
+
+        $input = json_decode((string) $request->input('colors'), true);
+        if (!is_array($input)) {
+            return;
+        }
+
+        $existing = $product->colors()->get()->keyBy('id');
+        $keptIds = [];
+        $supabase = app(SupabaseStorageService::class);
+
+        foreach (array_values($input) as $index => $row) {
+            $name = is_array($row) ? trim((string) ($row['name'] ?? '')) : '';
+            if ($name === '') {
+                continue;
+            }
+
+            $color = isset($row['id']) ? $existing->get((int) $row['id']) : null;
+            $oldImages = $color?->images ?? [];
+            $sent = is_array($row['images'] ?? null) ? $row['images'] : [];
+            $images = [];
+
+            foreach (ProductColor::ANGLES as $angle) {
+                $old = $oldImages[$angle] ?? null;
+                $file = $request->file("color_images.$index.$angle");
+
+                if ($file) {
+                    $images[$angle] = $supabase->upload($file, 'products/colors');
+                } else {
+                    // Only keep a URL this colour already had; anything else is dropped
+                    $keep = $sent[$angle] ?? null;
+                    $images[$angle] = is_string($keep) && $keep === $old ? $old : null;
+                }
+
+                if ($old && $images[$angle] !== $old) {
+                    $this->deleteImages([$old]);
+                }
+            }
+
+            $hex = $row['hex'] ?? null;
+            $attributes = [
+                'name' => mb_substr($name, 0, 50),
+                'name_kh' => isset($row['name_kh']) && trim((string) $row['name_kh']) !== '' ? mb_substr(trim($row['name_kh']), 0, 50) : null,
+                'hex' => is_string($hex) && preg_match('/^#[0-9a-fA-F]{6}$/', $hex) ? strtolower($hex) : null,
+                'images' => $images,
+                'sort_order' => $index,
+            ];
+
+            if ($color) {
+                $color->update($attributes);
+            } else {
+                $color = $product->colors()->create($attributes);
+            }
+            $keptIds[] = $color->id;
+        }
+
+        foreach ($existing as $id => $color) {
+            if (!in_array($id, $keptIds, true)) {
+                $this->deleteImages($color->imageUrls());
+                $color->delete();
+            }
+        }
+
+        // Bust the storefront caches even when only colours changed
+        $product->touch();
+    }
+
+    /**
+     * Read and check the `variants` JSON (memory options) before anything is saved.
+     * Returns null when the form didn't send the field (leave options untouched),
+     * or the cleaned rows ([] removes all options).
+     *
+     * Row: { id?, ram?, storage?, price, original_price?, stock, is_active? }
+     *
+     * @throws ValidationException
+     */
+    private function parseVariants(Request $request): ?array
+    {
+        if (!$request->has('variants')) {
+            return null;
+        }
+
+        $input = json_decode((string) $request->input('variants'), true);
+        if (!is_array($input)) {
+            throw ValidationException::withMessages(['variants' => 'Memory options could not be read.']);
+        }
+
+        $rows = [];
+        $seen = [];
+        foreach (array_values($input) as $i => $row) {
+            $n = $i + 1;
+            $ram = is_array($row) ? trim((string) ($row['ram'] ?? '')) : '';
+            $storage = is_array($row) ? trim((string) ($row['storage'] ?? '')) : '';
+
+            if ($ram === '' && $storage === '') {
+                throw ValidationException::withMessages(['variants' => "Memory option {$n} needs a RAM or storage value."]);
+            }
+            if (mb_strlen($ram) > 20 || mb_strlen($storage) > 20) {
+                throw ValidationException::withMessages(['variants' => "Memory option {$n}: values must be 20 characters or less."]);
+            }
+
+            $key = mb_strtolower($ram . '|' . $storage);
+            if (isset($seen[$key])) {
+                throw ValidationException::withMessages(['variants' => "Memory option {$n} is listed twice."]);
+            }
+            $seen[$key] = true;
+
+            $price = $row['price'] ?? null;
+            if (!is_numeric($price) || (float) $price < 0) {
+                throw ValidationException::withMessages(['variants' => "Memory option {$n} needs a price."]);
+            }
+
+            $stock = $row['stock'] ?? 0;
+            if (!is_numeric($stock) || (int) $stock < 0 || (float) $stock != (int) $stock) {
+                throw ValidationException::withMessages(['variants' => "Memory option {$n} needs a whole-number stock of 0 or more."]);
+            }
+
+            $original = $row['original_price'] ?? null;
+            $original = is_numeric($original) && (float) $original > (float) $price ? round((float) $original, 2) : null;
+
+            $rows[] = [
+                'id' => isset($row['id']) && is_numeric($row['id']) ? (int) $row['id'] : null,
+                'ram' => $ram !== '' ? $ram : null,
+                'storage' => $storage !== '' ? $storage : null,
+                'price' => round((float) $price, 2),
+                'original_price' => $original,
+                'stock' => (int) $stock,
+                'is_active' => filter_var($row['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'sort_order' => $i,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Replace the product's memory options with the checked rows, then refresh the
+     * product's summary price/stock. Options left out are deleted (past orders keep their label).
+     */
+    private function saveVariants(Product $product, ?array $rows): void
+    {
+        if ($rows === null) {
+            return;
+        }
+
+        DB::transaction(function () use ($product, $rows) {
+            $existing = $product->variants()->get()->keyBy('id');
+            $keptIds = [];
+
+            foreach ($rows as $row) {
+                $id = $row['id'];
+                unset($row['id']);
+
+                $variant = $id ? $existing->get($id) : null;
+                if ($variant) {
+                    $variant->update($row);
+                } else {
+                    $variant = $product->variants()->create($row);
+                }
+                $keptIds[] = $variant->id;
+            }
+
+            $product->variants()->whereNotIn('id', $keptIds ?: [0])->delete();
+            $product->syncFromVariants();
+        });
+    }
+
+    /**
+     * Remove uploaded files from storage; failures are logged, never fatal.
+     */
+    private function deleteImages(array $urls): void
+    {
+        $supabase = app(SupabaseStorageService::class);
+        foreach ($urls as $url) {
+            if (is_string($url) && str_starts_with($url, 'http')) {
+                try {
+                    $supabase->delete($url);
+                } catch (\Exception $e) {
+                    Log::error('Failed to delete product image from Supabase: ' . $e->getMessage());
+                }
+            }
+        }
     }
 }

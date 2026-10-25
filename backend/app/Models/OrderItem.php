@@ -13,7 +13,9 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'variant_id',
         'product_title',
+        'variant_label',
         'quantity',
         'price',
         'attributes',
@@ -23,6 +25,7 @@ class OrderItem extends Model
         'price' => 'decimal:2',
         'quantity' => 'integer',
         'attributes' => 'array',
+        'variant_id' => 'integer',
     ];
 
     /**

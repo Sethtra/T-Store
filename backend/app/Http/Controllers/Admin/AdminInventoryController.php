@@ -98,7 +98,14 @@ class AdminInventoryController extends Controller
 
         return DB::transaction(function () use ($request) {
             $product = Product::lockForUpdate()->findOrFail($request->product_id);
-            
+
+            // Stock for products with memory options lives on each option
+            if ($product->variants()->exists()) {
+                return response()->json([
+                    'message' => 'This product has memory options. Change its stock per option in Products → Edit.',
+                ], 422);
+            }
+
             // Prevent negative stock
             $newStock = $product->stock + $request->quantity_change;
             if ($newStock < 0) {
@@ -148,7 +155,12 @@ class AdminInventoryController extends Controller
                 $product = Product::lockForUpdate()->find($adjustment['product_id']);
                 
                 if (!$product) continue;
-                
+
+                if ($product->variants()->exists()) {
+                    $errors[] = "{$product->title} has memory options. Change its stock per option in Products → Edit.";
+                    continue;
+                }
+
                 $newStock = $product->stock + $adjustment['quantity_change'];
                 
                 if ($newStock < 0) {

@@ -86,10 +86,10 @@ class PublicDataController extends Controller
                         ];
                     }),
                 ],
-                'featured_products' => Product::with('category')
+                'featured_products' => Product::with(['category', 'colors', 'activeVariants'])
                     ->where('stock', '>', 0)
                     ->orderBy('created_at', 'desc')
-                    ->take(8)
+                    ->take(10)
                     ->get(),
                 'landing_sections' => LandingSection::with('product.category')
                     ->active()
